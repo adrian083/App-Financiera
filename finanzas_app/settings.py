@@ -23,9 +23,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-x%dsh=gr!#!9_cva2k$8f9xz!4=hxgmjnvwnadc4f!)qc5epf^'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '.pythonanywhere.com']
+DEBUG = False
+ALLOWED_HOSTS = ['AppFinanciera.pythonanywhere.com']
 
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'dashboard'
