@@ -1,0 +1,143 @@
+/**
+ * FinanzasApp — Estilos globales de formularios (WCAG contrast).
+ * Clase principal: .form-input (también .input-cop para montos COP)
+ */
+
+/* ── Modo claro ── */
+.form-input,
+.input-cop {
+    width: 100%;
+    border-radius: 0.75rem;
+    border: 1px solid #cbd5e1;          /* slate-300 */
+    background-color: #ffffff;
+    color: #0f172a;                      /* slate-900 */
+    font-weight: 600;
+    padding: 0.75rem 1rem;
+    min-height: 3rem;
+    font-size: 1rem;
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.form-input::placeholder,
+.input-cop::placeholder {
+    color: #94a3b8;                      /* slate-400 */
+    font-weight: 400;
+}
+
+.form-input:focus,
+.input-cop:focus {
+    outline: none;
+    border-color: #6366f1;                 /* indigo-500 */
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
+}
+
+select.form-input {
+    appearance: auto;
+    cursor: pointer;
+}
+
+textarea.form-input {
+    min-height: 4rem;
+    resize: vertical;
+}
+
+/* ── Modo oscuro ── */
+.dark input.form-input,
+.dark input.input-cop,
+.dark select.form-input,
+.dark textarea.form-input,
+.dark .form-input,
+.dark .input-cop {
+    background-color: #1e293b !important;  /* slate-800 */
+    color: #ffffff !important;
+    border-color: #475569 !important;      /* slate-600 */
+}
+
+.dark input.form-input::placeholder,
+.dark input.input-cop::placeholder,
+.dark textarea.form-input::placeholder,
+.dark .form-input::placeholder,
+.dark .input-cop::placeholder {
+    color: #64748b !important;             /* slate-500 */
+}
+
+.dark input.form-input:focus,
+.dark input.input-cop:focus,
+.dark select.form-input:focus,
+.dark textarea.form-input:focus,
+.dark .form-input:focus,
+.dark .input-cop:focus {
+    border-color: #6366f1 !important;      /* indigo-500 */
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.4) !important;
+}
+
+/* Red de seguridad: cualquier input/select/textarea sin clase explícita */
+.dark input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]):not([type="color"]):not([type="file"]):not([type="submit"]):not([type="button"]),
+.dark select,
+.dark textarea {
+    background-color: #1e293b !important;
+    color: #ffffff !important;
+    border-color: #475569 !important;
+}
+
+.dark input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"])::placeholder,
+.dark textarea::placeholder {
+    color: #64748b !important;
+}
+
+.dark select option {
+    background-color: #1e293b;
+    color: #ffffff;
+}
+
+.dark input[type="date"],
+.dark input[type="datetime-local"],
+.dark input[type="time"],
+.dark input[type="number"] {
+    color-scheme: dark;
+}
+
+/* Labels de formulario */
+.form-label {
+    display: block;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #334155;                        /* slate-700 */
+    margin-bottom: 0.25rem;
+}
+
+.dark .form-label {
+    color: #e2e8f0 !important;             /* slate-200 */
+}
+
+button,
+.form-input,
+.input-cop,
+input,
+select,
+textarea {
+    font-size: 1rem !important;
+}
+
+.text-sm {
+    font-size: 0.95rem !important;
+    line-height: 1.6 !important;
+}
+
+.text-xs {
+    font-size: 0.88rem !important;
+    line-height: 1.55 !important;
+}
+
+/* Autofill en Chrome (evita fondo amarillo ilegible) */
+input.form-input:-webkit-autofill,
+input.input-cop:-webkit-autofill {
+    -webkit-text-fill-color: #0f172a;
+    -webkit-box-shadow: 0 0 0 1000px #ffffff inset;
+}
+
+.dark input.form-input:-webkit-autofill,
+.dark input.input-cop:-webkit-autofill {
+    -webkit-text-fill-color: #ffffff !important;
+    -webkit-box-shadow: 0 0 0 1000px #1e293b inset !important;
+}

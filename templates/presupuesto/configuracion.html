@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% load finanzas_tags %}
+
+{% block title %}Configuración — FinanzasApp{% endblock %}
+
+{% block content %}
+<div class="max-w-lg mx-auto">
+    <div class="text-center mb-6">
+        <div class="flex justify-center mb-3">
+            {% include 'partials/logo.html' with size='w-16 h-16' %}
+        </div>
+        <h1 class="text-2xl font-bold text-slate-900 dark:text-slate-100">
+            {% if editando %}Editar configuración{% else %}Bienvenido a FinanzasApp{% endif %}
+        </h1>
+    </div>
+    <div class="bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-8">
+        <p class="text-slate-600 dark:text-slate-400 mb-6">
+            {% if editando %}
+            Ajusta tu salario base y día de corte del ciclo financiero.
+            {% else %}
+            Configura tu salario y el día de corte para iniciar tu primer ciclo mensual.
+            {% endif %}
+        </p>
+        <form method="post" class="space-y-4">
+            {% csrf_token %}
+            {% for field in form %}
+            <div>
+                <label class="form-label">{{ field.label }}</label>
+                {{ field }}
+                {% if field.help_text %}<p class="text-xs text-slate-500 dark:text-slate-400 mt-1">{{ field.help_text }}</p>{% endif %}
+                {% for e in field.errors %}<p class="text-xs text-red-600 dark:text-red-400 mt-1">{{ e }}</p>{% endfor %}
+            </div>
+            {% endfor %}
+            <p class="text-xs text-slate-500 dark:text-slate-400">
+                El ciclo va del día de corte de un mes al día anterior del corte del mes siguiente
+                (ej. 30 Abr – 29 May). En febrero se adapta automáticamente al último día del mes.
+            </p>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-2">
+                El plazo de tolerancia permite confirmar el pago si el día de corte cae en fin de
+                semana o festivo, antes de que se cierre el ciclo automáticamente.
+            </p>
+            <button type="submit" class="w-full bg-primary-600 text-white py-3 rounded-xl font-semibold hover:bg-primary-700 transition">
+                {% if editando %}Guardar cambios{% else %}Iniciar aplicación{% endif %}
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>document.addEventListener('DOMContentLoaded', initCOPInputs);</script>
+{% endblock %}

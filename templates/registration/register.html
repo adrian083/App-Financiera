@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block title %}Registro — FinanzasApp{% endblock %}
+
+{% block content %}
+<div class="min-h-[80vh] flex items-center justify-center">
+    <div class="w-full max-w-md">
+        <div class="text-center mb-8">
+            <div class="flex justify-center mb-4">
+                {% include 'partials/logo.html' with size='w-20 h-20' %}
+            </div>
+            <h1 class="text-3xl font-bold text-primary-600 dark:text-primary-400">FinanzasApp</h1>
+            <p class="text-slate-600 dark:text-slate-400 mt-2">Crea tu cuenta gratuita</p>
+        </div>
+        <div class="bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-8">
+            <div class="flex justify-end mb-2">
+                <button type="button" data-theme-toggle
+                    class="px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-lg"
+                    title="Cambiar tema">
+                    <span data-theme-icon="sun">☀️</span>
+                    <span data-theme-icon="moon" class="hidden">🌙</span>
+                </button>
+            </div>
+            <h2 class="text-xl font-semibold text-slate-900 dark:text-slate-100 mb-6">Registrarse</h2>
+            <form method="post" class="space-y-4">
+                {% csrf_token %}
+                {% for field in form %}
+                <div>
+                    <label class="form-label">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.help_text %}<p class="text-xs text-slate-500 dark:text-slate-400 mt-1">{{ field.help_text }}</p>{% endif %}
+                    {% for e in field.errors %}<p class="text-xs text-red-600 dark:text-red-400 mt-1">{{ e }}</p>{% endfor %}
+                </div>
+                {% endfor %}
+                <button type="submit" class="w-full bg-primary-600 text-white py-3 rounded-xl font-semibold hover:bg-primary-700 transition">
+                    Crear cuenta
+                </button>
+            </form>
+            <p class="text-center text-sm text-slate-600 dark:text-slate-400 mt-6">
+                ¿Ya tienes cuenta?
+                <a href="{% url 'login' %}" class="text-primary-600 dark:text-primary-400 font-medium hover:underline">Inicia sesión</a>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>document.addEventListener('DOMContentLoaded', initThemeControls);</script>
+{% endblock %}

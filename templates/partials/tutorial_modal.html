@@ -1,0 +1,92 @@
+{% load static %}
+<!-- Tutorial de bienvenida -->
+<div id="tutorial-modal" class="fixed inset-0 bg-black/60 flex items-center justify-center z-[60] p-4">
+    <div id="tutorial-csrf" class="hidden">{% csrf_token %}</div>
+    <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-lg w-full p-6 border border-slate-200 dark:border-slate-700 max-h-[90vh] overflow-y-auto">
+
+        <!-- Paso 1: Bienvenida -->
+        <div data-tutorial-step class="text-center">
+            <div class="flex justify-center mb-4">
+                {% include 'partials/logo.html' with size='w-24 h-24' %}
+            </div>
+            <h2 class="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-2">
+                ¡Bienvenido, {{ user.first_name|default:user.username }}!
+            </h2>
+            <p class="text-slate-600 dark:text-slate-300 text-sm leading-relaxed">
+                FinanzasApp te ayuda a organizar tu dinero en Pesos Colombianos,
+                controlar tu presupuesto mensual y hacer crecer tus ahorros e inversiones.
+            </p>
+        </div>
+
+        <!-- Paso 2: Módulos -->
+        <div data-tutorial-step class="hidden">
+            <h2 class="text-xl font-bold text-slate-900 dark:text-slate-100 mb-4">Dos módulos, un control total</h2>
+            <div class="space-y-3">
+                <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600">
+                    <p class="font-semibold text-primary-600 dark:text-primary-400 text-sm">📊 Módulo 1 — Presupuesto</p>
+                    <p class="text-slate-600 dark:text-slate-300 text-sm mt-1">
+                        Registra ingresos, gastos diarios y transferencias. Visualiza tu consumo por categoría.
+                    </p>
+                </div>
+                <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600">
+                    <p class="font-semibold text-indigo-600 dark:text-indigo-400 text-sm">💎 Módulo 2 — Ahorros e Inversión</p>
+                    <p class="text-slate-600 dark:text-slate-300 text-sm mt-1">
+                        Acumula patrimonio, crea inversiones y lleva un ledger contable de ganancias y pérdidas.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Paso 3: Día de corte -->
+        <div data-tutorial-step class="hidden">
+            <h2 class="text-xl font-bold text-slate-900 dark:text-slate-100 mb-3">Tu ciclo financiero</h2>
+            <div class="p-4 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700">
+                <p class="text-slate-700 dark:text-slate-200 text-sm leading-relaxed">
+                    Tu ciclo funciona con un <strong>día de corte fijo</strong> (configuraste el día
+                    <strong>{{ config.dia_corte }}</strong> de cada mes).
+                </p>
+                <p class="text-slate-600 dark:text-slate-300 text-sm mt-3">
+                    Ejemplo: del 30 de un mes al 29 del siguiente. Al cerrar el ciclo, el sobrante
+                    se transfiere automáticamente a tu fondo de ahorro.
+                </p>
+            </div>
+        </div>
+
+        <!-- Paso 4: PWA -->
+        <div data-tutorial-step class="hidden text-center">
+            <div class="text-5xl mb-4">📱</div>
+            <h2 class="text-xl font-bold text-slate-900 dark:text-slate-100 mb-3">Instálala en tu celular</h2>
+            <p class="text-slate-600 dark:text-slate-300 text-sm leading-relaxed">
+                Puedes instalar FinanzasApp como app nativa desde
+                <strong>Chrome</strong> o <strong>Safari</strong>:
+                menú del navegador → <em>"Instalar aplicación"</em> o <em>"Agregar a pantalla de inicio"</em>.
+            </p>
+            <div class="mt-4 flex justify-center">
+                {% include 'partials/logo.html' with size='w-16 h-16' %}
+            </div>
+        </div>
+
+        <!-- Controles -->
+        <div class="flex items-center justify-center gap-2 mt-6 mb-4">
+            <span data-tutorial-dot class="w-2.5 h-2.5 rounded-full bg-primary-600"></span>
+            <span data-tutorial-dot class="w-2.5 h-2.5 rounded-full bg-slate-300 dark:bg-slate-600"></span>
+            <span data-tutorial-dot class="w-2.5 h-2.5 rounded-full bg-slate-300 dark:bg-slate-600"></span>
+            <span data-tutorial-dot class="w-2.5 h-2.5 rounded-full bg-slate-300 dark:bg-slate-600"></span>
+        </div>
+
+        <div class="flex items-center justify-between gap-3">
+            <button id="tutorial-prev" type="button" onclick="tutorialPrev()"
+                class="invisible px-4 py-3 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg">
+                ← Anterior
+            </button>
+            <button id="tutorial-next" type="button" onclick="tutorialNext()"
+                class="px-5 py-3 bg-primary-600 text-white text-base font-semibold rounded-xl hover:bg-primary-700">
+                Siguiente →
+            </button>
+            <button id="tutorial-finish" type="button" onclick="completarTutorial()"
+                class="hidden px-5 py-3 bg-emerald-600 text-white text-base font-semibold rounded-xl hover:bg-emerald-700">
+                ¡Empezar a organizar mis finanzas!
+            </button>
+        </div>
+    </div>
+</div>

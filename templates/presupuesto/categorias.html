@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block title %}Categorías{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div>
+        <h1 class="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-4">Categorías de gastos</h1>
+        <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm divide-y divide-slate-200 dark:divide-slate-700">
+            {% for cat in categorias %}
+            <div class="flex items-center justify-between px-4 py-3">
+                <div class="flex items-center gap-3">
+                    <span class="w-4 h-4 rounded-full" style="background: {{ cat.color }}"></span>
+                    <span class="font-medium text-slate-900 dark:text-slate-100">{{ cat.nombre }}</span>
+                </div>
+                <span class="text-xs {% if cat.activa %}text-emerald-600{% else %}text-slate-500 dark:text-slate-300{% endif %}">
+                    {% if cat.activa %}Activa{% else %}Inactiva{% endif %}
+                </span>
+            </div>
+            {% empty %}
+            <p class="px-4 py-6 text-slate-700 dark:text-slate-300 text-sm">No hay categorías. Crea la primera.</p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm h-fit">
+        <h2 class="font-semibold text-slate-900 dark:text-slate-100 mb-4">Nueva categoría</h2>
+        <form method="post" action="{% url 'categoria_crear' %}" class="space-y-3">
+            {% csrf_token %}
+            {% for field in form %}
+            <div>
+                <label class="block text-sm text-slate-700 dark:text-slate-300 mb-1">{{ field.label }}</label>
+                {{ field }}
+            </div>
+            {% endfor %}
+            <button type="submit" class="w-full bg-primary-600 text-white py-3 rounded-xl font-semibold hover:bg-primary-700 text-base">
+                Crear categoría
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

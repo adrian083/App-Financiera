@@ -1,0 +1,26 @@
+{
+  "name": "FinanzasApp",
+  "short_name": "FinanzasApp",
+  "description": "Gestión de finanzas personales en Pesos Colombianos",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#f8fafc",
+  "theme_color": "#4f46e5",
+  "lang": "es-CO",
+  "icons": [
+    {
+      "src": "/static/icons/logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/static/icons/logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

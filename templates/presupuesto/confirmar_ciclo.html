@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% load finanzas_tags %}
+
+{% block title %}Confirmar ciclo — {{ ciclo.etiqueta }}{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
+        <h1 class="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-2">Confirmar nuevo ciclo</h1>
+        <p class="text-slate-600 dark:text-slate-400 text-sm mb-6">
+            Ciclo <strong>{{ ciclo.etiqueta }}</strong> — Salario: {{ ciclo.salario_ciclo|cop }}.
+            Revisa y ajusta los montos de tus gastos fijos antes de activar el ciclo.
+        </p>
+        <form method="post" class="space-y-4">
+            {% csrf_token %}
+            {% for mov in gastos_fijos %}
+            <div class="flex flex-wrap items-center gap-3 p-3 bg-slate-50 dark:bg-slate-700 rounded-lg">
+                <div class="flex-1 min-w-[140px]">
+                    <p class="font-medium text-sm text-slate-900 dark:text-slate-100">{{ mov.descripcion }}</p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">{{ mov.categoria.nombre }}</p>
+                </div>
+                <input type="text" name="monto_{{ mov.pk }}" value="{{ mov.monto|cop }}"
+                    data-cop="true" class="form-input input-cop w-40 text-sm">
+            </div>
+            {% empty %}
+            <p class="text-slate-500 dark:text-slate-400 text-sm">No hay gastos fijos en este ciclo.</p>
+            {% endfor %}
+            <button type="submit" class="w-full bg-primary-600 text-white py-3 rounded-xl font-semibold hover:bg-primary-700">
+                Confirmar e iniciar ciclo
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>document.addEventListener('DOMContentLoaded', initCOPInputs);</script>
+{% endblock %}

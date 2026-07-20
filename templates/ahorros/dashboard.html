@@ -1,0 +1,246 @@
+{% extends 'base.html' %}
+{% load finanzas_tags %}
+
+{% block title %}Ahorros e Inversión{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <h1 class="text-2xl font-bold text-slate-900 dark:text-slate-100">Ahorros e Inversión</h1>
+    <p class="text-slate-600 dark:text-slate-300">Fondo acumulado, inversiones y ledger contable.</p>
+</div>
+
+{% if inversiones_vencidas or inversiones_proximas %}
+<div class="mb-4 space-y-2">
+    {% for inv in inversiones_vencidas %}
+    <div class="rounded-lg px-4 py-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 text-red-800 dark:text-red-200 text-sm">
+        ⚠️ <strong>{{ inv.nombre }}</strong> venció el {{ inv.fecha_vencimiento|date:"d/m/Y" }} — {{ inv.monto_inicial|cop }}
+    </div>
+    {% endfor %}
+    {% for inv in inversiones_proximas %}
+    <div class="rounded-lg px-4 py-3 bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-700 text-amber-800 dark:text-amber-200 text-sm">
+        🔔 <strong>{{ inv.nombre }}</strong> vence el {{ inv.fecha_vencimiento|date:"d/m/Y" }} (próximos 7 días)
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<!-- Resumen -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+    <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 shadow-sm">
+        <p class="text-xs text-slate-500 dark:text-slate-400 uppercase">Saldo disponible</p>
+        <p class="text-2xl font-bold text-primary-600 mt-1">{{ fondo.saldo_disponible|cop }}</p>
+    </div>
+    <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 shadow-sm">
+        <p class="text-xs text-slate-500 dark:text-slate-400 uppercase">Congelado en inversiones</p>
+        <p class="text-xl font-semibold text-amber-600 mt-1">{{ monto_congelado|cop }}</p>
+    </div>
+    <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 shadow-sm">
+        <p class="text-xs text-slate-500 dark:text-slate-400 uppercase">Total ganancias</p>
+        <p class="text-xl font-semibold text-emerald-600 mt-1">+{{ total_ganancias|cop }}</p>
+    </div>
+    <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 shadow-sm">
+        <p class="text-xs text-slate-500 dark:text-slate-400 uppercase">Total pérdidas</p>
+        <p class="text-xl font-semibold text-red-600 mt-1">-{{ total_perdidas|cop }}</p>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Acciones -->
+    <div class="space-y-4">
+        <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm">
+            <h2 class="font-semibold mb-3 text-slate-900 dark:text-slate-100">Retirar ahorro</h2>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mb-3">Se inyecta como ingreso al ciclo activo del Módulo 1.</p>
+            <form method="post" action="{% url 'retirar_ahorro' %}" class="space-y-3">
+                {% csrf_token %}
+                <div>
+                    <label class="form-label">Monto</label>
+                    {{ form_retiro.monto }}
+                </div>
+                <div>
+                    <label class="form-label">Descripción</label>
+                    {{ form_retiro.descripcion }}
+                </div>
+                <button type="submit" class="w-full bg-amber-500 text-white py-2 rounded-lg hover:bg-amber-600 text-sm font-medium">
+                    Retirar del fondo
+                </button>
+            </form>
+        </div>
+
+        <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm">
+            <h2 class="font-semibold mb-3 text-slate-900 dark:text-slate-100">Crear inversión</h2>
+            <form method="post" action="{% url 'crear_inversion' %}" class="space-y-3">
+                {% csrf_token %}
+                <div>
+                    <label class="form-label">Nombre</label>
+                    {{ form_inversion.nombre }}
+                </div>
+                <div>
+                    <label class="form-label">Monto</label>
+                    {{ form_inversion.monto }}
+                </div>
+                <div>
+                    <label class="form-label">Vencimiento</label>
+                    {{ form_inversion.fecha_vencimiento }}
+                    <div class="flex flex-wrap gap-1 mt-2">
+                        <button type="button" onclick="setInversionPlazo(1)" class="text-xs px-2 py-1 bg-slate-100 dark:bg-slate-700 rounded hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200">1 mes</button>
+                        <button type="button" onclick="setInversionPlazo(3)" class="text-xs px-2 py-1 bg-slate-100 dark:bg-slate-700 rounded hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200">3 meses</button>
+                        <button type="button" onclick="setInversionPlazo(6)" class="text-xs px-2 py-1 bg-slate-100 dark:bg-slate-700 rounded hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200">6 meses</button>
+                        <button type="button" onclick="setInversionPlazo(12)" class="text-xs px-2 py-1 bg-slate-100 dark:bg-slate-700 rounded hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200">12 meses</button>
+                    </div>
+                </div>
+                <div>
+                    <label class="form-label">Notas</label>
+                    {{ form_inversion.notas }}
+                </div>
+                <button type="submit" class="w-full bg-primary-600 text-white py-2 rounded-lg hover:bg-primary-700 text-sm font-medium">
+                    Invertir
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Inversiones -->
+    <div class="lg:col-span-2 space-y-4">
+        <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm">
+            <h2 class="font-semibold mb-3 text-slate-900 dark:text-slate-100">Inversiones activas</h2>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="text-left text-slate-600 dark:text-slate-300 border-b border-slate-200 dark:border-slate-700">
+                            <th class="pb-2">Nombre</th>
+                            <th class="pb-2">Monto</th>
+                            <th class="pb-2">Vencimiento</th>
+                            <th class="pb-2">Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for inv in inversiones_activas %}
+                        <tr class="border-b border-slate-100 dark:border-slate-700">
+                            <td class="py-2 text-slate-800 dark:text-slate-200">{{ inv.nombre }}</td>
+                            <td class="py-2 text-slate-800 dark:text-slate-200">{{ inv.monto_inicial|cop }}</td>
+                            <td class="py-2 text-slate-800 dark:text-slate-200">{{ inv.fecha_vencimiento|date:"d/m/Y" }}</td>
+                            <td class="py-2">
+                                {% if inv.estado == 'vencida' %}
+                                <span class="text-amber-600 dark:text-amber-400 font-medium">Vencida</span>
+                                {% else %}
+                                <span class="text-blue-600 dark:text-blue-400">{{ inv.get_estado_display }}</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="4" class="py-4 text-slate-500 dark:text-slate-400 text-center">No hay inversiones activas.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm">
+            <h2 class="font-semibold mb-3 text-slate-900 dark:text-slate-100">Historial contable (ledger)</h2>
+            <div class="overflow-x-auto max-h-80 overflow-y-auto">
+                <table class="w-full text-sm">
+                    <thead class="sticky top-0 bg-white dark:bg-slate-800">
+                        <tr class="text-left text-slate-600 dark:text-slate-300 border-b border-slate-200 dark:border-slate-700">
+                            <th class="pb-2">Fecha</th>
+                            <th class="pb-2">Tipo</th>
+                            <th class="pb-2">Descripción</th>
+                            <th class="pb-2">Monto</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for m in movimientos %}
+                        <tr class="border-b border-slate-100 dark:border-slate-700">
+                            <td class="py-2 text-slate-500 dark:text-slate-400">{{ m.fecha|date:"d/m/Y H:i" }}</td>
+                            <td class="py-2 text-slate-800 dark:text-slate-200">{{ m.get_tipo_display }}</td>
+                            <td class="py-2 text-slate-800 dark:text-slate-200">{{ m.descripcion }}</td>
+                            <td class="py-2 font-medium
+                                {% if m.tipo == 'perdida_capital' or m.tipo == 'retiro' or m.tipo == 'inversion_salida' %}text-red-600 dark:text-red-400
+                                {% else %}text-emerald-600 dark:text-emerald-400{% endif %}">
+                                {{ m.monto|cop }}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="4" class="py-4 text-slate-500 dark:text-slate-400 text-center">Sin movimientos aún.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        {% if inversiones %}
+        <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm">
+            <h2 class="font-semibold mb-3 text-slate-900 dark:text-slate-100">Todas las inversiones</h2>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="text-left text-slate-600 dark:text-slate-300 border-b border-slate-200 dark:border-slate-700">
+                            <th class="pb-2">Nombre</th>
+                            <th class="pb-2">Inicial</th>
+                            <th class="pb-2">Final</th>
+                            <th class="pb-2">Resultado</th>
+                            <th class="pb-2">Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for inv in inversiones %}
+                        <tr class="border-b border-slate-100 dark:border-slate-700">
+                            <td class="py-2 text-slate-800 dark:text-slate-200">{{ inv.nombre }}</td>
+                            <td class="py-2 text-slate-800 dark:text-slate-200">{{ inv.monto_inicial|cop }}</td>
+                            <td class="py-2 text-slate-800 dark:text-slate-200">{% if inv.monto_final %}{{ inv.monto_final|cop }}{% else %}—{% endif %}</td>
+                            <td class="py-2">
+                                {% if inv.resultado is not None %}
+                                    {% if inv.resultado > 0 %}
+                                    <span class="text-emerald-600 dark:text-emerald-400">+{{ inv.resultado|cop }}</span>
+                                    {% elif inv.resultado < 0 %}
+                                    <span class="text-red-600 dark:text-red-400">{{ inv.resultado|cop }}</span>
+                                    {% else %}
+                                    <span class="text-slate-500 dark:text-slate-400">$ 0</span>
+                                    {% endif %}
+                                {% else %}—{% endif %}
+                            </td>
+                            <td class="py-2 text-slate-800 dark:text-slate-200">{{ inv.get_estado_display }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block modals %}
+{% for inv in inversiones_vencidas %}
+<div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+    <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-xl max-w-md w-full p-6 border border-slate-200 dark:border-slate-700">
+        <h2 class="text-xl font-bold text-amber-700 dark:text-amber-400 mb-2">⚠️ Inversión vencida</h2>
+        <p class="text-slate-600 dark:text-slate-300 text-sm mb-4">
+            <strong>{{ inv.nombre }}</strong> — Invertido: {{ inv.monto_inicial|cop }}
+        </p>
+        <form method="post" action="{% url 'cerrar_inversion' inv.pk %}">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{% url 'dashboard_ahorros' %}">
+            <div class="campo-monto-final mb-3">
+                <label class="form-label">Monto final recuperado</label>
+                <input type="text" name="monto_final" data-cop="true"
+                    class="form-input input-cop" placeholder="$ 0">
+            </div>
+            <label class="flex items-center gap-2 text-sm mb-3 text-slate-700 dark:text-slate-300">
+                <input type="checkbox" name="extender" id="id_extender" class="rounded border-slate-300 dark:border-slate-600" onchange="toggleExtenderInversion()">
+                <span>Sigue en curso (extender plazo)</span>
+            </label>
+            <div class="campo-nueva-fecha mb-4 hidden">
+                <label class="form-label">Nueva fecha de vencimiento</label>
+                <input type="date" name="nueva_fecha" id="id_nueva_fecha" class="form-input">
+            </div>
+            <button type="submit" class="w-full bg-primary-600 text-white py-2.5 rounded-lg font-medium">Confirmar</button>
+        </form>
+    </div>
+</div>
+{% endfor %}
+{% endblock %}
+
+{% block extra_js %}
+<script>document.addEventListener('DOMContentLoaded', initCOPInputs);</script>
+{% endblock %}

@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="es-CO" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#4f46e5">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="FinanzasApp">
+    <title>{% block title %}FinanzasApp{% endblock %}</title>
+    {% load static %}
+    <link rel="icon" type="image/png" href="{% static 'icons/logo.png' %}">
+    <link rel="apple-touch-icon" href="{% static 'icons/logo.png' %}">
+    <link rel="manifest" href="{% static 'manifest.json' %}">
+    <script>
+        (function () {
+            const t = localStorage.getItem('theme');
+            if (t === 'dark' || (!t && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+                document.querySelector('meta[name="theme-color"]')?.setAttribute('content', '#0f172a');
+            }
+        })();
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: { 50: '#eef2ff', 500: '#6366f1', 600: '#4f46e5', 700: '#4338ca' },
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Corrección de contraste forzado para Modo Oscuro */
+        html.dark body {
+            background-color: #0f172a !important;
+            color: #ffffff !important;
+        }
+
+        html.dark nav,
+        html.dark header,
+        html.dark #mobile-menu,
+        html.dark #sidebar {
+            background-color: #0f172a !important;
+            border-color: #1e293b !important;
+        }
+
+        html.dark nav a,
+        html.dark nav button,
+        html.dark #mobile-menu a,
+        html.dark #mobile-menu button,
+        html.dark nav span {
+            color: #f8fafc !important;
+        }
+
+        html.dark nav a:hover,
+        html.dark #mobile-menu a:hover {
+            background-color: #1e293b !important;
+        }
+
+        html.dark p,
+        html.dark span,
+        html.dark label,
+        html.dark div,
+        html.dark a,
+        html.dark li,
+        html.dark td,
+        html.dark th {
+            color: #f8fafc !important;
+        }
+
+        html.dark .text-muted,
+        html.dark .text-gray-500,
+        html.dark .text-slate-400,
+        html.dark .text-slate-500 {
+            color: #cbd5e1 !important;
+        }
+
+        html.dark input,
+        html.dark select,
+        html.dark textarea {
+            background-color: #0f172a !important;
+            color: #ffffff !important;
+            border-color: #475569 !important;
+        }
+
+        html.dark .bg-slate-50 {
+            background-color: #0f172a !important;
+        }
+
+        html.dark .bg-slate-100 {
+            background-color: #111827 !important;
+        }
+
+        html.dark .bg-slate-200 {
+            background-color: #1f2937 !important;
+        }
+
+        html.dark .border-slate-100 {
+            border-color: #334155 !important;
+        }
+
+        html.dark .border-slate-200 {
+            border-color: #475569 !important;
+        }
+
+        html.dark .border-slate-300 {
+            border-color: #64748b !important;
+        }
+
+        html.dark .hover\:bg-slate-100:hover {
+            background-color: rgba(148, 163, 184, 0.1) !important;
+        }
+
+        html.dark .hover\:bg-slate-200:hover,
+        html.dark .dark\:hover\:bg-slate-700:hover {
+            background-color: #334155 !important;
+        }
+
+        body {
+            font-size: 1rem;
+            line-height: 1.75;
+        }
+
+        button,
+        .form-input,
+        .input-cop,
+        input,
+        select,
+        textarea {
+            font-size: 1rem !important;
+            min-height: 3.25rem !important;
+            padding: 0.85rem 1rem !important;
+        }
+
+        button {
+            padding: 1rem 1.4rem !important;
+        }
+
+        a,
+        button {
+            line-height: 1.4;
+            min-height: 2.75rem;
+        }
+
+        .form-label {
+            font-size: 0.975rem;
+            font-weight: 600;
+        }
+
+        /* Soporte Móvil y Modo Oscuro Global */
+        html.dark, html.dark body {
+          background-color: #020617 !important; /* slate-950 */
+          color: #f8fafc !important;
+        }
+
+        html.dark input, 
+        html.dark select, 
+        html.dark textarea {
+          background-color: #0f172a !important; /* slate-900 */
+          color: #ffffff !important;
+          border-color: #334155 !important;
+        }
+
+        /* Evitar scroll horizontal indeseado en móviles */
+        body {
+          overflow-x: hidden;
+          -webkit-tap-highlight-color: transparent;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="{% static 'js/theme.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'css/forms.css' %}">
+    <script src="{% static 'js/cop.js' %}" defer></script>
+    <style>[x-cloak]{display:none!important}</style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="bg-slate-100 dark:bg-slate-950 min-h-screen text-slate-900 dark:text-white transition-colors duration-200">
+    {% if user.is_authenticated %}
+    <header class="fixed inset-x-0 top-0 z-50 bg-white dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 shadow-md">
+        <div class="max-w-7xl mx-auto flex items-center justify-between px-4 py-3">
+            <!-- Logo + Nombre -->
+            <div class="flex items-center gap-3">
+                <a href="{% url 'dashboard' %}" class="flex items-center gap-3 group">
+                    {% include 'partials/logo.html' %}
+                    <span class="text-xl font-bold text-slate-900 dark:text-slate-100 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">FinanzasApp</span>
+                </a>
+            </div>
+
+            <!-- Desktop Navigation - Links principales -->
+            <nav class="hidden md:flex items-center gap-1">
+                <a href="{% url 'dashboard' %}" class="px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 {% if request.resolver_match.url_name == 'dashboard' %}bg-primary-100 text-primary-700 dark:bg-primary-900/40 dark:text-primary-100 shadow-sm{% else %}text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800{% endif %}">Presupuesto</a>
+                <a href="{% url 'dashboard_ahorros' %}" class="px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 {% if request.resolver_match.url_name == 'dashboard_ahorros' %}bg-primary-100 text-primary-700 dark:bg-primary-900/40 dark:text-primary-100 shadow-sm{% else %}text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800{% endif %}">Ahorros</a>
+                <a href="{% url 'historico_meses' %}" class="px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 {% if request.resolver_match.url_name == 'historico_meses' %}bg-primary-100 text-primary-700 dark:bg-primary-900/40 dark:text-primary-100 shadow-sm{% else %}text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800{% endif %}">Histórico</a>
+                <a href="{% url 'categorias_lista' %}" class="px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 {% if request.resolver_match.url_name == 'categorias_lista' %}bg-primary-100 text-primary-700 dark:bg-primary-900/40 dark:text-primary-100 shadow-sm{% else %}text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800{% endif %}">Categorías</a>
+                <a href="{% url 'configuracion_editar' %}" class="px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800" title="Configuración">⚙️</a>
+            </nav>
+
+            <!-- Desktop Navigation - Controles de usuario -->
+            <div class="hidden md:flex items-center gap-3">
+                <!-- Toggle Modo Oscuro -->
+                <button type="button" data-theme-toggle class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-slate-700 dark:text-slate-100 bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 transition-all duration-200 border border-slate-200 dark:border-slate-700" title="Cambiar tema" aria-label="Cambiar tema">
+                    <span data-theme-icon="sun" class="text-lg">☀️</span>
+                    <span data-theme-icon="moon" class="hidden text-lg">🌙</span>
+                </button>
+                
+                <!-- Usuario -->
+                <div class="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
+                    <span class="w-8 h-8 flex items-center justify-center rounded-full bg-primary-500 text-white text-sm font-bold">{{ user.username|slice:":1"|upper }}</span>
+                    <span class="text-sm font-medium text-slate-700 dark:text-slate-100">{{ user.username }}</span>
+                </div>
+                
+                <!-- Botón Salir -->
+                <form method="post" action="{% url 'logout' %}" class="inline">
+                    {% csrf_token %}
+                    <button type="submit" class="flex items-center gap-2 px-4 py-2 rounded-lg bg-red-500 hover:bg-red-600 text-white text-sm font-medium transition-all duration-200 shadow-sm hover:shadow">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                        </svg>
+                        Salir
+                    </button>
+                </form>
+            </div>
+
+            <!-- Botón Hamburguesa Móvil -->
+            <button type="button" data-mobile-menu-toggle class="md:hidden p-2 rounded-lg text-slate-900 dark:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" aria-label="Abrir menú móvil">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+            </button>
+        </div>
+
+        <!-- Menú Móvil -->
+        <div id="mobile-menu" class="hidden md:hidden border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 shadow-lg">
+            <nav class="px-4 py-5 space-y-1">
+                <!-- Logo + Nombre en móvil -->
+                <div class="flex items-center gap-3 pb-4 mb-4 border-b border-slate-200 dark:border-slate-800">
+                    {% include 'partials/logo.html' %}
+                    <span class="text-lg font-bold text-slate-900 dark:text-slate-100">FinanzasApp</span>
+                </div>
+                
+                <!-- Enlaces de navegación -->
+                <a href="{% url 'dashboard' %}" class="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                    </svg>
+                    Presupuesto
+                </a>
+                <a href="{% url 'dashboard_ahorros' %}" class="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Ahorros
+                </a>
+                <a href="{% url 'historico_meses' %}" class="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Histórico
+                </a>
+                <a href="{% url 'categorias_lista' %}" class="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                    </svg>
+                    Categorías
+                </a>
+                <a href="{% url 'configuracion_editar' %}" class="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    Configuración
+                </a>
+                
+                <!-- Separador -->
+                <div class="my-4 border-t border-slate-200 dark:border-slate-800"></div>
+                
+                <!-- Toggle Modo Oscuro -->
+                <button type="button" data-theme-toggle class="flex items-center gap-3 w-full rounded-lg px-4 py-3 text-sm font-medium text-slate-700 dark:text-slate-100 bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors">
+                    <span data-theme-icon="sun" class="text-lg">☀️</span>
+                    <span data-theme-icon="moon" class="hidden text-lg">🌙</span>
+                    <span>Modo oscuro</span>
+                </button>
+                
+                <!-- Usuario -->
+                <div class="flex items-center gap-3 rounded-lg px-4 py-3 bg-slate-100 dark:bg-slate-900">
+                    <div class="w-10 h-10 flex items-center justify-center rounded-full bg-primary-500 text-white text-base font-bold">{{ user.username|slice:":1"|upper }}</div>
+                    <div>
+                        <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Usuario</div>
+                        <div class="text-sm font-semibold text-slate-700 dark:text-slate-100">{{ user.username }}</div>
+                    </div>
+                </div>
+                
+                <!-- Botón Salir -->
+                <form method="post" action="{% url 'logout' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="flex items-center justify-center gap-2 w-full rounded-lg bg-red-500 hover:bg-red-600 text-white px-4 py-3 text-sm font-medium transition-colors shadow-sm">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                        </svg>
+                        Salir
+                    </button>
+                </form>
+            </nav>
+        </div>
+    </header>
+    {% endif %}
+
+    <main class="max-w-6xl mx-auto px-4 py-6 pt-24 md:px-6">
+        {% if messages %}
+        <div class="mb-4 space-y-2">
+            {% for message in messages %}
+            <div class="rounded-lg px-4 py-3 text-sm
+                {% if message.tags == 'success' %}bg-emerald-50 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-200 border border-emerald-200 dark:border-emerald-700
+                {% elif message.tags == 'error' %}bg-red-50 dark:bg-red-900/30 text-red-800 dark:text-red-200 border border-red-200 dark:border-red-700
+                {% elif message.tags == 'warning' %}bg-amber-50 dark:bg-amber-900/30 text-amber-800 dark:text-amber-200 border border-amber-200 dark:border-amber-700
+                {% else %}bg-blue-50 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 border border-blue-200 dark:border-blue-700{% endif %}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% block content %}{% endblock %}
+    </main>
+
+    {% block modals %}{% endblock %}
+    {% block extra_js %}{% endblock %}
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        if (typeof initThemeControls === 'function') initThemeControls();
+
+        const mobileToggle = document.querySelector('[data-mobile-menu-toggle]');
+        const mobileMenu = document.getElementById('mobile-menu');
+
+        if (mobileToggle && mobileMenu) {
+            mobileToggle.addEventListener('click', function () {
+                mobileMenu.classList.toggle('hidden');
+                mobileMenu.classList.toggle('block');
+            });
+        }
+
+        document.querySelectorAll('#mobile-menu a, #mobile-menu button[data-theme-toggle]').forEach((item) => {
+            item.addEventListener('click', function () {
+                if (mobileMenu && !mobileMenu.classList.contains('hidden')) {
+                    mobileMenu.classList.add('hidden');
+                    mobileMenu.classList.remove('block');
+                }
+            });
+        });
+    });
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('{% static "js/service-worker.js" %}').catch(() => {});
+        });
+    }
+    </script>
+</body>
+</html>

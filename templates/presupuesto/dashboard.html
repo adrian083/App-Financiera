@@ -1,0 +1,266 @@
+{% extends 'base.html' %}
+{% load finanzas_tags static %}
+
+{% block title %}Dashboard — {{ ciclo.etiqueta|default:"FinanzasApp" }}{% endblock %}
+
+{% block content %}
+{% if ciclo %}
+<!-- Alertas inversiones -->
+{% if ciclo_en_plazo_confirmacion and not ocultar_banner_pago %}
+<div class="mb-4 rounded-2xl border border-amber-200 bg-amber-50 dark:bg-amber-900/30 dark:border-amber-700 p-4 shadow-sm">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+            <p class="font-semibold text-amber-700 dark:text-amber-200">📢 Llegó tu fecha estimada de pago (Día {{ config.dia_corte }}).</p>
+            <p class="text-slate-700 dark:text-slate-300 text-sm mt-1">
+                ¿Ya recibiste tu salario para iniciar el nuevo ciclo? Confirma antes del
+                <strong>{{ fechas_plazo_confirmacion.1|date:"d/m/Y" }}</strong>.
+            </p>
+        </div>
+        <div class="flex flex-wrap gap-2">
+            <a href="{% url 'confirmar_ciclo' %}"
+                class="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-primary-600 text-white hover:bg-primary-700">
+                Confirmar pago y cerrar ciclo
+            </a>
+            <a href="{% url 'ocultar_banner_pago' %}"
+                class="inline-flex items-center justify-center px-4 py-2 rounded-lg border border-slate-300 bg-white dark:bg-slate-800 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700">
+                Aún no me han pagado
+            </a>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% if inversiones_proximas or inversiones_vencidas %}
+<div class="mb-4 space-y-2">
+    {% for inv in inversiones_vencidas %}
+    <div class="rounded-lg px-4 py-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 text-red-800 dark:text-red-200 text-sm">
+        ⚠️ Inversión vencida: <strong>{{ inv.nombre }}</strong> — {{ inv.monto_inicial|cop }}
+        <a href="{% url 'dashboard_ahorros' %}" class="underline ml-2">Gestionar</a>
+    </div>
+    {% endfor %}
+    {% for inv in inversiones_proximas %}
+    <div class="rounded-lg px-4 py-3 bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-700 text-amber-800 dark:text-amber-200 text-sm">
+        🔔 Inversión vence el {{ inv.fecha_vencimiento|date:"d/m/Y" }}: <strong>{{ inv.nombre }}</strong>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<!-- Resumen -->
+<div class="mb-6">
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-900 dark:text-slate-100">Ciclo actual</h1>
+            <p class="text-slate-600 dark:text-slate-400">{{ ciclo.etiqueta }} · Corte día {{ config.dia_corte }}</p>
+        </div>
+        <div class="flex gap-2 flex-wrap">
+            <button onclick="openModal('modal-gasto')" class="bg-red-500 hover:bg-red-600 text-white px-4 py-3 rounded-xl text-base font-semibold">+ Gasto</button>
+            <button onclick="openModal('modal-ingreso')" class="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-3 rounded-xl text-base font-semibold">+ Ingreso</button>
+            <button onclick="openModal('modal-ahorro')" class="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-3 rounded-xl text-base font-semibold">→ Ahorro</button>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 shadow-sm">
+            <p class="text-xs text-slate-500 dark:text-slate-400 uppercase">Disponible</p>
+            <p class="text-2xl font-bold text-primary-600 dark:text-primary-400">{{ ciclo.saldo_disponible|cop }}</p>
+        </div>
+        <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 shadow-sm">
+            <p class="text-xs text-slate-500 dark:text-slate-400 uppercase">Salario ciclo</p>
+            <p class="text-xl font-semibold text-slate-900 dark:text-slate-100">{{ ciclo.salario_ciclo|cop }}</p>
+        </div>
+        <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 shadow-sm">
+            <p class="text-xs text-slate-500 dark:text-slate-400 uppercase">Gastos</p>
+            <p class="text-xl font-semibold text-red-600 dark:text-red-400">{{ ciclo.total_gastos|cop }}</p>
+        </div>
+        <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 shadow-sm">
+            <p class="text-xs text-slate-500 dark:text-slate-400 uppercase">Enviado a ahorro</p>
+            <p class="text-xl font-semibold text-indigo-600 dark:text-indigo-400">{{ ciclo.total_enviado_ahorro|cop }}</p>
+        </div>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="lg:col-span-1 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm">
+        <h2 class="font-semibold mb-4 text-slate-900 dark:text-slate-100">Gastos por categoría</h2>
+        {% if chart_data != "[]" %}
+        <canvas id="chartGastos"></canvas>
+        {% else %}
+        <p class="text-slate-500 dark:text-slate-400 text-sm text-center py-8">Sin gastos registrados.</p>
+        {% endif %}
+    </div>
+
+    <div class="lg:col-span-2 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm">
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+            <h2 class="font-semibold text-slate-900 dark:text-slate-100">Movimientos recientes</h2>
+            <div class="flex gap-1 text-xs">
+                <a href="?filtro=todos" class="px-2 py-1 rounded {% if filtro_actual == 'todos' %}bg-primary-100 dark:bg-primary-900/40 text-primary-700 dark:text-primary-300{% else %}bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300{% endif %}">Todos</a>
+                <a href="?filtro=gasto" class="px-2 py-1 rounded {% if filtro_actual == 'gasto' %}bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300{% else %}bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300{% endif %}">Gastos</a>
+                <a href="?filtro=ingreso" class="px-2 py-1 rounded {% if filtro_actual == 'ingreso' %}bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300{% else %}bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300{% endif %}">Ingresos</a>
+                <a href="?filtro=ahorro" class="px-2 py-1 rounded {% if filtro_actual == 'ahorro' %}bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300{% else %}bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300{% endif %}">Ahorro</a>
+            </div>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="text-left text-slate-600 dark:text-slate-300 border-b border-slate-200 dark:border-slate-700">
+                        <th class="pb-2">Tipo</th>
+                        <th class="pb-2">Descripción</th>
+                        <th class="pb-2 text-right">Monto</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for m in movimientos_recientes %}
+                    <tr class="border-b border-slate-100 dark:border-slate-700">
+                        <td class="py-2">
+                            {% if m.tipo == 'gasto' %}<span class="text-red-600 dark:text-red-400">Gasto</span>
+                            {% elif m.tipo == 'ingreso' %}<span class="text-emerald-600 dark:text-emerald-400">Ingreso</span>
+                            {% elif m.tipo == 'envio_ahorro' %}<span class="text-indigo-600 dark:text-indigo-400">→ Ahorro</span>
+                            {% else %}<span class="text-blue-600 dark:text-blue-400">Inyección</span>{% endif %}
+                        </td>
+                        <td class="py-2 text-slate-800 dark:text-slate-200">{{ m.descripcion }}{% if m.categoria %} · {{ m.categoria.nombre }}{% endif %}</td>
+                        <td class="py-2 text-right font-medium text-slate-900 dark:text-slate-100">{{ m.monto|cop }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="3" class="py-6 text-center text-slate-500 dark:text-slate-400">Sin movimientos.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="text-center py-16">
+    <p class="text-slate-600 dark:text-slate-400">Configura la aplicación para comenzar.</p>
+    <a href="{% url 'configuracion_inicial' %}" class="inline-block mt-4 text-primary-600 dark:text-primary-400 font-medium">Ir a configuración</a>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block modals %}
+{% if mostrar_tutorial %}
+{% include 'partials/tutorial_modal.html' %}
+{% endif %}
+
+<!-- Modal Gasto -->
+<div id="modal-gasto" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 p-4">
+    <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-xl max-w-md w-full p-6 border border-slate-200 dark:border-slate-700 max-h-[90vh] overflow-y-auto">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-lg font-bold text-slate-900 dark:text-slate-100">Nuevo gasto</h2>
+            <button onclick="closeModal('modal-gasto')" class="text-slate-400 hover:text-slate-200 text-xl">&times;</button>
+        </div>
+        <form method="post" action="{% url 'registrar_gasto' %}" class="space-y-3">
+            {% csrf_token %}
+            <input type="hidden" name="ciclo_id" value="{{ ciclo.pk }}">
+            <div><label class="form-label">Monto</label>{{ form_gasto.monto }}</div>
+            <div><label class="form-label">Descripción</label>{{ form_gasto.descripcion }}</div>
+            <div><label class="form-label">Categoría</label>{{ form_gasto.categoria }}</div>
+            <label class="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300">{{ form_gasto.es_gasto_fijo }} Guardar como gasto fijo</label>
+            <button type="submit" class="w-full bg-red-500 text-white py-3 rounded-xl font-semibold hover:bg-red-600">Registrar</button>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Ingreso -->
+<div id="modal-ingreso" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 p-4">
+    <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-xl max-w-md w-full p-6 border border-slate-200 dark:border-slate-700 max-h-[90vh] overflow-y-auto">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-lg font-bold text-slate-900 dark:text-slate-100">Nuevo ingreso</h2>
+            <button onclick="closeModal('modal-ingreso')" class="text-slate-400 hover:text-slate-200 text-xl">&times;</button>
+        </div>
+        <form method="post" action="{% url 'registrar_ingreso' %}" class="space-y-3">
+            {% csrf_token %}
+            <input type="hidden" name="ciclo_id" value="{{ ciclo.pk }}">
+            <div><label class="form-label">Monto</label>{{ form_ingreso.monto }}</div>
+            <div><label class="form-label">Descripción</label>{{ form_ingreso.descripcion }}</div>
+            <button type="submit" class="w-full bg-emerald-500 text-white py-3 rounded-xl font-semibold hover:bg-emerald-600">Registrar</button>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Transferir a Ahorro -->
+<div id="modal-ahorro" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 p-4">
+    <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-xl max-w-md w-full p-6 border border-slate-200 dark:border-slate-700 max-h-[90vh] overflow-y-auto">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-lg font-bold text-slate-900 dark:text-slate-100">Transferir a ahorro</h2>
+            <button onclick="closeModal('modal-ahorro')" class="text-slate-400 hover:text-slate-200 text-xl">&times;</button>
+        </div>
+        <p class="text-xs text-slate-500 dark:text-slate-400 mb-3">Transferencia interna — no cuenta como gasto por categoría.</p>
+        <form method="post" action="{% url 'registrar_envio_ahorro' %}" class="space-y-3">
+            {% csrf_token %}
+            <input type="hidden" name="ciclo_id" value="{{ ciclo.pk }}">
+            <div><label class="form-label">Monto</label>{{ form_ahorro.monto }}</div>
+            <div><label class="form-label">Descripción</label>{{ form_ahorro.descripcion }}</div>
+            <button type="submit" class="w-full bg-indigo-500 text-white py-3 rounded-xl font-semibold hover:bg-indigo-600">Transferir</button>
+        </form>
+    </div>
+</div>
+
+{% if ciclo_pendiente_cierre %}
+<div id="modal-cierre" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+    <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-xl max-w-md w-full p-6 border border-slate-200 dark:border-slate-700 max-h-[90vh] overflow-y-auto">
+        <h2 class="text-xl font-bold mb-2 text-slate-900 dark:text-slate-100">Cierre de ciclo mensual</h2>
+        <p class="text-slate-600 dark:text-slate-300 text-sm mb-4">
+            Ciclo <strong>{{ ciclo_pendiente_cierre.etiqueta }}</strong> finalizado.
+            Sobrante: <strong>{{ ciclo_pendiente_cierre.calcular_sobrante|cop }}</strong>
+            {% if ciclo_pendiente_cierre.calcular_sobrante > 0 %}(se transferirá a Ahorros){% endif %}
+        </p>
+        <form method="post" action="{% url 'cerrar_ciclo' %}">
+            {% csrf_token %}
+            <input type="hidden" name="ciclo_id" value="{{ ciclo_pendiente_cierre.pk }}">
+            <div class="mb-4">
+                <label class="form-label">Salario del nuevo ciclo</label>
+                {{ form_cierre.nuevo_salario }}
+            </div>
+            <button type="submit" class="w-full bg-primary-600 text-white py-3 rounded-xl font-semibold hover:bg-primary-700">Cerrar e iniciar nuevo ciclo</button>
+        </form>
+    </div>
+</div>
+{% endif %}
+
+{% for inv in inversiones_vencidas %}
+<div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" {% if not forloop.first %}style="display:none"{% endif %}>
+    <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-xl max-w-md w-full p-6 border border-slate-200 dark:border-slate-700 max-h-[90vh] overflow-y-auto">
+        <h2 class="text-xl font-bold text-amber-700 dark:text-amber-400 mb-2">⚠️ Inversión vencida</h2>
+        <p class="text-sm text-slate-600 dark:text-slate-300 mb-4"><strong>{{ inv.nombre }}</strong> — {{ inv.monto_inicial|cop }}</p>
+        <form method="post" action="{% url 'cerrar_inversion' inv.pk %}">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{% url 'dashboard' %}">
+            <div class="mb-3">
+                <label class="form-label">Monto final recuperado</label>
+                <input type="text" name="monto_final" data-cop="true" class="form-input input-cop">
+            </div>
+            <label class="flex items-center gap-2 text-sm mb-3 text-slate-700 dark:text-slate-300">
+                <input type="checkbox" name="extender" class="rounded" onchange="toggleExtenderInversion()"> Sigue en curso
+            </label>
+            <div class="campo-nueva-fecha mb-4 hidden">
+                <label class="form-label">Nueva fecha</label>
+                <input type="date" name="nueva_fecha" id="id_nueva_fecha" class="form-input">
+            </div>
+            <button type="submit" class="w-full bg-primary-600 text-white py-3 rounded-xl font-semibold hover:bg-primary-700">Confirmar</button>
+        </form>
+    </div>
+</div>
+{% endfor %}
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/tutorial.js' %}"></script>
+<script>
+function openModal(id) {
+    const el = document.getElementById(id);
+    el.classList.remove('hidden');
+    el.classList.add('flex');
+    initCOPInputs();
+}
+function closeModal(id) {
+    const el = document.getElementById(id);
+    el.classList.add('hidden');
+    el.classList.remove('flex');
+}
+document.addEventListener('DOMContentLoaded', function() {
+    initCOPInputs();
+    initPieChart('chartGastos', {{ chart_labels|safe }}, {{ chart_data|safe }}, {{ chart_colors|safe }});
+    {% if mostrar_tutorial %}initTutorial();{% endif %}
+});
+</script>
+{% endblock %}
