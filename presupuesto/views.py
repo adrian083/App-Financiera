@@ -427,6 +427,7 @@ def gasto_fijo_crear(request):
             if ciclo:
                 try:
                     Movimiento.objects.create(
+                        usuario=request.user,
                         ciclo=ciclo,
                         categoria=plantilla.categoria,
                         monto=plantilla.monto,
