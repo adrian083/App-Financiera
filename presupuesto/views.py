@@ -142,6 +142,7 @@ def dashboard(request):
         'balance_labels': json.dumps(balance_labels),
         'balance_data': json.dumps(balance_data),
         'movimientos_recientes': movimientos_qs[:20],
+        'widget_config': WidgetConfiguracion.obtener(user),
         'form_gasto': MovimientoForm(usuario=user),
         'form_ingreso': IngresoForm(),
         'form_ahorro': EnvioAhorroForm(),
