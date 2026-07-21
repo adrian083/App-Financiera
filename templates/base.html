@@ -159,25 +159,37 @@
 
     <!-- ===================== MOBILE BOTTOM NAV ===================== -->
     <nav class="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-fintech-card/95 backdrop-blur-lg border-t border-fintech-border">
-        <div class="grid grid-cols-5 items-center px-2 py-2">
-            <a href="{% url 'dashboard' %}" class="flex flex-col items-center gap-1 py-1 {% if url_name == 'dashboard' %}text-fintech-emeraldLight{% else %}text-slate-400{% endif %}">
+        <div class="flex items-center overflow-x-auto px-2 py-2 scrollbar-hide gap-1">
+            <a href="{% url 'dashboard' %}" class="flex flex-col items-center gap-1 py-1 px-3 min-w-[60px] {% if url_name == 'dashboard' %}text-fintech-emeraldLight{% else %}text-slate-400{% endif %}">
                 <i class="fas fa-home text-lg"></i>
                 <span class="text-[11px] font-medium">Inicio</span>
             </a>
-            <a href="{% url 'dashboard_ahorros' %}" class="flex flex-col items-center gap-1 py-1 {% if url_name == 'dashboard_ahorros' %}text-fintech-emeraldLight{% else %}text-slate-400{% endif %}">
+            <a href="{% url 'gastos_fijos_lista' %}" class="flex flex-col items-center gap-1 py-1 px-3 min-w-[60px] {% if url_name == 'gastos_fijos_lista' %}text-fintech-emeraldLight{% else %}text-slate-400{% endif %}">
+                <i class="fas fa-calendar-alt text-lg"></i>
+                <span class="text-[11px] font-medium">Gastos</span>
+            </a>
+            <a href="{% url 'calendario' %}" class="flex flex-col items-center gap-1 py-1 px-3 min-w-[60px] {% if url_name == 'calendario' %}text-fintech-emeraldLight{% else %}text-slate-400{% endif %}">
+                <i class="fas fa-calendar text-lg"></i>
+                <span class="text-[11px] font-medium">Calendario</span>
+            </a>
+            <a href="{% url 'categorias_lista' %}" class="flex flex-col items-center gap-1 py-1 px-3 min-w-[60px] {% if url_name == 'categorias_lista' %}text-fintech-emeraldLight{% else %}text-slate-400{% endif %}">
+                <i class="fas fa-tags text-lg"></i>
+                <span class="text-[11px] font-medium">Categorías</span>
+            </a>
+            <div class="flex justify-center px-2">
+                <button type="button" onclick="finanzasQuickAdd()" class="relative -top-2 w-12 h-12 rounded-full bg-gradient-to-br from-fintech-emerald to-fintech-cyan text-white shadow-lg shadow-fintech-emerald/40 flex items-center justify-center hover:scale-105 transition-transform shrink-0">
+                    <i class="fas fa-plus text-xl"></i>
+                </button>
+            </div>
+            <a href="{% url 'dashboard_ahorros' %}" class="flex flex-col items-center gap-1 py-1 px-3 min-w-[60px] {% if url_name == 'dashboard_ahorros' %}text-fintech-emeraldLight{% else %}text-slate-400{% endif %}">
                 <i class="fas fa-piggy-bank text-lg"></i>
                 <span class="text-[11px] font-medium">Ahorros</span>
             </a>
-            <div class="flex justify-center">
-                <button type="button" onclick="finanzasQuickAdd()" class="relative -top-5 w-14 h-14 rounded-full bg-gradient-to-br from-fintech-emerald to-fintech-cyan text-white shadow-lg shadow-fintech-emerald/40 flex items-center justify-center hover:scale-105 transition-transform">
-                    <i class="fas fa-plus text-2xl"></i>
-                </button>
-            </div>
-            <a href="{% url 'historico_meses' %}" class="flex flex-col items-center gap-1 py-1 {% if url_name == 'historico_meses' %}text-fintech-emeraldLight{% else %}text-slate-400{% endif %}">
+            <a href="{% url 'historico_meses' %}" class="flex flex-col items-center gap-1 py-1 px-3 min-w-[60px] {% if url_name == 'historico_meses' %}text-fintech-emeraldLight{% else %}text-slate-400{% endif %}">
                 <i class="fas fa-chart-line text-lg"></i>
                 <span class="text-[11px] font-medium">Histórico</span>
             </a>
-            <a href="{% url 'configuracion_editar' %}" class="flex flex-col items-center gap-1 py-1 {% if url_name == 'configuracion_editar' %}text-fintech-emeraldLight{% else %}text-slate-400{% endif %}">
+            <a href="{% url 'configuracion_editar' %}" class="flex flex-col items-center gap-1 py-1 px-3 min-w-[60px] {% if url_name == 'configuracion_editar' %}text-fintech-emeraldLight{% else %}text-slate-400{% endif %}">
                 <i class="fas fa-cog text-lg"></i>
                 <span class="text-[11px] font-medium">Ajustes</span>
             </a>

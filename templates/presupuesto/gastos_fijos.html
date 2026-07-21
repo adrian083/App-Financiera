@@ -88,17 +88,17 @@
                     <div class="flex-1 min-w-0">
                         <p class="text-white font-medium truncate">{{ p.descripcion }}</p>
                         <div class="flex items-center gap-2 mt-1 flex-wrap">
-                            <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[11px] font-medium"
+                            <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[11px] font-medium truncate max-w-[120px]"
                                 style="background-color: {{ p.categoria.color }}1f; color: {{ p.categoria.color }};">
-                                <span class="w-1.5 h-1.5 rounded-full" style="background-color: {{ p.categoria.color }};"></span>
+                                <span class="w-1.5 h-1.5 rounded-full shrink-0" style="background-color: {{ p.categoria.color }};"></span>
                                 {{ p.categoria.nombre }}
                             </span>
                             {% if p.activa %}
-                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium bg-fintech-emerald/10 text-fintech-emeraldLight">
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium bg-fintech-emerald/10 text-fintech-emeraldLight shrink-0">
                                 <i class="fas fa-circle text-[6px]"></i> Activa
                             </span>
                             {% else %}
-                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium bg-slate-500/15 text-slate-400">
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium bg-slate-500/15 text-slate-400 shrink-0">
                                 <i class="fas fa-circle text-[6px]"></i> Inactiva
                             </span>
                             {% endif %}
