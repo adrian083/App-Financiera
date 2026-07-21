@@ -117,11 +117,15 @@ def metas_ahorro(request):
     user = request.user
     metas = MetaAhorro.objects.filter(usuario=user)
     fondo = FondoAhorro.obtener(user)
+    total_ahorrado = MetaAhorro.total_ahorrado(user)
+    total_objetivo = MetaAhorro.total_objetivo(user)
+    porcentaje = round((total_ahorrado / total_objetivo * 100) if total_objetivo > 0 else 0, 1)
     
     context = {
         'metas': metas,
-        'total_ahorrado': MetaAhorro.total_ahorrado(user),
-        'total_objetivo': MetaAhorro.total_objetivo(user),
+        'total_ahorrado': total_ahorrado,
+        'total_objetivo': total_objetivo,
+        'porcentaje': porcentaje,
         'fondo': fondo,
     }
     return render(request, 'ahorros/metas.html', context)
@@ -189,12 +193,23 @@ def inversiones_detalle(request):
     user = request.user
     inversiones = Inversion.objects.filter(usuario=user)
     distribucion = Inversion.distribucion_portafolio(user)
+    monto_congelado = Inversion.monto_congelado(user)
+    total_ganancias = Inversion.total_ganancias(user)
+    total_perdidas = Inversion.total_perdidas(user)
+    
+    # Calcular ROI
+    roi = round(((total_ganancias - total_perdidas) / monto_congelado * 100) if monto_congelado > 0 else 0, 1)
+    
+    # Calcular porcentajes de distribución
+    for item in distribucion:
+        item.porcentaje = round((item.total / monto_congelado * 100) if monto_congelado > 0 else 0, 1)
     
     context = {
         'inversiones': inversiones,
         'distribucion': distribucion,
-        'monto_congelado': Inversion.monto_congelado(user),
-        'total_ganancias': Inversion.total_ganancias(user),
-        'total_perdidas': Inversion.total_perdidas(user),
+        'monto_congelado': monto_congelado,
+        'total_ganancias': total_ganancias,
+        'total_perdidas': total_perdidas,
+        'roi': roi,
     }
     return render(request, 'ahorros/inversiones.html', context)

@@ -61,7 +61,7 @@
                 <i class="fas fa-percentage text-blue-400"></i>
             </div>
         </div>
-        <p class="text-2xl lg:text-3xl font-bold text-white tracking-tight">{% if monto_congelado > 0 %}{{ total_ganancias|subtract:total_perdidas|multiply:100|divide:monto_congelado }}{% else %}0{% endif %}%</p>
+        <p class="text-2xl lg:text-3xl font-bold text-white tracking-tight">{{ roi }}%</p>
         <p class="text-xs text-slate-400 mt-2">Retorno sobre inversión</p>
     </div>
 </div>
@@ -164,7 +164,7 @@
                             <span class="text-slate-400 text-xs">{{ item.total|cop }}</span>
                         </div>
                         <div class="h-2 rounded-full bg-fintech-border overflow-hidden">
-                            <div class="h-full rounded-full" style="width: {% if monto_congelado > 0 %}{{ item.total|multiply:100|divide:monto_congelado }}{% else %}0{% endif %}%; background-color: {{ item.color }};"></div>
+                            <div class="h-full rounded-full" style="width: {{ item.porcentaje }}%; background-color: {{ item.color }};"></div>
                         </div>
                     </div>
                 </div>
