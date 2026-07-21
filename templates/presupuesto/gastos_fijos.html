@@ -108,6 +108,23 @@
                         <p class="font-bold text-white">{{ p.monto|cop }}</p>
                         <p class="text-slate-500 text-xs">/ mes</p>
                     </div>
+                    <div class="flex items-center gap-1 shrink-0">
+                        <button onclick="openModal('modal-editar-{{ p.pk }}')" class="w-9 h-9 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 hover:bg-blue-500/20 transition-colors" title="Editar">
+                            <i class="fas fa-edit text-sm"></i>
+                        </button>
+                        <form method="post" action="{% url 'gasto_fijo_toggle' p.pk %}" class="inline">
+                            {% csrf_token %}
+                            <button type="submit" class="w-9 h-9 rounded-lg {% if p.activa %}bg-slate-500/10 border border-slate-500/20 text-slate-400 hover:bg-slate-500/20{% else %}bg-fintech-emerald/10 border border-fintech-emerald/20 text-fintech-emeraldLight hover:bg-fintech-emerald/20{% endif %} flex items-center justify-center transition-colors" title="{% if p.activa %}Desactivar{% else %}Activar{% endif %}">
+                                <i class="fas {% if p.activa %}fa-pause{% else %}fa-play{% endif %} text-sm"></i>
+                            </button>
+                        </form>
+                        <form method="post" action="{% url 'gasto_fijo_eliminar' p.pk %}" class="inline" onsubmit="return confirm('¿Eliminar este gasto fijo?');">
+                            {% csrf_token %}
+                            <button type="submit" class="w-9 h-9 rounded-lg bg-fintech-rose/10 border border-fintech-rose/20 flex items-center justify-center text-fintech-rose hover:bg-fintech-rose/20 transition-colors" title="Eliminar">
+                                <i class="fas fa-trash text-sm"></i>
+                            </button>
+                        </form>
+                    </div>
                 </div>
                 {% empty %}
                 <div class="text-center py-12">
@@ -156,8 +173,48 @@
 </div>
 {% endblock %}
 
+{% block modals %}
+{% for p in plantillas %}
+<!-- Edit Modal -->
+<div id="modal-editar-{{ p.pk }}" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-4 backdrop-blur-sm">
+    <div class="bg-fintech-card rounded-3xl shadow-2xl max-w-md w-full p-6 border border-fintech-border max-h-[90vh] overflow-y-auto">
+        <div class="flex items-center gap-3 mb-6">
+            <div class="w-11 h-11 rounded-xl bg-blue-500/20 flex items-center justify-center"><i class="fas fa-edit text-blue-400"></i></div>
+            <h2 class="text-xl font-bold text-white">Editar gasto fijo</h2>
+        </div>
+        <form method="post" action="{% url 'gasto_fijo_editar' p.pk %}" class="space-y-4">
+            {% csrf_token %}
+            <div><label class="form-label">Descripción</label><input type="text" name="descripcion" value="{{ p.descripcion }}" class="form-input" required></div>
+            <div><label class="form-label">Monto mensual</label><input type="text" name="monto" value="{{ p.monto }}" class="form-input input-cop" data-cop="true" required></div>
+            <div><label class="form-label">Categoría</label><select name="categoria" class="form-input">
+                {% for cat in request.user.categorias.all %}
+                <option value="{{ cat.pk }}" {% if cat.pk == p.categoria.pk %}selected{% endif %}>{{ cat.nombre }}</option>
+                {% endfor %}
+            </select></div>
+            <label class="flex items-center gap-2 text-sm text-slate-400">
+                <input type="checkbox" name="activa" {% if p.activa %}checked{% endif %} class="rounded"> Activa (se copia al ciclo)
+            </label>
+            <button type="submit" class="w-full bg-blue-500 hover:bg-blue-600 text-white py-3.5 rounded-xl font-semibold transition-colors">Guardar cambios</button>
+        </form>
+        <button onclick="closeModal('modal-editar-{{ p.pk }}')" class="mt-3 w-full text-slate-400 hover:text-white py-2 transition-colors">Cancelar</button>
+    </div>
+</div>
+{% endfor %}
+{% endblock %}
+
 {% block extra_js %}
 <script>
+function openModal(id) {
+    const el = document.getElementById(id);
+    el.classList.remove('hidden');
+    el.classList.add('flex');
+    if (typeof initCOPInputs === 'function') initCOPInputs();
+}
+function closeModal(id) {
+    const el = document.getElementById(id);
+    el.classList.add('hidden');
+    el.classList.remove('flex');
+}
 document.addEventListener('DOMContentLoaded', function () {
     if (typeof initCOPInputs === 'function') initCOPInputs();
 

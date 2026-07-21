@@ -1,0 +1,231 @@
+{% extends 'base.html' %}
+{% load finanzas_tags %}
+
+{% block title %}Inversiones — FinanzasApp{% endblock %}
+{% block header_eyebrow %}Ahorros{% endblock %}
+{% block header_title %}Inversiones{% endblock %}
+
+{% block content %}
+<!-- ===================== NAVIGATION TABS ===================== -->
+<div class="flex items-center gap-2 mb-6 overflow-x-auto pb-1">
+    <a href="{% url 'dashboard_ahorros' %}" class="px-4 py-2 rounded-lg text-sm font-medium text-slate-400 hover:text-white border border-transparent hover:border-slate-500 whitespace-nowrap transition-colors">
+        <i class="fas fa-home mr-2"></i>Dashboard
+    </a>
+    <a href="{% url 'metas_ahorro' %}" class="px-4 py-2 rounded-lg text-sm font-medium text-slate-400 hover:text-white border border-transparent hover:border-slate-500 whitespace-nowrap transition-colors">
+        <i class="fas fa-bullseye mr-2"></i>Metas
+    </a>
+    <a href="{% url 'inversiones_detalle' %}" class="px-4 py-2 rounded-lg text-sm font-medium bg-fintech-emerald/10 text-fintech-emeraldLight border border-fintech-emerald/20 whitespace-nowrap">
+        <i class="fas fa-chart-pie mr-2"></i>Inversiones
+    </a>
+</div>
+
+<!-- ===================== SUMMARY CARDS ===================== -->
+<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 lg:gap-6 mb-6 lg:mb-8">
+    <div class="bg-gradient-to-br from-fintech-cyan/20 to-fintech-cyan/5 rounded-2xl border border-fintech-cyan/30 p-5 lg:p-6">
+        <div class="flex items-center justify-between mb-3">
+            <span class="text-slate-300 text-sm font-medium">Capital invertido</span>
+            <div class="w-10 h-10 rounded-xl bg-fintech-cyan/20 flex items-center justify-center">
+                <i class="fas fa-chart-pie text-fintech-cyan"></i>
+            </div>
+        </div>
+        <p class="text-2xl lg:text-3xl font-bold text-fintech-cyan tracking-tight">{{ monto_congelado|cop }}</p>
+        <p class="text-xs text-slate-400 mt-2">En inversiones activas</p>
+    </div>
+
+    <div class="bg-fintech-card rounded-2xl border border-fintech-border p-5 lg:p-6">
+        <div class="flex items-center justify-between mb-3">
+            <span class="text-slate-300 text-sm font-medium">Ganancias totales</span>
+            <div class="w-10 h-10 rounded-xl bg-fintech-emerald/20 flex items-center justify-center">
+                <i class="fas fa-arrow-trend-up text-fintech-emeraldLight"></i>
+            </div>
+        </div>
+        <p class="text-2xl lg:text-3xl font-bold text-fintech-emeraldLight tracking-tight">{{ total_ganancias|cop }}</p>
+        <p class="text-xs text-slate-400 mt-2">Inversiones cerradas</p>
+    </div>
+
+    <div class="bg-fintech-card rounded-2xl border border-fintech-border p-5 lg:p-6">
+        <div class="flex items-center justify-between mb-3">
+            <span class="text-slate-300 text-sm font-medium">Pérdidas totales</span>
+            <div class="w-10 h-10 rounded-xl bg-fintech-rose/20 flex items-center justify-center">
+                <i class="fas fa-arrow-trend-down text-fintech-rose"></i>
+            </div>
+        </div>
+        <p class="text-2xl lg:text-3xl font-bold text-fintech-rose tracking-tight">{{ total_perdidas|cop }}</p>
+        <p class="text-xs text-slate-400 mt-2">Inversiones cerradas</p>
+    </div>
+
+    <div class="bg-fintech-card rounded-2xl border border-fintech-border p-5 lg:p-6">
+        <div class="flex items-center justify-between mb-3">
+            <span class="text-slate-300 text-sm font-medium">ROI neto</span>
+            <div class="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center">
+                <i class="fas fa-percentage text-blue-400"></i>
+            </div>
+        </div>
+        <p class="text-2xl lg:text-3xl font-bold text-white tracking-tight">{% if monto_congelado > 0 %}{{ total_ganancias|subtract:total_perdidas|multiply:100|divide:monto_congelado }}{% else %}0{% endif %}%</p>
+        <p class="text-xs text-slate-400 mt-2">Retorno sobre inversión</p>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+    <!-- ===================== INVERSIONES LIST ===================== -->
+    <div class="xl:col-span-2">
+        <div class="bg-fintech-card rounded-2xl border border-fintech-border p-4 lg:p-6">
+            <div class="flex items-center justify-between mb-5">
+                <h2 class="text-white font-bold text-lg">Portafolio de inversiones</h2>
+                <span class="text-slate-400 text-sm">{{ inversiones|length }} inversión(es)</span>
+            </div>
+
+            <div class="space-y-3">
+                {% for inv in inversiones %}
+                <div class="p-4 rounded-xl bg-fintech-bg border border-fintech-border hover:border-slate-500 transition-colors">
+                    <div class="flex items-start gap-4">
+                        <div class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0" style="background-color: {{ inv.color_activo }}22;">
+                            <i class="fas {{ inv.icono_activo }} text-lg" style="color: {{ inv.color_activo }};"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center justify-between gap-2 mb-2">
+                                <h3 class="text-white font-semibold truncate">{{ inv.nombre }}</h3>
+                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium
+                                    {% if inv.estado == 'activa' %}bg-fintech-emerald/10 text-fintech-emeraldLight
+                                    {% elif inv.estado == 'vencida' %}bg-amber-500/10 text-amber-300
+                                    {% elif inv.estado == 'ganancia' %}bg-fintech-emerald/10 text-fintech-emeraldLight
+                                    {% elif inv.estado == 'perdida' %}bg-fintech-rose/10 text-fintech-rose
+                                    {% else %}bg-slate-500/10 text-slate-400{% endif %} shrink-0">
+                                    {{ inv.get_estado_display }}
+                                </span>
+                            </div>
+                            
+                            <div class="grid grid-cols-2 gap-4 text-sm mb-2">
+                                <div>
+                                    <span class="text-slate-400 text-xs">Monto inicial</span>
+                                    <p class="text-white font-medium">{{ inv.monto_inicial|cop }}</p>
+                                </div>
+                                {% if inv.monto_final %}
+                                <div>
+                                    <span class="text-slate-400 text-xs">Monto final</span>
+                                    <p class="text-white font-medium">{{ inv.monto_final|cop }}</p>
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="flex items-center justify-between text-xs">
+                                <div class="flex items-center gap-3 text-slate-400">
+                                    <span><i class="fas fa-tag mr-1"></i> {{ inv.get_tipo_activo_display }}</span>
+                                    {% if inv.rendimiento_esperado %}
+                                    <span><i class="fas fa-percent mr-1"></i> {{ inv.rendimiento_esperado }}% anual</span>
+                                    {% endif %}
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    {% if inv.esta_abierta %}
+                                    <button onclick="openModal('modal-cerrar-{{ inv.pk }}')" class="w-9 h-9 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-300 hover:bg-amber-500/20 transition-colors" title="Cerrar inversión">
+                                        <i class="fas fa-check text-sm"></i>
+                                    </button>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-center py-12">
+                    <div class="w-16 h-16 rounded-2xl bg-fintech-bg border border-fintech-border flex items-center justify-center mx-auto mb-3">
+                        <i class="fas fa-chart-line text-slate-600 text-2xl"></i>
+                    </div>
+                    <p class="text-slate-400">No tienes inversiones registradas.</p>
+                    <p class="text-slate-500 text-sm mt-1">Ve al dashboard de ahorros para crear una.</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================== DISTRIBUCIÓN ===================== -->
+    <div class="xl:col-span-1">
+        <div class="bg-fintech-card rounded-2xl border border-fintech-border p-5 lg:p-6 xl:sticky xl:top-24">
+            <div class="flex items-center gap-3 mb-5">
+                <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-fintech-cyan to-fintech-emerald flex items-center justify-center">
+                    <i class="fas fa-chart-pie text-white"></i>
+                </div>
+                <div>
+                    <h2 class="text-white font-bold text-lg leading-tight">Distribución</h2>
+                    <p class="text-slate-400 text-xs">Por tipo de activo</p>
+                </div>
+            </div>
+
+            <div class="space-y-4">
+                {% for item in distribucion %}
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-lg flex items-center justify-center shrink-0" style="background-color: {{ item.color }}22;">
+                        <i class="fas {{ item.icono }}" style="color: {{ item.color }};"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="text-white font-medium text-sm truncate">{{ item.nombre }}</span>
+                            <span class="text-slate-400 text-xs">{{ item.total|cop }}</span>
+                        </div>
+                        <div class="h-2 rounded-full bg-fintech-border overflow-hidden">
+                            <div class="h-full rounded-full" style="width: {% if monto_congelado > 0 %}{{ item.total|multiply:100|divide:monto_congelado }}{% else %}0{% endif %}%; background-color: {{ item.color }};"></div>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-center py-8">
+                    <p class="text-slate-400 text-sm">Sin datos de distribución</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block modals %}
+{% for inv in inversiones %}
+{% if inv.esta_abierta %}
+<!-- Close Investment Modal -->
+<div id="modal-cerrar-{{ inv.pk }}" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-4 backdrop-blur-sm">
+    <div class="bg-fintech-card rounded-3xl shadow-2xl max-w-md w-full p-6 border border-fintech-border">
+        <div class="flex items-center gap-3 mb-6">
+            <div class="w-11 h-11 rounded-xl bg-amber-500/20 flex items-center justify-center"><i class="fas fa-check text-amber-400"></i></div>
+            <h2 class="text-xl font-bold text-white">Cerrar inversión</h2>
+        </div>
+        <p class="text-slate-300 text-sm mb-4"><strong class="text-white">{{ inv.nombre }}</strong> — {{ inv.monto_inicial|cop }}</p>
+        <form method="post" action="{% url 'cerrar_inversion' inv.pk %}">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{% url 'inversiones_detalle' %}">
+            <div class="mb-4"><label class="form-label">Monto final recuperado</label><input type="text" name="monto_final" data-cop="true" class="form-input input-cop"></div>
+            <label class="flex items-center gap-2 text-sm mb-4 text-slate-400"><input type="checkbox" name="extender" class="rounded" onchange="toggleExtenderInversion()"> Sigue en curso</label>
+            <div class="campo-nueva-fecha mb-4 hidden"><label class="form-label">Nueva fecha</label><input type="date" name="nueva_fecha" id="id_nueva_fecha_{{ inv.pk }}" class="form-input"></div>
+            <button type="submit" class="w-full bg-fintech-emerald hover:bg-emerald-600 text-white py-3.5 rounded-xl font-semibold transition-colors">Confirmar</button>
+        </form>
+    </div>
+</div>
+{% endif %}
+{% endfor %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function openModal(id) {
+    const el = document.getElementById(id);
+    el.classList.remove('hidden');
+    el.classList.add('flex');
+    if (typeof initCOPInputs === 'function') initCOPInputs();
+}
+function closeModal(id) {
+    const el = document.getElementById(id);
+    el.classList.add('hidden');
+    el.classList.remove('flex');
+}
+function toggleExtenderInversion() {
+    const checkbox = event.target;
+    const campos = document.querySelectorAll('.campo-nueva-fecha');
+    campos.forEach(campo => {
+        campo.classList.toggle('hidden', !checkbox.checked);
+    });
+}
+document.addEventListener('DOMContentLoaded', function () {
+    if (typeof initCOPInputs === 'function') initCOPInputs();
+});
+</script>
+{% endblock %}

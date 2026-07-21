@@ -18,5 +18,8 @@ urlpatterns = [
     path('categorias/crear/', views.categoria_crear, name='categoria_crear'),
     path('gastos-fijos/', views.gastos_fijos_lista, name='gastos_fijos_lista'),
     path('gastos-fijos/crear/', views.gasto_fijo_crear, name='gasto_fijo_crear'),
+    path('gastos-fijos/<int:pk>/editar/', views.gasto_fijo_editar, name='gasto_fijo_editar'),
+    path('gastos-fijos/<int:pk>/eliminar/', views.gasto_fijo_eliminar, name='gasto_fijo_eliminar'),
+    path('gastos-fijos/<int:pk>/toggle/', views.gasto_fijo_toggle_activa, name='gasto_fijo_toggle'),
     path('tutorial/completar/', views.completar_tutorial, name='completar_tutorial'),
 ]

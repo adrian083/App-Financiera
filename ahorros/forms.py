@@ -1,5 +1,6 @@
 from django import forms
 
+from ahorros.models import MetaAhorro
 from core.form_styles import FORM_INPUT, FORM_INPUT_COP
 from core.utils.moneda import parse_cop
 
@@ -79,3 +80,20 @@ class CierreInversionForm(forms.Form):
         if not cleaned.get('extender') and cleaned.get('monto_final') is None:
             self.add_error('monto_final', 'Indica el monto final recuperado.')
         return cleaned
+
+
+class MetaAhorroForm(forms.ModelForm):
+    monto_objetivo = MontoCOPField(
+        label='Monto objetivo',
+        widget=forms.TextInput(attrs={'class': FORM_INPUT_COP, 'data-cop': 'true'}),
+    )
+
+    class Meta:
+        model = MetaAhorro
+        fields = ['nombre', 'icono', 'color', 'monto_objetivo', 'fecha_objetivo']
+        widgets = {
+            'nombre': forms.TextInput(attrs={'class': FORM_INPUT}),
+            'icono': forms.Select(attrs={'class': FORM_INPUT}),
+            'color': forms.TextInput(attrs={'type': 'color', 'class': 'h-10 w-16 rounded border border-slate-300 dark:border-slate-600'}),
+            'fecha_objetivo': forms.DateInput(attrs={'type': 'date', 'class': FORM_INPUT}),
+        }

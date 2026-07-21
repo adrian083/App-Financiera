@@ -393,3 +393,45 @@ def completar_tutorial(request):
     config.ha_visto_tutorial = True
     config.save(update_fields=['ha_visto_tutorial'])
     return JsonResponse({'ok': True})
+
+
+@login_required
+def gasto_fijo_editar(request, pk):
+    plantilla = get_object_or_404(GastoFijoPlantilla, pk=pk, usuario=request.user)
+    if request.method == 'POST':
+        form = GastoFijoPlantillaForm(request.POST, instance=plantilla, usuario=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Gasto fijo actualizado.')
+            return redirect('gastos_fijos_lista')
+    else:
+        form = GastoFijoPlantillaForm(instance=plantilla, usuario=request.user)
+    return render(request, 'presupuesto/gastos_fijos.html', {
+        'form': form,
+        'editando_id': pk,
+        'plantillas': GastoFijoPlantilla.objects.filter(usuario=request.user),
+        'total_fijo': GastoFijoPlantilla.objects.filter(usuario=request.user, activa=True).aggregate(t=Sum('monto'))['t'] or 0,
+        'total_plantillas': GastoFijoPlantilla.objects.filter(usuario=request.user).count(),
+        'total_activas': GastoFijoPlantilla.objects.filter(usuario=request.user, activa=True).count(),
+        'total_inactivas': GastoFijoPlantilla.objects.filter(usuario=request.user, activa=False).count(),
+    })
+
+
+@login_required
+@require_POST
+def gasto_fijo_eliminar(request, pk):
+    plantilla = get_object_or_404(GastoFijoPlantilla, pk=pk, usuario=request.user)
+    plantilla.delete()
+    messages.success(request, 'Gasto fijo eliminado.')
+    return redirect('gastos_fijos_lista')
+
+
+@login_required
+@require_POST
+def gasto_fijo_toggle_activa(request, pk):
+    plantilla = get_object_or_404(GastoFijoPlantilla, pk=pk, usuario=request.user)
+    plantilla.activa = not plantilla.activa
+    plantilla.save()
+    estado = 'activada' if plantilla.activa else 'desactivada'
+    messages.success(request, f'Gasto fijo {estado}.')
+    return redirect('gastos_fijos_lista')

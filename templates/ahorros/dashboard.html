@@ -12,6 +12,19 @@
     <p class="text-slate-400 text-sm mt-1">Fondo acumulado, inversiones y ledger.</p>
 </div>
 
+<!-- ===================== NAVIGATION TABS ===================== -->
+<div class="flex items-center gap-2 mb-6 overflow-x-auto pb-1">
+    <a href="{% url 'dashboard_ahorros' %}" class="px-4 py-2 rounded-lg text-sm font-medium bg-fintech-emerald/10 text-fintech-emeraldLight border border-fintech-emerald/20 whitespace-nowrap">
+        <i class="fas fa-home mr-2"></i>Dashboard
+    </a>
+    <a href="{% url 'metas_ahorro' %}" class="px-4 py-2 rounded-lg text-sm font-medium text-slate-400 hover:text-white border border-transparent hover:border-slate-500 whitespace-nowrap transition-colors">
+        <i class="fas fa-bullseye mr-2"></i>Metas
+    </a>
+    <a href="{% url 'inversiones_detalle' %}" class="px-4 py-2 rounded-lg text-sm font-medium text-slate-400 hover:text-white border border-transparent hover:border-slate-500 whitespace-nowrap transition-colors">
+        <i class="fas fa-chart-pie mr-2"></i>Inversiones
+    </a>
+</div>
+
 <!-- ===================== ALERTS ===================== -->
 {% if inversiones_vencidas or inversiones_proximas %}
 <div class="mb-6 space-y-2">

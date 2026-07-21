@@ -1,0 +1,234 @@
+{% extends 'base.html' %}
+{% load finanzas_tags %}
+
+{% block title %}Metas de Ahorro — FinanzasApp{% endblock %}
+{% block header_eyebrow %}Ahorros{% endblock %}
+{% block header_title %}Metas de Ahorro{% endblock %}
+
+{% block content %}
+<!-- ===================== NAVIGATION TABS ===================== -->
+<div class="flex items-center gap-2 mb-6 overflow-x-auto pb-1">
+    <a href="{% url 'dashboard_ahorros' %}" class="px-4 py-2 rounded-lg text-sm font-medium text-slate-400 hover:text-white border border-transparent hover:border-slate-500 whitespace-nowrap transition-colors">
+        <i class="fas fa-home mr-2"></i>Dashboard
+    </a>
+    <a href="{% url 'metas_ahorro' %}" class="px-4 py-2 rounded-lg text-sm font-medium bg-fintech-emerald/10 text-fintech-emeraldLight border border-fintech-emerald/20 whitespace-nowrap">
+        <i class="fas fa-bullseye mr-2"></i>Metas
+    </a>
+    <a href="{% url 'inversiones_detalle' %}" class="px-4 py-2 rounded-lg text-sm font-medium text-slate-400 hover:text-white border border-transparent hover:border-slate-500 whitespace-nowrap transition-colors">
+        <i class="fas fa-chart-pie mr-2"></i>Inversiones
+    </a>
+</div>
+
+<!-- ===================== SUMMARY CARDS ===================== -->
+<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 lg:gap-6 mb-6 lg:mb-8">
+    <div class="bg-gradient-to-br from-fintech-emerald/20 to-fintech-emerald/5 rounded-2xl border border-fintech-emerald/30 p-5 lg:p-6">
+        <div class="flex items-center justify-between mb-3">
+            <span class="text-slate-300 text-sm font-medium">Total ahorrado</span>
+            <div class="w-10 h-10 rounded-xl bg-fintech-emerald/20 flex items-center justify-center">
+                <i class="fas fa-piggy-bank text-fintech-emeraldLight"></i>
+            </div>
+        </div>
+        <p class="text-2xl lg:text-3xl font-bold text-fintech-emeraldLight tracking-tight">{{ total_ahorrado|cop }}</p>
+        <p class="text-xs text-slate-400 mt-2">En todas las metas</p>
+    </div>
+
+    <div class="bg-fintech-card rounded-2xl border border-fintech-border p-5 lg:p-6">
+        <div class="flex items-center justify-between mb-3">
+            <span class="text-slate-300 text-sm font-medium">Objetivo total</span>
+            <div class="w-10 h-10 rounded-xl bg-fintech-cyan/20 flex items-center justify-center">
+                <i class="fas fa-bullseye text-fintech-cyan"></i>
+            </div>
+        </div>
+        <p class="text-2xl lg:text-3xl font-bold text-white tracking-tight">{{ total_objetivo|cop }}</p>
+        <p class="text-xs text-slate-400 mt-2">Suma de todas las metas</p>
+    </div>
+
+    <div class="bg-fintech-card rounded-2xl border border-fintech-border p-5 lg:p-6">
+        <div class="flex items-center justify-between mb-3">
+            <span class="text-slate-300 text-sm font-medium">Fondo disponible</span>
+            <div class="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center">
+                <i class="fas fa-wallet text-blue-400"></i>
+            </div>
+        </div>
+        <p class="text-2xl lg:text-3xl font-bold text-white tracking-tight">{{ fondo.saldo_disponible|cop }}</p>
+        <p class="text-xs text-slate-400 mt-2">Saldo del fondo de ahorro</p>
+    </div>
+
+    <div class="bg-fintech-card rounded-2xl border border-fintech-border p-5 lg:p-6">
+        <div class="flex items-center justify-between mb-3">
+            <span class="text-slate-300 text-sm font-medium">Progreso general</span>
+            <div class="w-10 h-10 rounded-xl bg-fintech-rose/20 flex items-center justify-center">
+                <i class="fas fa-chart-line text-fintech-rose"></i>
+            </div>
+        </div>
+        <p class="text-2xl lg:text-3xl font-bold text-white tracking-tight">{% if total_objetivo > 0 %}{{ total_ahorrado|multiply:100|divide:total_objetivo }}{% else %}0{% endif %}%</p>
+        <p class="text-xs text-slate-400 mt-2">Del objetivo total</p>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+    <!-- ===================== METAS LIST ===================== -->
+    <div class="xl:col-span-2">
+        <div class="bg-fintech-card rounded-2xl border border-fintech-border p-4 lg:p-6">
+            <div class="flex items-center justify-between mb-5">
+                <h2 class="text-white font-bold text-lg">Tus metas</h2>
+                <span class="text-slate-400 text-sm">{{ metas|length }} meta(s)</span>
+            </div>
+
+            <div class="space-y-4">
+                {% for meta in metas %}
+                <div class="p-4 rounded-xl bg-fintech-bg border border-fintech-border hover:border-slate-500 transition-colors">
+                    <div class="flex items-start gap-4">
+                        <div class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0" style="background-color: {{ meta.color }}22;">
+                            <i class="fas {{ meta.icono }} text-lg" style="color: {{ meta.color }};"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center justify-between gap-2 mb-2">
+                                <h3 class="text-white font-semibold truncate">{{ meta.nombre }}</h3>
+                                {% if meta.completada %}
+                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium bg-fintech-emerald/10 text-fintech-emeraldLight shrink-0">
+                                    <i class="fas fa-check text-[10px]"></i> Completada
+                                </span>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- Progress Bar -->
+                            <div class="mb-3">
+                                <div class="flex items-center justify-between text-xs mb-1">
+                                    <span class="text-slate-400">{{ meta.saldo_actual|cop }} de {{ meta.monto_objetivo|cop }}</span>
+                                    <span class="text-white font-medium">{{ meta.progreso }}%</span>
+                                </div>
+                                <div class="h-2 rounded-full bg-fintech-border overflow-hidden">
+                                    <div class="h-full rounded-full transition-all duration-500" style="width: {{ meta.progreso }}%; background-color: {{ meta.color }};"></div>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-3 text-xs text-slate-400">
+                                    {% if meta.dias_restantes %}
+                                        <span><i class="fas fa-calendar mr-1"></i> {{ meta.dias_restantes }} días restantes</span>
+                                    {% else %}
+                                        <span><i class="fas fa-infinity mr-1"></i> Sin fecha límite</span>
+                                    {% endif %}
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <button onclick="openModal('modal-deposito-{{ meta.pk }}')" class="w-9 h-9 rounded-lg bg-fintech-emerald/10 border border-fintech-emerald/20 flex items-center justify-center text-fintech-emeraldLight hover:bg-fintech-emerald/20 transition-colors" title="Agregar aporte">
+                                        <i class="fas fa-plus text-sm"></i>
+                                    </button>
+                                    <form method="post" action="{% url 'eliminar_meta' meta.pk %}" class="inline" onsubmit="return confirm('¿Eliminar esta meta?');">
+                                        {% csrf_token %}
+                                        <button type="submit" class="w-9 h-9 rounded-lg bg-fintech-rose/10 border border-fintech-rose/20 flex items-center justify-center text-fintech-rose hover:bg-fintech-rose/20 transition-colors" title="Eliminar meta">
+                                            <i class="fas fa-trash text-sm"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-center py-12">
+                    <div class="w-16 h-16 rounded-2xl bg-fintech-bg border border-fintech-border flex items-center justify-center mx-auto mb-3">
+                        <i class="fas fa-bullseye text-slate-600 text-2xl"></i>
+                    </div>
+                    <p class="text-slate-400">No tienes metas de ahorro creadas.</p>
+                    <p class="text-slate-500 text-sm mt-1">Crea tu primera meta en el panel de la derecha.</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================== CREATE META FORM ===================== -->
+    <div class="xl:col-span-1">
+        <div class="bg-fintech-card rounded-2xl border border-fintech-border p-5 lg:p-6 xl:sticky xl:top-24">
+            <div class="flex items-center gap-3 mb-5">
+                <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-fintech-emerald to-fintech-cyan flex items-center justify-center">
+                    <i class="fas fa-plus text-white"></i>
+                </div>
+                <div>
+                    <h2 class="text-white font-bold text-lg leading-tight">Nueva meta</h2>
+                    <p class="text-slate-400 text-xs">Define tu objetivo</p>
+                </div>
+            </div>
+            <form method="post" action="{% url 'crear_meta' %}" class="space-y-4">
+                {% csrf_token %}
+                <div>
+                    <label class="form-label">Nombre de la meta</label>
+                    <input type="text" name="nombre" class="form-input" placeholder="Ej: Viaje a Europa" required>
+                </div>
+                <div>
+                    <label class="form-label">Ícono</label>
+                    <select name="icono" class="form-input">
+                        {% for icono, label in ahorros.models.MetaAhorro.ICONOS %}
+                        <option value="{{ icono }}">{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label class="form-label">Color</label>
+                    <input type="color" name="color" class="h-10 w-full rounded-xl border border-fintech-border" value="#10B981">
+                </div>
+                <div>
+                    <label class="form-label">Monto objetivo</label>
+                    <input type="text" name="monto_objetivo" class="form-input input-cop" data-cop="true" placeholder="$ 0" required>
+                </div>
+                <div>
+                    <label class="form-label">Fecha objetivo (opcional)</label>
+                    <input type="date" name="fecha_objetivo" class="form-input">
+                </div>
+                <button type="submit" class="w-full bg-gradient-to-r from-fintech-emerald to-fintech-cyan text-white py-3.5 rounded-xl font-semibold hover:opacity-90 transition-opacity shadow-lg shadow-fintech-emerald/25">
+                    Crear meta
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block modals %}
+{% for meta in metas %}
+<!-- Deposit Modal -->
+<div id="modal-deposito-{{ meta.pk }}" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-4 backdrop-blur-sm">
+    <div class="bg-fintech-card rounded-3xl shadow-2xl max-w-sm w-full p-6 border border-fintech-border">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-xl font-bold text-white">Aportar a {{ meta.nombre }}</h2>
+            <button onclick="closeModal('modal-deposito-{{ meta.pk }}')" class="text-slate-400 hover:text-white text-2xl transition-colors"><i class="fas fa-times"></i></button>
+        </div>
+        <form method="post" action="{% url 'agregar_deposito_meta' meta.pk %}" class="space-y-4">
+            {% csrf_token %}
+            <div>
+                <label class="form-label">Monto del aporte</label>
+                <input type="text" name="monto" class="form-input input-cop" data-cop="true" placeholder="$ 0" required>
+            </div>
+            <div>
+                <label class="form-label">Nota (opcional)</label>
+                <input type="text" name="nota" class="form-input" placeholder="Ej: Aporte mensual">
+            </div>
+            <button type="submit" class="w-full bg-fintech-emerald hover:bg-emerald-600 text-white py-3.5 rounded-xl font-semibold transition-colors">
+                Agregar aporte
+            </button>
+        </form>
+    </div>
+</div>
+{% endfor %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function openModal(id) {
+    const el = document.getElementById(id);
+    el.classList.remove('hidden');
+    el.classList.add('flex');
+    if (typeof initCOPInputs === 'function') initCOPInputs();
+}
+function closeModal(id) {
+    const el = document.getElementById(id);
+    el.classList.add('hidden');
+    el.classList.remove('flex');
+}
+document.addEventListener('DOMContentLoaded', function () {
+    if (typeof initCOPInputs === 'function') initCOPInputs();
+});
+</script>
+{% endblock %}

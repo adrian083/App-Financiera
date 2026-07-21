@@ -4,7 +4,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
 from ahorros.forms import CierreInversionForm, InversionForm, RetiroAhorroForm
-from ahorros.models import FondoAhorro, Inversion, MovimientoPatrimonio
+from ahorros.models import DepositoMeta, FondoAhorro, Inversion, MetaAhorro, MovimientoPatrimonio
 from ahorros.services import (
     cerrar_inversion,
     crear_inversion,
@@ -110,3 +110,91 @@ def cerrar_inversion_view(request, pk):
     else:
         messages.error(request, 'Error al cerrar la inversión.')
     return redirect(request.POST.get('next', 'dashboard'))
+
+
+@login_required
+def metas_ahorro(request):
+    user = request.user
+    metas = MetaAhorro.objects.filter(usuario=user)
+    fondo = FondoAhorro.obtener(user)
+    
+    context = {
+        'metas': metas,
+        'total_ahorrado': MetaAhorro.total_ahorrado(user),
+        'total_objetivo': MetaAhorro.total_objetivo(user),
+        'fondo': fondo,
+    }
+    return render(request, 'ahorros/metas.html', context)
+
+
+@login_required
+@require_POST
+def crear_meta(request):
+    from ahorros.forms import MetaAhorroForm
+    form = MetaAhorroForm(request.POST)
+    if form.is_valid():
+        meta = form.save(commit=False)
+        meta.usuario = request.user
+        meta.save()
+        messages.success(request, 'Meta de ahorro creada.')
+    else:
+        messages.error(request, 'Error al crear la meta.')
+    return redirect('metas_ahorro')
+
+
+@login_required
+@require_POST
+def agregar_deposito_meta(request, meta_id):
+    meta = get_object_or_404(MetaAhorro, pk=meta_id, usuario=request.user)
+    monto = request.POST.get('monto')
+    nota = request.POST.get('nota', '')
+    
+    if not monto:
+        messages.error(request, 'El monto es requerido.')
+        return redirect('metas_ahorro')
+    
+    from core.utils.moneda import parse_cop
+    monto_parsed = parse_cop(monto)
+    
+    if monto_parsed <= 0:
+        messages.error(request, 'El monto debe ser mayor a cero.')
+        return redirect('metas_ahorro')
+    
+    DepositoMeta.objects.create(
+        meta=meta,
+        monto=monto_parsed,
+        nota=nota,
+    )
+    
+    meta.saldo_actual += monto_parsed
+    if meta.saldo_actual >= meta.monto_objetivo:
+        meta.completada = True
+    meta.save()
+    
+    messages.success(request, f'Aporte de {monto} agregado a {meta.nombre}.')
+    return redirect('metas_ahorro')
+
+
+@login_required
+@require_POST
+def eliminar_meta(request, meta_id):
+    meta = get_object_or_404(MetaAhorro, pk=meta_id, usuario=request.user)
+    meta.delete()
+    messages.success(request, 'Meta eliminada.')
+    return redirect('metas_ahorro')
+
+
+@login_required
+def inversiones_detalle(request):
+    user = request.user
+    inversiones = Inversion.objects.filter(usuario=user)
+    distribucion = Inversion.distribucion_portafolio(user)
+    
+    context = {
+        'inversiones': inversiones,
+        'distribucion': distribucion,
+        'monto_congelado': Inversion.monto_congelado(user),
+        'total_ganancias': Inversion.total_ganancias(user),
+        'total_perdidas': Inversion.total_perdidas(user),
+    }
+    return render(request, 'ahorros/inversiones.html', context)
