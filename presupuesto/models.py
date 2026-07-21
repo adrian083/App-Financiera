@@ -31,20 +31,51 @@ class ConfiguracionUsuario(models.Model):
         default='COP',
         verbose_name='Moneda de visualización',
     )
+    foto_perfil = models.ImageField(
+        upload_to='perfiles/',
+        null=True,
+        blank=True,
+        verbose_name='Foto de perfil',
+    )
     configurado = models.BooleanField(default=False)
     ha_visto_tutorial = models.BooleanField(default=False)
 
+
+class WidgetConfiguracion(models.Model):
+    """Configuración de widgets personalizados del dashboard."""
+    
+    usuario = models.OneToOneField(
+        User, on_delete=models.CASCADE, related_name='widget_config',
+    )
+    
+    # Widgets disponibles y su orden (JSON con lista de IDs de widgets)
+    widgets_activos = models.JSONField(
+        default=list,
+        verbose_name='Widgets activos y orden',
+    )
+    
     class Meta:
-        verbose_name = 'Configuración de usuario'
-        verbose_name_plural = 'Configuraciones de usuario'
-
+        verbose_name = 'Configuración de widgets'
+        verbose_name_plural = 'Configuraciones de widgets'
+    
     def __str__(self):
-        return f'Config {self.usuario.username} (corte día {self.dia_corte})'
-
+        return f'Widgets de {self.usuario.username}'
+    
     @classmethod
     def obtener(cls, usuario):
-        obj, _ = cls.objects.get_or_create(usuario=usuario)
-        return obj
+        config, _ = cls.objects.get_or_create(usuario=usuario)
+        return config
+    
+    def widgets_por_defecto(self):
+        """Retorna la configuración por defecto de widgets."""
+        return [
+            'saldo_disponible',
+            'gastos_categoria',
+            'presupuesto_gastado',
+            'ahorros_resumen',
+            'inversiones_activas',
+            'proximos_pagos',
+        ]
 
 
 class Categoria(models.Model):

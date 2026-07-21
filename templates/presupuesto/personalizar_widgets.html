@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+
+{% block title %}Personalizar Dashboard — FinanzasApp{% endblock %}
+{% block header_eyebrow %}Personalización{% endblock %}
+{% block header_title %}Widgets{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="mb-6">
+        <p class="text-slate-400">Selecciona los widgets que quieres ver en tu dashboard. Arrastra para reordenar.</p>
+    </div>
+
+    <form method="post" class="space-y-6">
+        {% csrf_token %}
+        
+        <!-- Widgets disponibles -->
+        <div class="bg-fintech-card rounded-2xl border border-fintech-border p-6">
+            <h3 class="text-white font-bold text-lg mb-4">Widgets disponibles</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3" id="widgets-container">
+                {% for widget in widgets_disponibles %}
+                <label class="widget-item flex items-center gap-4 p-4 rounded-xl border border-fintech-border cursor-pointer hover:border-fintech-cyan/50 transition-colors {% if widget.id in widgets_activos %}bg-fintech-cyan/10 border-fintech-cyan/30{% else %}bg-fintech-bg{% endif %}">
+                    <input type="checkbox" name="widgets" value="{{ widget.id }}" {% if widget.id in widgets_activos %}checked{% endif %} class="w-5 h-5 rounded border-fintech-border text-fintech-cyan focus:ring-fintech-cyan/20">
+                    <div class="flex items-center gap-3 flex-1">
+                        <div class="w-10 h-10 rounded-lg bg-fintech-cyan/20 flex items-center justify-center">
+                            <i class="fas {{ widget.icono }} text-fintech-cyan"></i>
+                        </div>
+                        <div>
+                            <p class="text-white font-medium">{{ widget.nombre }}</p>
+                            <p class="text-slate-400 text-xs">{{ widget.descripcion }}</p>
+                        </div>
+                    </div>
+                </label>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="flex justify-end gap-3">
+            <a href="{% url 'dashboard' %}" class="px-6 py-3 rounded-xl border border-fintech-border text-slate-300 hover:text-white transition-colors">Cancelar</a>
+            <button type="submit" class="px-6 py-3 rounded-xl bg-gradient-to-r from-fintech-emerald to-fintech-cyan text-white font-semibold hover:opacity-90 transition-all shadow-lg shadow-fintech-emerald/25">Guardar cambios</button>
+        </div>
+    </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Marcar widgets seleccionados visualmente
+    const checkboxes = document.querySelectorAll('input[name="widgets"]');
+    checkboxes.forEach(function(checkbox) {
+        checkbox.addEventListener('change', function() {
+            const label = this.closest('.widget-item');
+            if (this.checked) {
+                label.classList.add('bg-fintech-cyan/10', 'border-fintech-cyan/30');
+                label.classList.remove('bg-fintech-bg');
+            } else {
+                label.classList.remove('bg-fintech-cyan/10', 'border-fintech-cyan/30');
+                label.classList.add('bg-fintech-bg');
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

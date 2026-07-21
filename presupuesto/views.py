@@ -31,6 +31,7 @@ from presupuesto.models import (
     EventoCalendario,
     GastoFijoPlantilla,
     Movimiento,
+    WidgetConfiguracion,
 )
 from presupuesto.services import (
     asegurar_ciclo_activo,
@@ -173,7 +174,7 @@ def configuracion_inicial(request):
 def configuracion_editar(request):
     config = ConfiguracionUsuario.obtener(request.user)
     if request.method == 'POST':
-        form = ConfiguracionForm(request.POST, instance=config)
+        form = ConfiguracionForm(request.POST, request.FILES, instance=config)
         if form.is_valid():
             form.save()
             messages.success(request, 'Configuración actualizada.')
@@ -572,5 +573,38 @@ def crear_evento_calendario(request):
     
     messages.success(request, 'Evento creado exitosamente.')
     return redirect('calendario')
+
+
+@login_required
+def personalizar_widgets(request):
+    widget_config = WidgetConfiguracion.obtener(request.user)
+    
+    # Todos los widgets disponibles
+    widgets_disponibles = [
+        {'id': 'saldo_disponible', 'nombre': 'Saldo disponible', 'icono': 'fa-wallet', 'descripcion': 'Monto disponible en el ciclo actual'},
+        {'id': 'gastos_categoria', 'nombre': 'Gastos por categoría', 'icono': 'fa-chart-pie', 'descripcion': 'Distribución de gastos por categoría'},
+        {'id': 'presupuesto_gastado', 'nombre': 'Presupuesto gastado', 'icono': 'fa-chart-line', 'descripcion': 'Progreso del presupuesto mensual'},
+        {'id': 'ahorros_resumen', 'nombre': 'Resumen de ahorros', 'icono': 'fa-piggy-bank', 'descripcion': 'Estado del fondo de ahorros'},
+        {'id': 'inversiones_activas', 'nombre': 'Inversiones activas', 'icono': 'fa-chart-bar', 'descripcion': 'Inversiones en curso y ROI'},
+        {'id': 'proximos_pagos', 'nombre': 'Próximos pagos', 'icono': 'fa-calendar-check', 'descripcion': 'Eventos del calendario próximos'},
+        {'id': 'gastos_fijos_resumen', 'nombre': 'Gastos fijos', 'icono': 'fa-receipt', 'descripcion': 'Resumen de gastos fijos mensuales'},
+        {'id': 'metas_ahorro', 'nombre': 'Metas de ahorro', 'icono': 'fa-bullseye', 'descripcion': 'Progreso hacia metas financieras'},
+    ]
+    
+    if request.method == 'POST':
+        widgets_seleccionados = request.POST.getlist('widgets')
+        widget_config.widgets_activos = widgets_seleccionados
+        widget_config.save()
+        messages.success(request, 'Widgets actualizados.')
+        return redirect('dashboard')
+    
+    # Usar widgets activos o por defecto
+    widgets_activos = widget_config.widgets_activos if widget_config.widgets_activos else widget_config.widgets_por_defecto()
+    
+    context = {
+        'widgets_disponibles': widgets_disponibles,
+        'widgets_activos': widgets_activos,
+    }
+    return render(request, 'presupuesto/personalizar_widgets.html', context)
 
 

@@ -129,6 +129,7 @@ def metas_ahorro(request):
         'total_objetivo': total_objetivo,
         'porcentaje': porcentaje,
         'fondo': fondo,
+        'iconos_meta': MetaAhorro.ICONOS,
     }
     return render(request, 'ahorros/metas.html', context)
 

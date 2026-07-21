@@ -30,4 +30,8 @@ Sidebar navigation links. Expects `url_name` = request.resolver_match.url_name.
     <i class="fas fa-cog w-5 text-center text-lg"></i>
     <span>Configuración</span>
 </a>
+<a href="{% url 'personalizar_widgets' %}" class="{% if url_name == 'personalizar_widgets' %}{{ active }}{% else %}{{ idle }}{% endif %}">
+    <i class="fas fa-th-large w-5 text-center text-lg"></i>
+    <span>Widgets</span>
+</a>
 {% endwith %}

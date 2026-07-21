@@ -160,7 +160,7 @@
                 <div>
                     <label class="form-label">Ícono</label>
                     <select name="icono" class="form-input">
-                        {% for icono, label in ahorros.models.MetaAhorro.ICONOS %}
+                        {% for icono, label in iconos_meta %}
                         <option value="{{ icono }}">{{ label }}</option>
                         {% endfor %}
                     </select>
