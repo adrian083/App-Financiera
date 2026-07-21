@@ -83,7 +83,9 @@ def crear_inversion_view(request):
         except ValueError as e:
             messages.error(request, str(e))
     else:
-        messages.error(request, 'Error al crear la inversión.')
+        for field, errors in form.errors.items():
+            for error in errors:
+                messages.error(request, f'{field}: {error}')
     return redirect('dashboard_ahorros')
 
 

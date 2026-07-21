@@ -16,6 +16,7 @@ MONEDAS = {
     'MXN': {'codigo': 'MXN', 'simbolo': '$', 'nombre': 'Pesos MXN', 'etiqueta': 'MXN - Pesos', 'decimales': 2, 'sep_miles': ','},
     'GBP': {'codigo': 'GBP', 'simbolo': '£', 'nombre': 'Libras', 'etiqueta': 'GBP - Libras', 'decimales': 2, 'sep_miles': ','},
     'BRL': {'codigo': 'BRL', 'simbolo': 'R$', 'nombre': 'Reales', 'etiqueta': 'BRL - Reales', 'decimales': 2, 'sep_miles': '.'},
+    'GTQ': {'codigo': 'GTQ', 'simbolo': 'Q', 'nombre': 'Quetzales', 'etiqueta': 'GTQ - Quetzales', 'decimales': 2, 'sep_miles': ','},
 }
 
 DEFAULT_MONEDA = 'COP'
