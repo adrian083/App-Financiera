@@ -173,35 +173,53 @@ def dashboard(request):
 
 @login_required
 def configuracion_inicial(request):
-    config = ConfiguracionUsuario.obtener(request.user)
-    if request.method == 'POST':
-        form = ConfiguracionForm(request.POST, instance=config)
-        if form.is_valid():
-            config = form.save(commit=False)
-            config.usuario = request.user
-            config.configurado = True
-            config.save()
-            from presupuesto.services import crear_nuevo_ciclo
-            crear_nuevo_ciclo(request.user, config.salario_base, config.dia_corte)
-            messages.success(request, '¡Configuración guardada! Tu primer ciclo ha iniciado.')
-            return redirect('dashboard')
-    else:
-        form = ConfiguracionForm(instance=config)
-    return render(request, 'presupuesto/configuracion.html', {'form': form})
+    try:
+        config = ConfiguracionUsuario.obtener(request.user)
+        if request.method == 'POST':
+            form = ConfiguracionForm(request.POST, instance=config)
+            if form.is_valid():
+                config = form.save(commit=False)
+                config.usuario = request.user
+                config.configurado = True
+                config.save()
+                from presupuesto.services import crear_nuevo_ciclo
+                crear_nuevo_ciclo(request.user, config.salario_base, config.dia_corte)
+                messages.success(request, '¡Configuración guardada! Tu primer ciclo ha iniciado.')
+                return redirect('dashboard')
+            else:
+                messages.error(request, 'Error al guardar configuración. Por favor verifica los datos.')
+                for field, errors in form.errors.items():
+                    for error in errors:
+                        messages.error(request, f'{field}: {error}')
+        else:
+            form = ConfiguracionForm(instance=config)
+        return render(request, 'presupuesto/configuracion.html', {'form': form})
+    except Exception as e:
+        messages.error(request, f'Error inesperado al cargar configuración: {str(e)}')
+        return redirect('dashboard')
 
 
 @login_required
 def configuracion_editar(request):
-    config = ConfiguracionUsuario.obtener(request.user)
-    if request.method == 'POST':
-        form = ConfiguracionForm(request.POST, request.FILES, instance=config)
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'Configuración actualizada.')
-            return redirect('dashboard')
-    else:
-        form = ConfiguracionForm(instance=config)
-    return render(request, 'presupuesto/configuracion.html', {'form': form, 'editando': True})
+    try:
+        config = ConfiguracionUsuario.obtener(request.user)
+        if request.method == 'POST':
+            form = ConfiguracionForm(request.POST, request.FILES, instance=config)
+            if form.is_valid():
+                form.save()
+                messages.success(request, 'Configuración actualizada correctamente.')
+                return redirect('dashboard')
+            else:
+                messages.error(request, 'Error al guardar configuración. Por favor verifica los datos.')
+                for field, errors in form.errors.items():
+                    for error in errors:
+                        messages.error(request, f'{field}: {error}')
+        else:
+            form = ConfiguracionForm(instance=config)
+        return render(request, 'presupuesto/configuracion.html', {'form': form, 'editando': True})
+    except Exception as e:
+        messages.error(request, f'Error inesperado al cargar configuración: {str(e)}')
+        return redirect('dashboard')
 
 
 @login_required
@@ -397,29 +415,35 @@ def gastos_fijos_lista(request):
 @login_required
 @require_POST
 def gasto_fijo_crear(request):
-    form = GastoFijoPlantillaForm(request.POST, usuario=request.user)
-    if form.is_valid():
-        plantilla = form.save(commit=False)
-        plantilla.usuario = request.user
-        plantilla.save()
-        
-        # Agregar gasto al ciclo actual si existe
-        ciclo = CicloMensual.obtener_activo(request.user)
-        if ciclo:
-            Movimiento.objects.create(
-                ciclo=ciclo,
-                categoria=plantilla.categoria,
-                monto=plantilla.monto,
-                descripcion=plantilla.descripcion,
-                tipo=Movimiento.GASTO,
-                es_gasto_fijo=True,
-                plantilla_origen=plantilla,
-            )
-            messages.success(request, 'Gasto fijo agregado a plantillas y al ciclo actual.')
+    try:
+        form = GastoFijoPlantillaForm(request.POST, usuario=request.user)
+        if form.is_valid():
+            plantilla = form.save(commit=False)
+            plantilla.usuario = request.user
+            plantilla.save()
+            
+            # Agregar gasto al ciclo actual si existe
+            ciclo = CicloMensual.obtener_activo(request.user)
+            if ciclo:
+                Movimiento.objects.create(
+                    ciclo=ciclo,
+                    categoria=plantilla.categoria,
+                    monto=plantilla.monto,
+                    descripcion=plantilla.descripcion,
+                    tipo=Movimiento.GASTO,
+                    es_gasto_fijo=True,
+                    plantilla_origen=plantilla,
+                )
+                messages.success(request, 'Gasto fijo agregado a plantillas y al ciclo actual.')
+            else:
+                messages.success(request, 'Gasto fijo agregado a plantillas.')
         else:
-            messages.success(request, 'Gasto fijo agregado a plantillas.')
-    else:
-        messages.error(request, 'Error al crear gasto fijo.')
+            messages.error(request, 'Error al crear gasto fijo. Por favor verifica los datos.')
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f'{field}: {error}')
+    except Exception as e:
+        messages.error(request, f'Error inesperado al crear gasto fijo: {str(e)}')
     return redirect('gastos_fijos_lista')
 
 
