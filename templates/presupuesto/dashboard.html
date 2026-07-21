@@ -69,16 +69,16 @@
 {% endif %}
 
 <!-- Hero Cards - Solo si widget activo -->
-<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 lg:gap-6 mb-6 lg:mb-8">
+<div class="stagger grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 lg:gap-6 mb-6 lg:mb-8">
 {% if 'saldo_disponible' in widget_config.widgets_activos or widget_config.widgets_activos|length == 0 %}
-<div class="bg-gradient-to-br from-fintech-emerald/20 to-fintech-emerald/5 rounded-2xl border border-fintech-emerald/30 p-5 lg:p-6 transition-all duration-300 hover:shadow-xl hover:shadow-fintech-emerald/10">
+<div class="fin-card glow-emerald p-5 lg:p-6 overflow-hidden">
     <div class="flex items-center justify-between mb-3">
         <span class="text-slate-300 text-sm font-medium">Saldo disponible</span>
-        <div class="w-10 h-10 rounded-xl bg-fintech-emerald/20 flex items-center justify-center">
+        <div class="w-10 h-10 rounded-xl bg-fintech-emerald/20 flex items-center justify-center shadow-inner shadow-fintech-emerald/20">
             <i class="fas fa-wallet text-fintech-emeraldLight"></i>
         </div>
     </div>
-    <p class="text-3xl lg:text-4xl font-extrabold text-fintech-emeraldLight tracking-tight">{{ ciclo.saldo_disponible|cop }}</p>
+    <p class="text-3xl lg:text-4xl font-black font-mono text-gradient tracking-tight">{{ ciclo.saldo_disponible|cop }}</p>
     <div class="flex items-center gap-2 mt-2">
         <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-fintech-emerald/15 border border-fintech-emerald/30 text-fintech-emeraldLight text-[11px] font-semibold">{{ moneda_activa.etiqueta }}</span>
         <p class="text-xs text-slate-400">Ciclo {{ ciclo.etiqueta }}</p>
@@ -87,40 +87,40 @@
 {% endif %}
 
 {% if 'gastos_categoria' in widget_config.widgets_activos or widget_config.widgets_activos|length == 0 %}
-<div class="bg-fintech-card rounded-2xl border border-fintech-border p-5 lg:p-6 transition-all duration-300 hover:border-slate-500">
+<div class="fin-card p-5 lg:p-6">
     <div class="flex items-center justify-between mb-3">
         <span class="text-slate-300 text-sm font-medium">Ingresos del mes</span>
-        <div class="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center">
+        <div class="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center shadow-inner shadow-blue-500/20">
             <i class="fas fa-arrow-up text-blue-400"></i>
         </div>
     </div>
-    <p class="text-2xl lg:text-3xl font-bold text-white tracking-tight">{{ ciclo.total_ingresos|cop }}</p>
+    <p class="text-2xl lg:text-3xl font-bold font-mono text-white tracking-tight">{{ ciclo.total_ingresos|cop }}</p>
     <p class="text-xs text-slate-400 mt-2">Salario {{ ciclo.salario_ciclo|cop }}</p>
 </div>
 {% endif %}
 
 {% if 'presupuesto_gastado' in widget_config.widgets_activos or widget_config.widgets_activos|length == 0 %}
-<div class="bg-fintech-card rounded-2xl border border-fintech-border p-5 lg:p-6 transition-all duration-300 hover:border-slate-500">
+<div class="fin-card p-5 lg:p-6">
     <div class="flex items-center justify-between mb-3">
         <span class="text-slate-300 text-sm font-medium">Gastos del mes</span>
-        <div class="w-10 h-10 rounded-xl bg-fintech-rose/20 flex items-center justify-center">
+        <div class="w-10 h-10 rounded-xl bg-fintech-rose/20 flex items-center justify-center shadow-inner shadow-fintech-rose/20">
             <i class="fas fa-arrow-down text-fintech-rose"></i>
         </div>
     </div>
-    <p class="text-2xl lg:text-3xl font-bold text-fintech-rose tracking-tight">{{ ciclo.total_gastos|cop }}</p>
+    <p class="text-2xl lg:text-3xl font-bold font-mono text-gradient-rose tracking-tight">{{ ciclo.total_gastos|cop }}</p>
     <p class="text-xs text-slate-400 mt-2">Enviado a ahorro {{ ciclo.total_enviado_ahorro|cop }}</p>
 </div>
 {% endif %}
 
 {% if 'ahorros_resumen' in widget_config.widgets_activos or widget_config.widgets_activos|length == 0 %}
-<div class="bg-fintech-card rounded-2xl border border-fintech-border p-5 lg:p-6 transition-all duration-300 hover:border-slate-500">
+<div class="fin-card p-5 lg:p-6">
     <div class="flex items-center justify-between mb-3">
         <span class="text-slate-300 text-sm font-medium">Fondo de ahorro</span>
-        <div class="w-10 h-10 rounded-xl bg-fintech-cyan/20 flex items-center justify-center">
+        <div class="w-10 h-10 rounded-xl bg-fintech-cyan/20 flex items-center justify-center shadow-inner shadow-fintech-cyan/20">
             <i class="fas fa-piggy-bank text-fintech-cyan"></i>
         </div>
     </div>
-    <p class="text-2xl lg:text-3xl font-bold text-fintech-cyan tracking-tight">{{ fondo.saldo_disponible|cop }}</p>
+    <p class="text-2xl lg:text-3xl font-bold font-mono text-fintech-cyan tracking-tight">{{ fondo.saldo_disponible|cop }}</p>
     <a href="{% url 'dashboard_ahorros' %}" class="text-xs text-fintech-cyan hover:underline mt-2 inline-block">Ver ahorros e inversiones</a>
 </div>
 {% endif %}
@@ -218,8 +218,8 @@
                 </div>
                 <span class="text-slate-400 text-sm">{{ meta.ahorrado|cop }} / {{ meta.objetivo|cop }}</span>
             </div>
-            <div class="w-full bg-slate-700 rounded-full h-2">
-                <div class="bg-fintech-emerald h-2 rounded-full" style="width: {% widthratio meta.ahorrado meta.objetivo 100 %}%"></div>
+            <div class="w-full bg-slate-800/80 rounded-full h-2 overflow-hidden">
+                <div class="progress-fill h-2 rounded-full" style="width: {% widthratio meta.ahorrado meta.objetivo 100 %}%"></div>
             </div>
         </div>
         {% endfor %}

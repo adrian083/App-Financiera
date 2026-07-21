@@ -1,7 +1,7 @@
 {% comment %}
 Sidebar navigation links. Expects `url_name` = request.resolver_match.url_name.
 {% endcomment %}
-{% with active="flex items-center gap-3 px-4 py-3 rounded-xl bg-fintech-emerald/10 text-fintech-emeraldLight border border-fintech-emerald/20 font-medium transition-all" idle="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-fintech-bg border border-transparent hover:border-fintech-border font-medium transition-all" %}
+{% with active="relative flex items-center gap-3 px-4 py-3 rounded-xl bg-gradient-to-r from-fintech-emerald/15 to-fintech-cyan/10 text-fintech-emeraldLight border border-fintech-emerald/30 font-semibold transition-all shadow-lg shadow-fintech-emerald/10 before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-6 before:w-1 before:rounded-full before:bg-fintech-emeraldLight" idle="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-fintech-bg/70 border border-transparent hover:border-fintech-border font-medium transition-all hover:translate-x-1" %}
 <a href="{% url 'dashboard' %}" class="{% if url_name == 'dashboard' %}{{ active }}{% else %}{{ idle }}{% endif %}">
     <i class="fas fa-home w-5 text-center text-lg"></i>
     <span>Dashboard</span>

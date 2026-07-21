@@ -33,9 +33,24 @@
                     },
                     fontFamily: {
                         sans: ['Inter', 'system-ui', 'sans-serif'],
+                        mono: ['"JetBrains Mono"', 'ui-monospace', 'monospace'],
                     },
                     animation: {
                         'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'fade-in': 'fadeIn .5s ease-out both',
+                        'fade-in-up': 'fadeInUp .55s cubic-bezier(0.22,1,0.36,1) both',
+                        'scale-in': 'scaleIn .4s cubic-bezier(0.22,1,0.36,1) both',
+                        'glow': 'glow 2.4s ease-in-out infinite',
+                        'float': 'float 6s ease-in-out infinite',
+                        'shimmer': 'shimmer 2.2s linear infinite',
+                    },
+                    keyframes: {
+                        fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
+                        fadeInUp: { '0%': { opacity: '0', transform: 'translateY(16px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } },
+                        scaleIn: { '0%': { opacity: '0', transform: 'scale(.96)' }, '100%': { opacity: '1', transform: 'scale(1)' } },
+                        glow: { '0%,100%': { opacity: '.55' }, '50%': { opacity: '1' } },
+                        float: { '0%,100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-8px)' } },
+                        shimmer: { '0%': { backgroundPosition: '-200% 0' }, '100%': { backgroundPosition: '200% 0' } },
                     },
                 }
             }
@@ -44,17 +59,94 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
     <style>
         html, body { background-color: #0F172A; color: #f8fafc; }
-        body { font-family: 'Inter', system-ui, sans-serif; overflow-x: hidden; -webkit-tap-highlight-color: transparent; }
+        body {
+            font-family: 'Inter', system-ui, sans-serif; overflow-x: hidden; -webkit-tap-highlight-color: transparent;
+            /* Ambient neon glow field */
+            background-color: #0B1120;
+            background-image:
+                radial-gradient(60rem 60rem at 15% -10%, rgba(6,182,212,0.10), transparent 60%),
+                radial-gradient(50rem 50rem at 110% 10%, rgba(16,185,129,0.10), transparent 55%),
+                radial-gradient(40rem 40rem at 50% 120%, rgba(99,102,241,0.06), transparent 60%);
+            background-attachment: fixed;
+        }
         .scrollbar-hide::-webkit-scrollbar { display: none; }
         .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
         /* Thin themed scrollbar for the main area */
         ::-webkit-scrollbar { width: 10px; height: 10px; }
-        ::-webkit-scrollbar-track { background: #0F172A; }
-        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 6px; border: 2px solid #0F172A; }
-        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+        ::-webkit-scrollbar-track { background: #0B1120; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 6px; border: 2px solid #0B1120; }
+        ::-webkit-scrollbar-thumb:hover { background: #06B6D4; }
         [x-cloak] { display: none !important; }
+
+        /* ===== Premium glass & neon utilities ===== */
+        .glass {
+            background: rgba(15,23,42,0.72);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1px solid rgba(148,163,184,0.14);
+        }
+        .glass-strong {
+            background: rgba(17,24,39,0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(148,163,184,0.16);
+        }
+        /* Card with subtle gradient border + hover glow lift */
+        .fin-card {
+            position: relative;
+            background: linear-gradient(160deg, rgba(30,41,59,0.85), rgba(17,24,39,0.9));
+            border: 1px solid rgba(148,163,184,0.12);
+            border-radius: 1.25rem;
+            transition: transform .3s cubic-bezier(0.22,1,0.36,1), box-shadow .3s ease, border-color .3s ease;
+        }
+        .fin-card:hover {
+            transform: translateY(-3px);
+            border-color: rgba(6,182,212,0.35);
+            box-shadow: 0 14px 40px -12px rgba(6,182,212,0.28), 0 0 0 1px rgba(6,182,212,0.10) inset;
+        }
+        .glow-emerald { box-shadow: 0 0 0 1px rgba(16,185,129,0.25), 0 12px 40px -14px rgba(16,185,129,0.55); }
+        .glow-cyan { box-shadow: 0 0 0 1px rgba(6,182,212,0.25), 0 12px 40px -14px rgba(6,182,212,0.55); }
+        .glow-rose { box-shadow: 0 0 0 1px rgba(244,63,94,0.25), 0 12px 40px -14px rgba(244,63,94,0.55); }
+        .text-gradient {
+            background: linear-gradient(120deg, #34D399, #06B6D4);
+            -webkit-background-clip: text; background-clip: text; color: transparent;
+        }
+        .text-gradient-rose {
+            background: linear-gradient(120deg, #FB7185, #F43F5E);
+            -webkit-background-clip: text; background-clip: text; color: transparent;
+        }
+        /* Live status dot */
+        .status-dot { position: relative; }
+        .status-dot::after {
+            content: ''; position: absolute; inset: 0; border-radius: 9999px;
+            box-shadow: 0 0 0 0 rgba(52,211,153,0.7); animation: ping 1.8s cubic-bezier(0,0,0.2,1) infinite;
+        }
+        @keyframes ping { 75%,100% { box-shadow: 0 0 0 8px rgba(52,211,153,0); } }
+        /* Animated gradient progress fill */
+        .progress-fill {
+            background: linear-gradient(90deg, #10B981, #06B6D4);
+            background-size: 200% 100%;
+            animation: shimmer 2.2s linear infinite;
+            transition: width 1s cubic-bezier(0.22,1,0.36,1);
+        }
+        /* Universal micro-interactions for tactile feel */
+        a, button { -webkit-tap-highlight-color: transparent; }
+        button:not(:disabled):active,
+        a[href]:active { transform: scale(0.985); }
+        button, a[href] { transition: transform .15s ease, opacity .2s ease, background-color .2s ease, border-color .2s ease, color .2s ease, box-shadow .2s ease; }
+        /* Stagger children fade for lists/grids that opt in */
+        .stagger > * { animation: fadeInUp .5s cubic-bezier(0.22,1,0.36,1) both; }
+        .stagger > *:nth-child(1){animation-delay:.02s}.stagger > *:nth-child(2){animation-delay:.06s}
+        .stagger > *:nth-child(3){animation-delay:.10s}.stagger > *:nth-child(4){animation-delay:.14s}
+        .stagger > *:nth-child(5){animation-delay:.18s}.stagger > *:nth-child(6){animation-delay:.22s}
+        .stagger > *:nth-child(7){animation-delay:.26s}.stagger > *:nth-child(8){animation-delay:.30s}
+        @keyframes fadeInUp { 0%{opacity:0;transform:translateY(16px)} 100%{opacity:1;transform:translateY(0)} }
+        @media (prefers-reduced-motion: reduce) {
+            *, ::before, ::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+        }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <link rel="stylesheet" href="{% static 'css/forms.css' %}">
@@ -65,11 +157,14 @@
 {% if user.is_authenticated %}
     {% with url_name=request.resolver_match.url_name %}
     <!-- ===================== DESKTOP SIDEBAR ===================== -->
-    <aside class="hidden lg:flex fixed left-0 top-0 h-screen w-64 bg-fintech-card border-r border-fintech-border flex-col z-40">
+    <aside class="hidden lg:flex fixed left-0 top-0 h-screen w-64 glass-strong border-r border-fintech-border flex-col z-40">
         <div class="flex items-center gap-3 px-6 h-20 border-b border-fintech-border shrink-0">
-            {% include 'partials/logo.html' with size='w-11 h-11' %}
+            <div class="relative">
+                <div class="absolute -inset-1 rounded-full bg-gradient-to-br from-fintech-emerald to-fintech-cyan opacity-40 blur-md animate-glow"></div>
+                <span class="relative block">{% include 'partials/logo.html' with size='w-11 h-11' %}</span>
+            </div>
             <div class="leading-tight">
-                <h1 class="text-white font-bold text-lg">FinanzasApp</h1>
+                <h1 class="text-white font-bold text-lg tracking-tight">FinanzasApp</h1>
                 <p class="text-slate-400 text-xs">Finanzas personales</p>
             </div>
         </div>
@@ -79,9 +174,11 @@
         </nav>
 
         <div class="p-4 border-t border-fintech-border shrink-0">
-            <div class="flex items-center gap-3 px-3 py-3 rounded-xl bg-fintech-bg border border-fintech-border">
-                <a href="{% url 'perfil' %}" title="Ver mi perfil">
-                    {% include 'partials/avatar.html' with size='w-10 h-10' text='text-sm' %}
+            <div class="flex items-center gap-3 px-3 py-3 rounded-xl glass border border-fintech-border hover:border-fintech-emerald/40 transition-colors">
+                <a href="{% url 'perfil' %}" title="Ver mi perfil" class="relative shrink-0">
+                    <span class="absolute -inset-0.5 rounded-full bg-gradient-to-br from-fintech-emerald to-fintech-cyan opacity-50 blur-sm"></span>
+                    <span class="relative block">{% include 'partials/avatar.html' with size='w-10 h-10' text='text-sm' %}</span>
+                    <span class="status-dot absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-fintech-emeraldLight ring-2 ring-fintech-card"></span>
                 </a>
                 <a href="{% url 'perfil' %}" class="flex-1 min-w-0">
                     <p class="text-white font-semibold text-sm truncate">{{ user.first_name|default:user.username }}</p>
@@ -98,19 +195,24 @@
     </aside>
 
     <!-- ===================== MOBILE TOP BAR ===================== -->
-    <header class="lg:hidden sticky top-0 z-40 bg-fintech-bg/90 backdrop-blur-lg border-b border-fintech-border">
+    <header class="lg:hidden sticky top-0 z-40 glass border-b border-fintech-border">
         <div class="flex items-center justify-between px-4 h-16">
             <a href="{% url 'dashboard' %}" class="flex items-center gap-2.5">
-                {% include 'partials/logo.html' with size='w-9 h-9' %}
-                <span class="text-white font-bold text-base">FinanzasApp</span>
+                <span class="relative">
+                    <span class="absolute -inset-1 rounded-full bg-gradient-to-br from-fintech-emerald to-fintech-cyan opacity-40 blur-md"></span>
+                    <span class="relative block">{% include 'partials/logo.html' with size='w-9 h-9' %}</span>
+                </span>
+                <span class="text-white font-bold text-base tracking-tight">FinanzasApp</span>
             </a>
             <div class="flex items-center gap-2">
-                <a href="{% url 'configuracion_editar' %}" title="Cambiar moneda" class="flex items-center gap-1.5 h-10 px-3 rounded-full bg-fintech-card border border-fintech-border text-slate-200">
+                <a href="{% url 'configuracion_editar' %}" title="Cambiar moneda" class="flex items-center gap-1.5 h-10 px-3 rounded-full glass border border-fintech-border text-slate-200 active:scale-95">
                     <i class="fas fa-coins text-fintech-cyan text-xs"></i>
                     <span class="font-semibold text-xs">{{ moneda_activa.codigo }}</span>
                 </a>
-                <a href="{% url 'perfil' %}" title="Mi perfil">
-                    {% include 'partials/avatar.html' with size='w-10 h-10' text='text-sm' %}
+                <a href="{% url 'perfil' %}" title="Mi perfil" class="relative">
+                    <span class="absolute -inset-0.5 rounded-full bg-gradient-to-br from-fintech-emerald to-fintech-cyan opacity-50 blur-sm"></span>
+                    <span class="relative block">{% include 'partials/avatar.html' with size='w-10 h-10' text='text-sm' %}</span>
+                    <span class="status-dot absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-fintech-emeraldLight ring-2 ring-fintech-bg"></span>
                 </a>
             </div>
         </div>
@@ -119,7 +221,7 @@
     <!-- ===================== MAIN AREA ===================== -->
     <div class="lg:ml-64 flex flex-col min-h-screen">
         <!-- Desktop top header -->
-        <header class="hidden lg:flex sticky top-0 z-30 h-20 items-center justify-between px-8 bg-fintech-bg/80 backdrop-blur-lg border-b border-fintech-border">
+        <header class="hidden lg:flex sticky top-0 z-30 h-20 items-center justify-between px-8 glass border-b border-fintech-border">
             <div>
                 <p class="text-slate-400 text-sm">{% block header_eyebrow %}Bienvenido de nuevo{% endblock %}</p>
                 <h2 class="text-white font-bold text-xl">{% block header_title %}Hola, {{ user.first_name|default:user.username }}{% endblock %}</h2>
@@ -136,14 +238,14 @@
                 <a href="{% url 'perfil' %}" title="Mi perfil">
                     {% include 'partials/avatar.html' with size='w-11 h-11' text='text-lg' %}
                 </a>
-                <button type="button" onclick="finanzasQuickAdd()" class="flex items-center gap-2 px-5 h-11 rounded-xl bg-gradient-to-r from-fintech-emerald to-fintech-cyan text-white font-semibold hover:opacity-90 transition-all shadow-lg shadow-fintech-emerald/25">
+                <button type="button" onclick="finanzasQuickAdd()" class="flex items-center gap-2 px-5 h-11 rounded-xl bg-gradient-to-r from-fintech-emerald to-fintech-cyan text-white font-semibold hover:scale-[1.03] active:scale-[0.98] transition-all glow-emerald">
                     <i class="fas fa-plus"></i>
                     <span>Registrar</span>
                 </button>
             </div>
         </header>
 
-        <main class="flex-1 px-4 py-5 lg:px-8 lg:py-8 pb-28 lg:pb-8">
+        <main class="flex-1 px-4 py-5 lg:px-8 lg:py-8 pb-28 lg:pb-8 animate-fade-in">
             {% if messages %}
             <div class="mb-6 space-y-2">
                 {% for message in messages %}
@@ -163,7 +265,7 @@
     </div>
 
     <!-- ===================== MOBILE BOTTOM NAV ===================== -->
-    <nav class="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-fintech-card/95 backdrop-blur-lg border-t border-fintech-border">
+    <nav class="lg:hidden fixed bottom-0 inset-x-0 z-40 glass-strong border-t border-fintech-border">
         <div class="flex items-center overflow-x-auto px-2 py-2 scrollbar-hide gap-1">
             <a href="{% url 'dashboard' %}" class="flex flex-col items-center gap-1 py-1 px-3 min-w-[60px] {% if url_name == 'dashboard' %}text-fintech-emeraldLight{% else %}text-slate-400{% endif %}">
                 <i class="fas fa-home text-lg"></i>
@@ -182,7 +284,7 @@
                 <span class="text-[11px] font-medium">Categorías</span>
             </a>
             <div class="flex justify-center px-2">
-                <button type="button" onclick="finanzasQuickAdd()" class="relative -top-2 w-12 h-12 rounded-full bg-gradient-to-br from-fintech-emerald to-fintech-cyan text-white shadow-lg shadow-fintech-emerald/40 flex items-center justify-center hover:scale-105 transition-transform shrink-0">
+                <button type="button" onclick="finanzasQuickAdd()" class="relative -top-2 w-12 h-12 rounded-full bg-gradient-to-br from-fintech-emerald to-fintech-cyan text-white glow-emerald flex items-center justify-center hover:scale-110 active:scale-95 transition-transform shrink-0">
                     <i class="fas fa-plus text-xl"></i>
                 </button>
             </div>
