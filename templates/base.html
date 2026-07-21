@@ -109,13 +109,7 @@
                     <i class="fas fa-coins text-fintech-cyan text-xs"></i>
                     <span class="font-semibold text-xs">{{ moneda_activa.codigo }}</span>
                 </a>
-                {% if config.foto_perfil %}
-                <a href="{% url 'configuracion_editar' %}" class="w-10 h-10 rounded-full overflow-hidden border-2 border-fintech-cyan/30">
-                    <img src="{{ config.foto_perfil.url }}" alt="Perfil" class="w-full h-full object-cover">
-                </a>
-                {% else %}
                 <a href="{% url 'configuracion_editar' %}" class="w-10 h-10 rounded-full bg-gradient-to-br from-fintech-cyan to-fintech-emerald flex items-center justify-center text-white font-bold text-sm">{{ user.username|slice:":1"|upper }}</a>
-                {% endif %}
             </div>
         </div>
     </header>
@@ -137,13 +131,7 @@
                 <button type="button" class="w-11 h-11 rounded-xl bg-fintech-card border border-fintech-border flex items-center justify-center text-slate-300 hover:text-white hover:border-slate-500 transition-colors" title="Notificaciones">
                     <i class="far fa-bell text-lg"></i>
                 </button>
-                {% if config.foto_perfil %}
-                <a href="{% url 'configuracion_editar' %}" class="w-11 h-11 rounded-xl overflow-hidden border-2 border-fintech-cyan/30">
-                    <img src="{{ config.foto_perfil.url }}" alt="Perfil" class="w-full h-full object-cover">
-                </a>
-                {% else %}
                 <a href="{% url 'configuracion_editar' %}" class="w-11 h-11 rounded-xl bg-gradient-to-br from-fintech-cyan to-fintech-emerald flex items-center justify-center text-white font-bold text-lg">{{ user.username|slice:":1"|upper }}</a>
-                {% endif %}
                 <button type="button" onclick="finanzasQuickAdd()" class="flex items-center gap-2 px-5 h-11 rounded-xl bg-gradient-to-r from-fintech-emerald to-fintech-cyan text-white font-semibold hover:opacity-90 transition-all shadow-lg shadow-fintech-emerald/25">
                     <i class="fas fa-plus"></i>
                     <span>Registrar</span>

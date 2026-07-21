@@ -34,7 +34,7 @@ class ConfiguracionForm(forms.ModelForm):
 
     class Meta:
         model = ConfiguracionUsuario
-        fields = ['salario_base', 'moneda', 'dia_corte', 'dias_plazo_tolerancia', 'foto_perfil']
+        fields = ['salario_base', 'moneda', 'dia_corte', 'dias_plazo_tolerancia']
         widgets = {
             'dia_corte': forms.NumberInput(attrs={
                 'class': FORM_INPUT,
@@ -44,15 +44,10 @@ class ConfiguracionForm(forms.ModelForm):
                 'class': FORM_INPUT,
                 'min': 0, 'max': 15,
             }),
-            'foto_perfil': forms.FileInput(attrs={
-                'class': FORM_INPUT,
-                'accept': 'image/*',
-            }),
         }
         labels = {
             'dia_corte': 'Día de corte/pago',
             'dias_plazo_tolerancia': 'Días de plazo/tolerancia',
-            'foto_perfil': 'Foto de perfil',
         }
         help_texts = {
             'moneda': 'Solo cambia el símbolo mostrado; no convierte los montos guardados.',

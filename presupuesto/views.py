@@ -383,7 +383,22 @@ def gasto_fijo_crear(request):
         plantilla = form.save(commit=False)
         plantilla.usuario = request.user
         plantilla.save()
-        messages.success(request, 'Gasto fijo agregado a plantillas.')
+        
+        # Agregar gasto al ciclo actual si existe
+        ciclo = CicloMensual.obtener_activo(request.user)
+        if ciclo:
+            Movimiento.objects.create(
+                ciclo=ciclo,
+                categoria=plantilla.categoria,
+                monto=plantilla.monto,
+                descripcion=plantilla.descripcion,
+                tipo=Movimiento.GASTO,
+                es_gasto_fijo=True,
+                fecha=date.today(),
+            )
+            messages.success(request, 'Gasto fijo agregado a plantillas y al ciclo actual.')
+        else:
+            messages.success(request, 'Gasto fijo agregado a plantillas.')
     else:
         messages.error(request, 'Error al crear gasto fijo.')
     return redirect('gastos_fijos_lista')
