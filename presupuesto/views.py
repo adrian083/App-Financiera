@@ -960,10 +960,12 @@ def _serialize_metas_ahorro(user):
     for meta in MetaAhorro.objects.filter(usuario=user):
         metas.append({
             'nombre': meta.nombre,
-            'objetivo': str(meta.objetivo),
-            'ahorrado': str(meta.ahorrado),
+            'monto_objetivo': str(meta.monto_objetivo),
+            'saldo_actual': str(meta.saldo_actual),
             'icono': meta.icono,
+            'color': meta.color,
             'fecha_objetivo': meta.fecha_objetivo.isoformat() if meta.fecha_objetivo else None,
+            'completada': meta.completada,
         })
     return metas
 
@@ -1021,14 +1023,17 @@ def _restore_configuracion(user, config_data):
 def _restore_categorias(user, categorias_data):
     from decimal import Decimal
     for cat_data in categorias_data:
+        defaults = {
+            'color': cat_data['color'],
+        }
+        # Solo agregar presupuesto_mensual si existe en los datos
+        if 'presupuesto_mensual' in cat_data:
+            defaults['presupuesto_mensual'] = Decimal(cat_data['presupuesto_mensual'])
+        
         Categoria.objects.get_or_create(
             usuario=user,
             nombre=cat_data['nombre'],
-            defaults={
-                'color': cat_data['color'],
-                'tipo': cat_data['tipo'],
-                'presupuesto_mensual': Decimal(cat_data['presupuesto_mensual']),
-            }
+            defaults=defaults
         )
 
 
@@ -1078,10 +1083,12 @@ def _restore_metas_ahorro(user, metas_data):
             usuario=user,
             nombre=meta_data['nombre'],
             defaults={
-                'objetivo': Decimal(meta_data['objetivo']),
-                'ahorrado': Decimal(meta_data['ahorrado']),
+                'monto_objetivo': Decimal(meta_data['monto_objetivo']),
+                'saldo_actual': Decimal(meta_data['saldo_actual']),
                 'icono': meta_data['icono'],
+                'color': meta_data.get('color', '#10B981'),
                 'fecha_objetivo': datetime.fromisoformat(meta_data['fecha_objetivo']).date() if meta_data.get('fecha_objetivo') else None,
+                'completada': meta_data.get('completada', False),
             }
         )
 
