@@ -51,7 +51,7 @@
             </div>
         </div>
 
-        <form method="post" enctype="multipart/form-data" class="space-y-4"
+        <form method="post" action="{% url 'backup_restaurar' %}" enctype="multipart/form-data" class="space-y-4"
             onsubmit="return confirm('Esto reemplazará TODOS tus datos actuales por los del archivo. ¿Deseas continuar?');">
             {% csrf_token %}
             <div>

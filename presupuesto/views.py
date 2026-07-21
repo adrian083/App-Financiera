@@ -1075,17 +1075,28 @@ def _restore_configuracion(user, config_data):
 
 
 def _restore_categorias(user, categorias_data):
-    """Recrea las categorías y devuelve un mapa nombre -> objeto Categoria."""
+    """Recrea las categorías y devuelve un mapa nombre -> objeto Categoria.
+
+    Cada categoría se crea dentro de su propio savepoint: si un registro viene
+    incompleto o corrupto, se omite sin tumbar toda la restauración.
+    """
     cat_map = {}
-    for cat_data in categorias_data:
-        categoria = Categoria.objects.create(
-            usuario=user,
-            nombre=cat_data['nombre'],
-            color=cat_data.get('color', '#6366f1'),
-            activa=cat_data.get('activa', True),
-            orden=cat_data.get('orden', 0),
-        )
-        cat_map[cat_data['nombre']] = categoria
+    for cat_data in categorias_data or []:
+        nombre = cat_data.get('nombre')
+        if not nombre:
+            continue
+        try:
+            with transaction.atomic():
+                categoria = Categoria.objects.create(
+                    usuario=user,
+                    nombre=nombre,
+                    color=cat_data.get('color', '#6366f1'),
+                    activa=cat_data.get('activa', True),
+                    orden=cat_data.get('orden', 0),
+                )
+            cat_map[nombre] = categoria
+        except Exception:
+            continue
     return cat_map
 
 
@@ -1093,17 +1104,23 @@ def _restore_ciclos(user, ciclos_data):
     """Recrea los ciclos y devuelve un mapa ref_original -> objeto CicloMensual."""
     from decimal import Decimal
     ciclo_map = {}
-    for ciclo_data in ciclos_data:
-        ciclo = CicloMensual.objects.create(
-            usuario=user,
-            fecha_inicio=datetime.fromisoformat(ciclo_data['fecha_inicio']).date(),
-            fecha_fin=datetime.fromisoformat(ciclo_data['fecha_fin']).date(),
-            etiqueta=ciclo_data.get('etiqueta', ''),
-            salario_ciclo=Decimal(ciclo_data.get('salario_ciclo', '0')),
-            estado=ciclo_data.get('estado', CicloMensual.ACTIVO),
-            sobrante_transferido=Decimal(ciclo_data.get('sobrante_transferido', '0')),
-            fecha_cierre=datetime.fromisoformat(ciclo_data['fecha_cierre']) if ciclo_data.get('fecha_cierre') else None,
-        )
+    for ciclo_data in ciclos_data or []:
+        if not ciclo_data.get('fecha_inicio') or not ciclo_data.get('fecha_fin'):
+            continue
+        try:
+            with transaction.atomic():
+                ciclo = CicloMensual.objects.create(
+                    usuario=user,
+                    fecha_inicio=datetime.fromisoformat(ciclo_data['fecha_inicio']).date(),
+                    fecha_fin=datetime.fromisoformat(ciclo_data['fecha_fin']).date(),
+                    etiqueta=ciclo_data.get('etiqueta', ''),
+                    salario_ciclo=Decimal(ciclo_data.get('salario_ciclo', '0')),
+                    estado=ciclo_data.get('estado', CicloMensual.ACTIVO),
+                    sobrante_transferido=Decimal(ciclo_data.get('sobrante_transferido', '0')),
+                    fecha_cierre=datetime.fromisoformat(ciclo_data['fecha_cierre']) if ciclo_data.get('fecha_cierre') else None,
+                )
+        except Exception:
+            continue
         if ciclo_data.get('ref') is not None:
             ciclo_map[ciclo_data['ref']] = ciclo
     return ciclo_map
@@ -1111,56 +1128,70 @@ def _restore_ciclos(user, ciclos_data):
 
 def _restore_gastos_fijos(user, gastos_data, cat_map):
     from decimal import Decimal
-    for gasto_data in gastos_data:
+    for gasto_data in gastos_data or []:
         categoria = cat_map.get(gasto_data.get('categoria_nombre'))
         if categoria is None:
             # La categoría es obligatoria (FK PROTECT); omitir si no existe.
             continue
-        GastoFijoPlantilla.objects.create(
-            usuario=user,
-            descripcion=gasto_data['descripcion'],
-            monto=Decimal(gasto_data['monto']),
-            categoria=categoria,
-            frecuencia=gasto_data.get('frecuencia', GastoFijoPlantilla.MENSUAL),
-            activa=gasto_data.get('activa', True),
-            fecha_ultima_aplicacion=datetime.fromisoformat(gasto_data['fecha_ultima_aplicacion']).date() if gasto_data.get('fecha_ultima_aplicacion') else None,
-        )
+        try:
+            with transaction.atomic():
+                GastoFijoPlantilla.objects.create(
+                    usuario=user,
+                    descripcion=gasto_data.get('descripcion', ''),
+                    monto=Decimal(gasto_data.get('monto', '0')),
+                    categoria=categoria,
+                    frecuencia=gasto_data.get('frecuencia', GastoFijoPlantilla.MENSUAL),
+                    activa=gasto_data.get('activa', True),
+                    fecha_ultima_aplicacion=datetime.fromisoformat(gasto_data['fecha_ultima_aplicacion']).date() if gasto_data.get('fecha_ultima_aplicacion') else None,
+                )
+        except Exception:
+            continue
 
 
 def _restore_movimientos(user, movimientos_data, ciclo_map, cat_map):
     from decimal import Decimal
-    for mov_data in movimientos_data:
+    for mov_data in movimientos_data or []:
         ciclo = ciclo_map.get(mov_data.get('ciclo_ref'))
         if ciclo is None:
             # Sin ciclo válido no se puede crear el movimiento (FK obligatoria).
             continue
-        Movimiento.objects.create(
-            usuario=user,
-            ciclo=ciclo,
-            tipo=mov_data['tipo'],
-            monto=Decimal(mov_data['monto']),
-            descripcion=mov_data.get('descripcion', ''),
-            categoria=cat_map.get(mov_data.get('categoria_nombre')),
-            es_gasto_fijo=mov_data.get('es_gasto_fijo', False),
-            pagado=mov_data.get('pagado', True),
-            fecha_vencimiento=datetime.fromisoformat(mov_data['fecha_vencimiento']).date() if mov_data.get('fecha_vencimiento') else None,
-            fecha_registro=datetime.fromisoformat(mov_data['fecha_registro']) if mov_data.get('fecha_registro') else timezone.now(),
-        )
+        try:
+            with transaction.atomic():
+                Movimiento.objects.create(
+                    usuario=user,
+                    ciclo=ciclo,
+                    tipo=mov_data.get('tipo', Movimiento.GASTO),
+                    monto=Decimal(mov_data.get('monto', '0')),
+                    descripcion=mov_data.get('descripcion', ''),
+                    categoria=cat_map.get(mov_data.get('categoria_nombre')),
+                    es_gasto_fijo=mov_data.get('es_gasto_fijo', False),
+                    pagado=mov_data.get('pagado', True),
+                    fecha_vencimiento=datetime.fromisoformat(mov_data['fecha_vencimiento']).date() if mov_data.get('fecha_vencimiento') else None,
+                    fecha_registro=datetime.fromisoformat(mov_data['fecha_registro']) if mov_data.get('fecha_registro') else timezone.now(),
+                )
+        except Exception:
+            continue
 
 
 def _restore_eventos(user, eventos_data):
     from decimal import Decimal
-    for evento_data in eventos_data:
-        EventoCalendario.objects.create(
-            usuario=user,
-            titulo=evento_data['titulo'],
-            fecha=datetime.fromisoformat(evento_data['fecha']).date(),
-            descripcion=evento_data.get('descripcion', ''),
-            tipo=evento_data.get('tipo', EventoCalendario.OTRO),
-            monto=Decimal(evento_data['monto']) if evento_data.get('monto') else None,
-            repetir_anualmente=evento_data.get('repetir_anualmente', False),
-            completado=evento_data.get('completado', False),
-        )
+    for evento_data in eventos_data or []:
+        if not evento_data.get('fecha'):
+            continue
+        try:
+            with transaction.atomic():
+                EventoCalendario.objects.create(
+                    usuario=user,
+                    titulo=evento_data.get('titulo', 'Sin título'),
+                    fecha=datetime.fromisoformat(evento_data['fecha']).date(),
+                    descripcion=evento_data.get('descripcion', ''),
+                    tipo=evento_data.get('tipo', EventoCalendario.OTRO),
+                    monto=Decimal(evento_data['monto']) if evento_data.get('monto') else None,
+                    repetir_anualmente=evento_data.get('repetir_anualmente', False),
+                    completado=evento_data.get('completado', False),
+                )
+        except Exception:
+            continue
 
 
 def _restore_fondo_ahorro(user, fondo_data):
@@ -1177,20 +1208,26 @@ def _restore_inversiones(user, inversiones_data):
     """Recrea las inversiones y devuelve un mapa ref_original -> objeto Inversion."""
     from decimal import Decimal
     inv_map = {}
-    for inv_data in inversiones_data:
-        inv = Inversion.objects.create(
-            usuario=user,
-            nombre=inv_data['nombre'],
-            tipo_activo=inv_data.get('tipo_activo', Inversion.OTRO),
-            rendimiento_esperado=Decimal(inv_data['rendimiento_esperado']) if inv_data.get('rendimiento_esperado') else None,
-            monto_inicial=Decimal(inv_data['monto_inicial']),
-            monto_final=Decimal(inv_data['monto_final']) if inv_data.get('monto_final') else None,
-            fecha_inicio=datetime.fromisoformat(inv_data['fecha_inicio']).date() if inv_data.get('fecha_inicio') else timezone.now().date(),
-            fecha_vencimiento=datetime.fromisoformat(inv_data['fecha_vencimiento']).date() if inv_data.get('fecha_vencimiento') else timezone.now().date(),
-            estado=inv_data.get('estado', Inversion.ACTIVA),
-            fecha_cierre=datetime.fromisoformat(inv_data['fecha_cierre']) if inv_data.get('fecha_cierre') else None,
-            notas=inv_data.get('notas', ''),
-        )
+    for inv_data in inversiones_data or []:
+        if not inv_data.get('nombre'):
+            continue
+        try:
+            with transaction.atomic():
+                inv = Inversion.objects.create(
+                    usuario=user,
+                    nombre=inv_data['nombre'],
+                    tipo_activo=inv_data.get('tipo_activo', Inversion.OTRO),
+                    rendimiento_esperado=Decimal(inv_data['rendimiento_esperado']) if inv_data.get('rendimiento_esperado') else None,
+                    monto_inicial=Decimal(inv_data.get('monto_inicial', '0')),
+                    monto_final=Decimal(inv_data['monto_final']) if inv_data.get('monto_final') else None,
+                    fecha_inicio=datetime.fromisoformat(inv_data['fecha_inicio']).date() if inv_data.get('fecha_inicio') else timezone.now().date(),
+                    fecha_vencimiento=datetime.fromisoformat(inv_data['fecha_vencimiento']).date() if inv_data.get('fecha_vencimiento') else timezone.now().date(),
+                    estado=inv_data.get('estado', Inversion.ACTIVA),
+                    fecha_cierre=datetime.fromisoformat(inv_data['fecha_cierre']) if inv_data.get('fecha_cierre') else None,
+                    notas=inv_data.get('notas', ''),
+                )
+        except Exception:
+            continue
         if inv_data.get('ref') is not None:
             inv_map[inv_data['ref']] = inv
     return inv_map
@@ -1198,32 +1235,42 @@ def _restore_inversiones(user, inversiones_data):
 
 def _restore_movimientos_patrimonio(user, movimientos_data, fondo, inv_map, ciclo_map):
     from decimal import Decimal
-    for mov_data in movimientos_data:
-        MovimientoPatrimonio.objects.create(
-            usuario=user,
-            tipo=mov_data['tipo'],
-            monto=Decimal(mov_data['monto']),
-            descripcion=mov_data.get('descripcion', ''),
-            fondo=fondo,
-            inversion=inv_map.get(mov_data.get('inversion_ref')),
-            ciclo=ciclo_map.get(mov_data.get('ciclo_ref')),
-            fecha=datetime.fromisoformat(mov_data['fecha']) if mov_data.get('fecha') else timezone.now(),
-        )
+    for mov_data in movimientos_data or []:
+        try:
+            with transaction.atomic():
+                MovimientoPatrimonio.objects.create(
+                    usuario=user,
+                    tipo=mov_data.get('tipo', ''),
+                    monto=Decimal(mov_data.get('monto', '0')),
+                    descripcion=mov_data.get('descripcion', ''),
+                    fondo=fondo,
+                    inversion=inv_map.get(mov_data.get('inversion_ref')),
+                    ciclo=ciclo_map.get(mov_data.get('ciclo_ref')),
+                    fecha=datetime.fromisoformat(mov_data['fecha']) if mov_data.get('fecha') else timezone.now(),
+                )
+        except Exception:
+            continue
 
 
 def _restore_metas_ahorro(user, metas_data):
     from decimal import Decimal
-    for meta_data in metas_data:
-        MetaAhorro.objects.create(
-            usuario=user,
-            nombre=meta_data['nombre'],
-            monto_objetivo=Decimal(meta_data['monto_objetivo']),
-            saldo_actual=Decimal(meta_data.get('saldo_actual', '0')),
-            icono=meta_data.get('icono', 'fa-piggy-bank'),
-            color=meta_data.get('color', '#10B981'),
-            fecha_objetivo=datetime.fromisoformat(meta_data['fecha_objetivo']).date() if meta_data.get('fecha_objetivo') else None,
-            completada=meta_data.get('completada', False),
-        )
+    for meta_data in metas_data or []:
+        if not meta_data.get('nombre'):
+            continue
+        try:
+            with transaction.atomic():
+                MetaAhorro.objects.create(
+                    usuario=user,
+                    nombre=meta_data['nombre'],
+                    monto_objetivo=Decimal(meta_data.get('monto_objetivo', '0')),
+                    saldo_actual=Decimal(meta_data.get('saldo_actual', '0')),
+                    icono=meta_data.get('icono', 'fa-piggy-bank'),
+                    color=meta_data.get('color', '#10B981'),
+                    fecha_objetivo=datetime.fromisoformat(meta_data['fecha_objetivo']).date() if meta_data.get('fecha_objetivo') else None,
+                    completada=meta_data.get('completada', False),
+                )
+        except Exception:
+            continue
 
 
 def _restore_widgets_config(user, widgets_data):
