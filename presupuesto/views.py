@@ -435,3 +435,44 @@ def gasto_fijo_toggle_activa(request, pk):
     estado = 'activada' if plantilla.activa else 'desactivada'
     messages.success(request, f'Gasto fijo {estado}.')
     return redirect('gastos_fijos_lista')
+
+
+@login_required
+def editar_gasto(request, gasto_id):
+    movimiento = get_object_or_404(Movimiento, pk=gasto_id, usuario=request.user)
+    if request.method == 'POST':
+        form = MovimientoForm(request.POST, usuario=request.user)
+        if form.is_valid():
+            movimiento.descripcion = form.cleaned_data['descripcion']
+            movimiento.monto = form.cleaned_data['monto']
+            movimiento.categoria = form.cleaned_data.get('categoria')
+            movimiento.save(update_fields=['descripcion', 'monto', 'categoria'])
+            messages.success(request, 'Gasto actualizado.')
+            return redirect('dashboard')
+    else:
+        form = MovimientoForm(
+            initial={
+                'descripcion': movimiento.descripcion,
+                'monto': movimiento.monto,
+                'categoria': movimiento.categoria,
+            },
+            usuario=request.user,
+        )
+    return render(request, 'presupuesto/dashboard.html', {
+        'form_gasto': form,
+        'editando_gasto_id': gasto_id,
+        'config': ConfiguracionUsuario.obtener(request.user),
+        'ciclo': CicloMensual.obtener_activo(request.user),
+    })
+
+
+@login_required
+@require_POST
+def eliminar_gasto(request, gasto_id):
+    movimiento = get_object_or_404(Movimiento, pk=gasto_id, usuario=request.user)
+    if movimiento.tipo != Movimiento.GASTO:
+        messages.error(request, 'Solo se pueden eliminar gastos.')
+        return redirect('dashboard')
+    movimiento.delete()
+    messages.success(request, 'Gasto eliminado.')
+    return redirect('dashboard')
