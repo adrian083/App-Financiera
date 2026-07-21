@@ -413,7 +413,7 @@ def gasto_fijo_crear(request):
                 descripcion=plantilla.descripcion,
                 tipo=Movimiento.GASTO,
                 es_gasto_fijo=True,
-                fecha=date.today(),
+                plantilla_origen=plantilla,
             )
             messages.success(request, 'Gasto fijo agregado a plantillas y al ciclo actual.')
         else:
