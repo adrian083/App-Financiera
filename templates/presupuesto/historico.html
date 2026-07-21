@@ -4,9 +4,15 @@
 {% block title %}Histórico de ciclos{% endblock %}
 
 {% block content %}
-<div class="mb-6">
-    <h1 class="text-2xl font-bold text-slate-900 dark:text-slate-100">Histórico por ciclo</h1>
-    <p class="text-slate-600 dark:text-slate-400">Consulta meses anteriores y sus detalles.</p>
+<div class="mb-6 flex flex-wrap items-center justify-between gap-4">
+    <div>
+        <h1 class="text-2xl font-bold text-slate-900 dark:text-slate-100">Histórico por ciclo</h1>
+        <p class="text-slate-600 dark:text-slate-400">Consulta meses anteriores y sus detalles.</p>
+    </div>
+    <a href="{% url 'historico_pdf' %}" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-fintech-emerald text-white font-medium hover:bg-fintech-emerald/90 transition-colors">
+        <i class="fas fa-file-pdf"></i>
+        <span>Descargar PDF</span>
+    </a>
 </div>
 
 <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">

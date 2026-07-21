@@ -15,6 +15,7 @@ urlpatterns = [
     path('envio-ahorro/', views.registrar_envio_ahorro, name='registrar_envio_ahorro'),
     path('cerrar-ciclo/', views.cerrar_ciclo_view, name='cerrar_ciclo'),
     path('historico/', views.historico_meses, name='historico_meses'),
+    path('historico/pdf/', views.historico_pdf, name='historico_pdf'),
     path('ciclo/<int:pk>/', views.detalle_ciclo, name='detalle_ciclo'),
     path('categorias/', views.categorias_lista, name='categorias_lista'),
     path('categorias/crear/', views.categoria_crear, name='categoria_crear'),

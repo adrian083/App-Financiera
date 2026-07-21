@@ -7,6 +7,10 @@ from django.db import transaction
 from django.http import JsonResponse, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
+from reportlab.lib.pagesizes import letter
+from reportlab.lib import colors
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
 
 from ahorros.models import FondoAhorro
 from ahorros.services import (
@@ -353,6 +357,75 @@ def cerrar_ciclo_view(request):
 def historico_meses(request):
     ciclos = CicloMensual.objects.filter(usuario=request.user, estado=CicloMensual.CERRADO)
     return render(request, 'presupuesto/historico.html', {'ciclos': ciclos})
+
+
+@login_required
+def historico_pdf(request):
+    """Generar PDF del histórico de ciclos cerrados."""
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="historico_{request.user.username}_{datetime.now().strftime("%Y%m%d")}.pdf"'
+    
+    doc = SimpleDocTemplate(response, pagesize=letter)
+    elements = []
+    styles = getSampleStyleSheet()
+    
+    # Estilo personalizado para el título
+    title_style = ParagraphStyle(
+        'CustomTitle',
+        parent=styles['Heading1'],
+        fontSize=20,
+        textColor=colors.HexColor('#10B981'),
+        spaceAfter=30,
+    )
+    
+    # Título
+    elements.append(Paragraph(f"Histórico Financiero - {request.user.username}", title_style))
+    elements.append(Paragraph(f"Generado: {datetime.now().strftime('%d/%m/%Y %H:%M')}", styles['Normal']))
+    elements.append(Spacer(1, 20))
+    
+    # Obtener ciclos cerrados
+    ciclos = CicloMensual.objects.filter(usuario=request.user, estado=CicloMensual.CERRADO).order_by('-fecha_cierre')
+    
+    if not ciclos:
+        elements.append(Paragraph("No hay ciclos cerrados para mostrar.", styles['Normal']))
+    else:
+        # Crear tabla de datos
+        data = [['Ciclo', 'Fecha Inicio', 'Fecha Cierre', 'Salario', 'Ingresos', 'Gastos', 'Sobrante']]
+        
+        for ciclo in ciclos:
+            data.append([
+                ciclo.etiqueta,
+                ciclo.fecha_inicio.strftime('%d/%m/%Y'),
+                ciclo.fecha_cierre.strftime('%d/%m/%Y') if ciclo.fecha_cierre else '-',
+                f"${ciclo.salario_ciclo:,.0f}",
+                f"${ciclo.total_ingresos():,.0f}",
+                f"${ciclo.total_gastos():,.0f}",
+                f"${ciclo.sobrante_transferido:,.0f}",
+            ])
+        
+        # Estilo de la tabla
+        table = Table(data, colWidths=[1.5*inch, 1.2*inch, 1.2*inch, 1*inch, 1*inch, 1*inch, 1*inch])
+        table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#10B981')),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 10),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+            ('BACKGROUND', (0, 1), (-1, -1), colors.HexColor('#F3F4F6')),
+            ('GRID', (0, 0), (-1, -1), 1, colors.grey),
+            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#F9FAFB')]),
+        ]))
+        
+        elements.append(table)
+    
+    # Pie de página
+    elements.append(Spacer(1, 30))
+    elements.append(Paragraph("FinanzasApp - Gestión de Finanzas Personales", styles['Normal']))
+    
+    doc.build(elements)
+    return response
+
 
 
 @login_required
