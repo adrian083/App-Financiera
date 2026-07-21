@@ -204,7 +204,7 @@ def configuracion_editar(request):
     try:
         config = ConfiguracionUsuario.obtener(request.user)
         if request.method == 'POST':
-            form = ConfiguracionForm(request.POST, request.FILES, instance=config)
+            form = ConfiguracionForm(request.POST, instance=config)
             if form.is_valid():
                 form.save()
                 messages.success(request, 'Configuración actualizada correctamente.')
@@ -425,18 +425,21 @@ def gasto_fijo_crear(request):
             # Agregar gasto al ciclo actual si existe
             ciclo = CicloMensual.obtener_activo(request.user)
             if ciclo:
-                Movimiento.objects.create(
-                    ciclo=ciclo,
-                    categoria=plantilla.categoria,
-                    monto=plantilla.monto,
-                    descripcion=plantilla.descripcion,
-                    tipo=Movimiento.GASTO,
-                    es_gasto_fijo=True,
-                    plantilla_origen=plantilla,
-                )
-                messages.success(request, 'Gasto fijo agregado a plantillas y al ciclo actual.')
+                try:
+                    Movimiento.objects.create(
+                        ciclo=ciclo,
+                        categoria=plantilla.categoria,
+                        monto=plantilla.monto,
+                        descripcion=plantilla.descripcion,
+                        tipo=Movimiento.GASTO,
+                        es_gasto_fijo=True,
+                        plantilla_origen=plantilla,
+                    )
+                    messages.success(request, 'Gasto fijo agregado a plantillas y al ciclo actual.')
+                except Exception as e:
+                    messages.error(request, f'Gasto fijo agregado a plantillas pero error al agregar al ciclo: {str(e)}')
             else:
-                messages.success(request, 'Gasto fijo agregado a plantillas.')
+                messages.success(request, 'Gasto fijo agregado a plantillas. No hay ciclo activo.')
         else:
             messages.error(request, 'Error al crear gasto fijo. Por favor verifica los datos.')
             for field, errors in form.errors.items():

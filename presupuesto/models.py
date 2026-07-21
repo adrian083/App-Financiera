@@ -31,12 +31,6 @@ class ConfiguracionUsuario(models.Model):
         default='COP',
         verbose_name='Moneda de visualización',
     )
-    foto_perfil = models.ImageField(
-        upload_to='perfiles/',
-        null=True,
-        blank=True,
-        verbose_name='Foto de perfil',
-    )
     configurado = models.BooleanField(default=False)
     ha_visto_tutorial = models.BooleanField(default=False)
 
