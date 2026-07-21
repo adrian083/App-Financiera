@@ -14,3 +14,21 @@ def cop(valor):
 def dict_get(d, key):
     return d.get(key) if d else None
 
+
+@register.filter
+def multiply(value, arg):
+    """Multiply value by arg."""
+    try:
+        return float(value) * float(arg)
+    except (ValueError, TypeError):
+        return value
+
+
+@register.filter
+def subtract(value, arg):
+    """Subtract arg from value."""
+    try:
+        return float(value) - float(arg)
+    except (ValueError, TypeError):
+        return value
+
