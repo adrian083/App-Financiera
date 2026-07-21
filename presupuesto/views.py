@@ -104,6 +104,20 @@ def dashboard(request):
     fondo = FondoAhorro.obtener(user)
     inv_vencidas = inversiones_pendientes_cierre(user)
     inv_proximas = inversiones_proximas_vencer(user)
+    
+    # Datos para widgets adicionales
+    from ahorros.models import Inversion, MetaAhorro
+    from presupuesto.models import GastoFijoPlantilla, EventoCalendario
+    from datetime import date, timedelta
+    
+    inversiones_activas = Inversion.objects.filter(usuario=user, activa=True)
+    metas_ahorro = MetaAhorro.objects.filter(usuario=user)
+    gastos_fijos = GastoFijoPlantilla.objects.filter(usuario=user, activa=True)
+    proximos_eventos = EventoCalendario.objects.filter(
+        usuario=user,
+        fecha__gte=date.today(),
+        fecha__lte=date.today() + timedelta(days=30)
+    ).order_by('fecha')[:5]
 
     ocultar_banner_pago = False
     banner_oculto_hasta = request.session.get('ocultar_banner_pago_hasta')
@@ -148,6 +162,11 @@ def dashboard(request):
         'form_ahorro': EnvioAhorroForm(),
         'form_cierre': CierreCicloForm(initial={'nuevo_salario': config.salario_base}),
         'mostrar_tutorial': not config.ha_visto_tutorial,
+        # Datos para widgets
+        'inversiones_activas': inversiones_activas,
+        'metas_ahorro': metas_ahorro,
+        'gastos_fijos': gastos_fijos,
+        'proximos_eventos': proximos_eventos,
     }
     return render(request, 'presupuesto/dashboard.html', context)
 

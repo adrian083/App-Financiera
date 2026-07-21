@@ -68,57 +68,66 @@
 </div>
 {% endif %}
 
-<!-- Hero Cards -->
+<!-- Hero Cards - Solo si widget activo -->
 <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 lg:gap-6 mb-6 lg:mb-8">
-    <div class="bg-gradient-to-br from-fintech-emerald/20 to-fintech-emerald/5 rounded-2xl border border-fintech-emerald/30 p-5 lg:p-6 transition-all duration-300 hover:shadow-xl hover:shadow-fintech-emerald/10">
-        <div class="flex items-center justify-between mb-3">
-            <span class="text-slate-300 text-sm font-medium">Saldo disponible</span>
-            <div class="w-10 h-10 rounded-xl bg-fintech-emerald/20 flex items-center justify-center">
-                <i class="fas fa-wallet text-fintech-emeraldLight"></i>
-            </div>
-        </div>
-        <p class="text-3xl lg:text-4xl font-extrabold text-fintech-emeraldLight tracking-tight">{{ ciclo.saldo_disponible|cop }}</p>
-        <div class="flex items-center gap-2 mt-2">
-            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-fintech-emerald/15 border border-fintech-emerald/30 text-fintech-emeraldLight text-[11px] font-semibold">{{ moneda_activa.etiqueta }}</span>
-            <p class="text-xs text-slate-400">Ciclo {{ ciclo.etiqueta }}</p>
+{% if 'saldo_disponible' in widget_config.widgets_activos or widget_config.widgets_activos|length == 0 %}
+<div class="bg-gradient-to-br from-fintech-emerald/20 to-fintech-emerald/5 rounded-2xl border border-fintech-emerald/30 p-5 lg:p-6 transition-all duration-300 hover:shadow-xl hover:shadow-fintech-emerald/10">
+    <div class="flex items-center justify-between mb-3">
+        <span class="text-slate-300 text-sm font-medium">Saldo disponible</span>
+        <div class="w-10 h-10 rounded-xl bg-fintech-emerald/20 flex items-center justify-center">
+            <i class="fas fa-wallet text-fintech-emeraldLight"></i>
         </div>
     </div>
-
-    <div class="bg-fintech-card rounded-2xl border border-fintech-border p-5 lg:p-6 transition-all duration-300 hover:border-slate-500">
-        <div class="flex items-center justify-between mb-3">
-            <span class="text-slate-300 text-sm font-medium">Ingresos del mes</span>
-            <div class="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center">
-                <i class="fas fa-arrow-up text-blue-400"></i>
-            </div>
-        </div>
-        <p class="text-2xl lg:text-3xl font-bold text-white tracking-tight">{{ ciclo.total_ingresos|cop }}</p>
-        <p class="text-xs text-slate-400 mt-2">Salario {{ ciclo.salario_ciclo|cop }}</p>
-    </div>
-
-    <div class="bg-fintech-card rounded-2xl border border-fintech-border p-5 lg:p-6 transition-all duration-300 hover:border-slate-500">
-        <div class="flex items-center justify-between mb-3">
-            <span class="text-slate-300 text-sm font-medium">Gastos del mes</span>
-            <div class="w-10 h-10 rounded-xl bg-fintech-rose/20 flex items-center justify-center">
-                <i class="fas fa-arrow-down text-fintech-rose"></i>
-            </div>
-        </div>
-        <p class="text-2xl lg:text-3xl font-bold text-fintech-rose tracking-tight">{{ ciclo.total_gastos|cop }}</p>
-        <p class="text-xs text-slate-400 mt-2">Enviado a ahorro {{ ciclo.total_enviado_ahorro|cop }}</p>
-    </div>
-
-    <div class="bg-fintech-card rounded-2xl border border-fintech-border p-5 lg:p-6 transition-all duration-300 hover:border-slate-500">
-        <div class="flex items-center justify-between mb-3">
-            <span class="text-slate-300 text-sm font-medium">Fondo de ahorro</span>
-            <div class="w-10 h-10 rounded-xl bg-fintech-cyan/20 flex items-center justify-center">
-                <i class="fas fa-piggy-bank text-fintech-cyan"></i>
-            </div>
-        </div>
-        <p class="text-2xl lg:text-3xl font-bold text-fintech-cyan tracking-tight">{{ fondo.saldo_disponible|cop }}</p>
-        <a href="{% url 'dashboard_ahorros' %}" class="text-xs text-fintech-cyan hover:underline mt-2 inline-block">Ver ahorros e inversiones</a>
+    <p class="text-3xl lg:text-4xl font-extrabold text-fintech-emeraldLight tracking-tight">{{ ciclo.saldo_disponible|cop }}</p>
+    <div class="flex items-center gap-2 mt-2">
+        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-fintech-emerald/15 border border-fintech-emerald/30 text-fintech-emeraldLight text-[11px] font-semibold">{{ moneda_activa.etiqueta }}</span>
+        <p class="text-xs text-slate-400">Ciclo {{ ciclo.etiqueta }}</p>
     </div>
 </div>
+{% endif %}
 
-<!-- Charts -->
+{% if 'gastos_categoria' in widget_config.widgets_activos or widget_config.widgets_activos|length == 0 %}
+<div class="bg-fintech-card rounded-2xl border border-fintech-border p-5 lg:p-6 transition-all duration-300 hover:border-slate-500">
+    <div class="flex items-center justify-between mb-3">
+        <span class="text-slate-300 text-sm font-medium">Ingresos del mes</span>
+        <div class="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center">
+            <i class="fas fa-arrow-up text-blue-400"></i>
+        </div>
+    </div>
+    <p class="text-2xl lg:text-3xl font-bold text-white tracking-tight">{{ ciclo.total_ingresos|cop }}</p>
+    <p class="text-xs text-slate-400 mt-2">Salario {{ ciclo.salario_ciclo|cop }}</p>
+</div>
+{% endif %}
+
+{% if 'presupuesto_gastado' in widget_config.widgets_activos or widget_config.widgets_activos|length == 0 %}
+<div class="bg-fintech-card rounded-2xl border border-fintech-border p-5 lg:p-6 transition-all duration-300 hover:border-slate-500">
+    <div class="flex items-center justify-between mb-3">
+        <span class="text-slate-300 text-sm font-medium">Gastos del mes</span>
+        <div class="w-10 h-10 rounded-xl bg-fintech-rose/20 flex items-center justify-center">
+            <i class="fas fa-arrow-down text-fintech-rose"></i>
+        </div>
+    </div>
+    <p class="text-2xl lg:text-3xl font-bold text-fintech-rose tracking-tight">{{ ciclo.total_gastos|cop }}</p>
+    <p class="text-xs text-slate-400 mt-2">Enviado a ahorro {{ ciclo.total_enviado_ahorro|cop }}</p>
+</div>
+{% endif %}
+
+{% if 'ahorros_resumen' in widget_config.widgets_activos or widget_config.widgets_activos|length == 0 %}
+<div class="bg-fintech-card rounded-2xl border border-fintech-border p-5 lg:p-6 transition-all duration-300 hover:border-slate-500">
+    <div class="flex items-center justify-between mb-3">
+        <span class="text-slate-300 text-sm font-medium">Fondo de ahorro</span>
+        <div class="w-10 h-10 rounded-xl bg-fintech-cyan/20 flex items-center justify-center">
+            <i class="fas fa-piggy-bank text-fintech-cyan"></i>
+        </div>
+    </div>
+    <p class="text-2xl lg:text-3xl font-bold text-fintech-cyan tracking-tight">{{ fondo.saldo_disponible|cop }}</p>
+    <a href="{% url 'dashboard_ahorros' %}" class="text-xs text-fintech-cyan hover:underline mt-2 inline-block">Ver ahorros e inversiones</a>
+</div>
+{% endif %}
+</div>
+
+<!-- Charts - Solo si widget activo -->
+{% if 'gastos_categoria' in widget_config.widgets_activos or widget_config.widgets_activos|length == 0 %}
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6 mb-6 lg:mb-8">
     <div class="lg:col-span-2 bg-fintech-card rounded-2xl border border-fintech-border p-5 lg:p-6">
         <div class="flex items-center justify-between mb-4">
@@ -157,6 +166,124 @@
         {% endif %}
     </div>
 </div>
+{% endif %}
+
+<!-- Widgets adicionales -->
+{% if 'inversiones_activas' in widget_config.widgets_activos or widget_config.widgets_activos|length == 0 %}
+<div class="bg-fintech-card rounded-2xl border border-fintech-border p-5 lg:p-6 mb-6 lg:mb-8">
+    <div class="flex items-center justify-between mb-4">
+        <h2 class="text-white font-bold text-lg">Inversiones activas</h2>
+        <a href="{% url 'inversiones_detalle' %}" class="text-fintech-cyan text-sm hover:underline">Ver todas</a>
+    </div>
+    {% if inversiones_activas %}
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {% for inv in inversiones_activas %}
+        <div class="p-4 rounded-xl bg-fintech-bg border border-fintech-border">
+            <div class="flex items-center gap-3 mb-2">
+                <div class="w-10 h-10 rounded-lg bg-fintech-cyan/20 flex items-center justify-center">
+                    <i class="fas fa-chart-line text-fintech-cyan"></i>
+                </div>
+                <div>
+                    <p class="text-white font-medium">{{ inv.nombre }}</p>
+                    <p class="text-slate-400 text-xs">{{ inv.tipo_activo }}</p>
+                </div>
+            </div>
+            <div class="flex justify-between items-center">
+                <span class="text-fintech-cyan font-bold">{{ inv.monto_inicial|cop }}</span>
+                <span class="text-xs {% if inv.rendimiento_esperado > 0 %}text-fintech-emeraldLight{% else %}text-fintech-rose{% endif %}">{{ inv.rendimiento_esperado }}%</span>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="text-slate-400 text-sm">Sin inversiones activas.</p>
+    {% endif %}
+</div>
+{% endif %}
+
+{% if 'metas_ahorro' in widget_config.widgets_activos or widget_config.widgets_activos|length == 0 %}
+<div class="bg-fintech-card rounded-2xl border border-fintech-border p-5 lg:p-6 mb-6 lg:mb-8">
+    <div class="flex items-center justify-between mb-4">
+        <h2 class="text-white font-bold text-lg">Metas de ahorro</h2>
+        <a href="{% url 'metas_ahorro' %}" class="text-fintech-cyan text-sm hover:underline">Ver todas</a>
+    </div>
+    {% if metas_ahorro %}
+    <div class="space-y-3">
+        {% for meta in metas_ahorro %}
+        <div class="p-4 rounded-xl bg-fintech-bg border border-fintech-border">
+            <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center gap-2">
+                    <i class="fas {{ meta.icono }} text-fintech-emeraldLight"></i>
+                    <span class="text-white font-medium">{{ meta.nombre }}</span>
+                </div>
+                <span class="text-slate-400 text-sm">{{ meta.ahorrado|cop }} / {{ meta.objetivo|cop }}</span>
+            </div>
+            <div class="w-full bg-slate-700 rounded-full h-2">
+                <div class="bg-fintech-emerald h-2 rounded-full" style="width: {% widthratio meta.ahorrado meta.objetivo 100 %}%"></div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="text-slate-400 text-sm">Sin metas de ahorro definidas.</p>
+    {% endif %}
+</div>
+{% endif %}
+
+{% if 'gastos_fijos_resumen' in widget_config.widgets_activos or widget_config.widgets_activos|length == 0 %}
+<div class="bg-fintech-card rounded-2xl border border-fintech-border p-5 lg:p-6 mb-6 lg:mb-8">
+    <div class="flex items-center justify-between mb-4">
+        <h2 class="text-white font-bold text-lg">Gastos fijos mensuales</h2>
+        <a href="{% url 'gastos_fijos_lista' %}" class="text-fintech-cyan text-sm hover:underline">Ver todos</a>
+    </div>
+    {% if gastos_fijos %}
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {% for gasto in gastos_fijos %}
+        <div class="p-4 rounded-xl bg-fintech-bg border border-fintech-border">
+            <div class="flex items-center gap-3 mb-2">
+                <div class="w-10 h-10 rounded-lg bg-fintech-rose/20 flex items-center justify-center">
+                    <i class="fas fa-receipt text-fintech-rose"></i>
+                </div>
+                <div>
+                    <p class="text-white font-medium">{{ gasto.descripcion }}</p>
+                    <p class="text-slate-400 text-xs">{{ gasto.get_frecuencia_display }}</p>
+                </div>
+            </div>
+            <span class="text-fintech-rose font-bold">{{ gasto.monto|cop }}</span>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="text-slate-400 text-sm">Sin gastos fijos configurados.</p>
+    {% endif %}
+</div>
+{% endif %}
+
+{% if 'proximos_pagos' in widget_config.widgets_activos or widget_config.widgets_activos|length == 0 %}
+<div class="bg-fintech-card rounded-2xl border border-fintech-border p-5 lg:p-6 mb-6 lg:mb-8">
+    <div class="flex items-center justify-between mb-4">
+        <h2 class="text-white font-bold text-lg">Próximos eventos</h2>
+        <a href="{% url 'calendario_view' %}" class="text-fintech-cyan text-sm hover:underline">Ver calendario</a>
+    </div>
+    {% if proximos_eventos %}
+    <div class="space-y-2">
+        {% for evento in proximos_eventos %}
+        <div class="flex items-center gap-3 p-3 rounded-xl bg-fintech-bg border border-fintech-border">
+            <div class="w-10 h-10 rounded-lg bg-amber-500/20 flex items-center justify-center">
+                <i class="fas fa-calendar-check text-amber-400"></i>
+            </div>
+            <div class="flex-1">
+                <p class="text-white font-medium">{{ evento.titulo }}</p>
+                <p class="text-slate-400 text-xs">{{ evento.fecha|date:"d/m/Y" }}{% if evento.monto %} · {{ evento.monto|cop }}{% endif %}</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="text-slate-400 text-sm">Sin eventos próximos en los próximos 30 días.</p>
+    {% endif %}
+</div>
+{% endif %}
 
 <!-- Recent Transactions -->
 <div class="bg-fintech-card rounded-2xl border border-fintech-border p-5 lg:p-6">
