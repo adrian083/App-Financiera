@@ -40,6 +40,18 @@ class ConfiguracionUsuario(models.Model):
     configurado = models.BooleanField(default=False)
     ha_visto_tutorial = models.BooleanField(default=False)
 
+    class Meta:
+        verbose_name = 'Configuración de usuario'
+        verbose_name_plural = 'Configuraciones de usuario'
+
+    def __str__(self):
+        return f'Config {self.usuario.username} (corte día {self.dia_corte})'
+
+    @classmethod
+    def obtener(cls, usuario):
+        obj, _ = cls.objects.get_or_create(usuario=usuario)
+        return obj
+
 
 class WidgetConfiguracion(models.Model):
     """Configuración de widgets personalizados del dashboard."""
