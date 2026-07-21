@@ -7,10 +7,15 @@ from django.db import transaction
 from django.http import JsonResponse, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
-from reportlab.lib.pagesizes import letter
-from reportlab.lib import colors
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+
+try:
+    from reportlab.lib.pagesizes import letter
+    from reportlab.lib import colors
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+    REPORTLAB_AVAILABLE = True
+except ImportError:
+    REPORTLAB_AVAILABLE = False
 
 from ahorros.models import FondoAhorro
 from ahorros.services import (
@@ -362,6 +367,10 @@ def historico_meses(request):
 @login_required
 def historico_pdf(request):
     """Generar PDF del histórico de ciclos cerrados."""
+    if not REPORTLAB_AVAILABLE:
+        messages.error(request, 'La librería reportlab no está instalada. Contacta al administrador.')
+        return redirect('historico_meses')
+    
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="historico_{request.user.username}_{datetime.now().strftime("%Y%m%d")}.pdf"'
     
@@ -850,9 +859,15 @@ def _serialize_configuracion(user):
 
 
 def _serialize_categorias(user):
-    return list(Categoria.objects.filter(usuario=user).values(
-        'nombre', 'color', 'tipo', 'presupuesto_mensual'
-    ))
+    try:
+        return list(Categoria.objects.filter(usuario=user).values(
+            'nombre', 'color', 'presupuesto_mensual'
+        ))
+    except Exception:
+        # Fallback si no tiene presupuesto_mensual
+        return list(Categoria.objects.filter(usuario=user).values(
+            'nombre', 'color'
+        ))
 
 
 def _serialize_movimientos(user):
