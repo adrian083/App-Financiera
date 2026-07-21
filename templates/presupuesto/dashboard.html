@@ -27,8 +27,8 @@
     </div>
 
     <!-- Desktop Sidebar -->
-    <div class="hidden lg:flex fixed left-0 top-0 h-full w-64 bg-fintech-card border-r border-fintech-border flex-col z-40">
-        <div class="p-6 border-b border-fintech-border">
+    <div class="hidden lg:flex fixed left-0 top-0 h-screen w-64 bg-fintech-card border-r border-fintech-border flex-col z-40 overflow-y-auto">
+        <div class="p-6 border-b border-fintech-border pt-8">
             <div class="flex items-center gap-3">
                 <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-fintech-emerald to-fintech-cyan flex items-center justify-center">
                     <i class="fas fa-wallet text-white text-xl"></i>
@@ -251,7 +251,7 @@
                         <button class="px-3 py-1 rounded-lg text-xs font-medium text-slate-400 hover:text-white hover:bg-fintech-card border border-transparent hover:border-fintech-border transition-all duration-300">Año</button>
                     </div>
                 </div>
-                <div class="h-64">
+                <div class="h-64 max-h-[300px]">
                     <canvas id="balanceChart"></canvas>
                 </div>
             </div>
@@ -260,10 +260,10 @@
             <div class="bg-fintech-card rounded-2xl border border-fintech-border p-6 transition-all duration-300 hover:shadow-xl hover:shadow-fintech-border/20 lg:col-span-1">
                 <h2 class="text-white font-bold text-lg mb-6">Gastos por Categoría</h2>
                 {% if chart_data != "[]" %}
-                <div class="h-48 flex items-center justify-center">
+                <div class="h-48 max-h-[200px] flex items-center justify-center">
                     <canvas id="chartGastos"></canvas>
                 </div>
-                <div class="mt-4 space-y-2">
+                <div class="mt-4 space-y-2 pb-4">
                     {% for label in chart_labels %}
                     <div class="flex items-center justify-between text-sm">
                         <span class="text-slate-400">{{ label }}</span>
