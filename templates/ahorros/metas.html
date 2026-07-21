@@ -190,7 +190,7 @@
 {% for meta in metas %}
 <!-- Deposit Modal -->
 <div id="modal-deposito-{{ meta.pk }}" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-4 backdrop-blur-sm">
-    <div class="bg-fintech-card rounded-3xl shadow-2xl max-w-sm w-full p-6 border border-fintech-border">
+    <div class="bg-fintech-card rounded-3xl shadow-2xl max-w-sm w-full p-6 border border-fintech-border max-h-[90vh] overflow-y-auto">
         <div class="flex justify-between items-center mb-6">
             <h2 class="text-xl font-bold text-white">Aportar a {{ meta.nombre }}</h2>
             <button onclick="closeModal('modal-deposito-{{ meta.pk }}')" class="text-slate-400 hover:text-white text-2xl transition-colors"><i class="fas fa-times"></i></button>

@@ -1,4 +1,5 @@
 from django import forms
+from django.contrib.auth.models import User
 
 from core.currency import moneda_choices
 from core.form_styles import FORM_INPUT, FORM_INPUT_COP, FORM_INPUT_LG, FORM_INPUT_SM
@@ -8,6 +9,39 @@ from presupuesto.models import (
     ConfiguracionUsuario,
     GastoFijoPlantilla,
 )
+
+
+class PerfilUsuarioForm(forms.ModelForm):
+    """Editar datos básicos de la cuenta del usuario."""
+
+    class Meta:
+        model = User
+        fields = ['first_name', 'email']
+        widgets = {
+            'first_name': forms.TextInput(attrs={
+                'class': FORM_INPUT,
+                'placeholder': 'Tu nombre',
+            }),
+            'email': forms.EmailInput(attrs={
+                'class': FORM_INPUT,
+                'placeholder': 'tu@correo.com',
+            }),
+        }
+        labels = {
+            'first_name': 'Nombre',
+            'email': 'Correo electrónico',
+        }
+
+
+class PerfilAvatarForm(forms.ModelForm):
+    """Seleccionar el avatar predeterminado del perfil."""
+
+    class Meta:
+        model = ConfiguracionUsuario
+        fields = ['avatar']
+        widgets = {
+            'avatar': forms.HiddenInput(),
+        }
 
 
 class MontoCOPField(forms.CharField):

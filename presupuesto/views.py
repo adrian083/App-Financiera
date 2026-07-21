@@ -232,6 +232,34 @@ def configuracion_editar(request):
 
 
 @login_required
+def perfil(request):
+    """Ver y editar el perfil del usuario (nombre, email y avatar)."""
+    from presupuesto.forms import PerfilUsuarioForm, PerfilAvatarForm
+
+    config = ConfiguracionUsuario.obtener(request.user)
+
+    if request.method == 'POST':
+        form_usuario = PerfilUsuarioForm(request.POST, instance=request.user)
+        form_avatar = PerfilAvatarForm(request.POST, instance=config)
+        if form_usuario.is_valid() and form_avatar.is_valid():
+            form_usuario.save()
+            form_avatar.save()
+            messages.success(request, 'Perfil actualizado correctamente.')
+            return redirect('perfil')
+        messages.error(request, 'Revisa los datos del formulario.')
+    else:
+        form_usuario = PerfilUsuarioForm(instance=request.user)
+        form_avatar = PerfilAvatarForm(instance=config)
+
+    return render(request, 'presupuesto/perfil.html', {
+        'config': config,
+        'form_usuario': form_usuario,
+        'form_avatar': form_avatar,
+        'avatares': ConfiguracionUsuario.avatares_disponibles(),
+    })
+
+
+@login_required
 def confirmar_ciclo(request):
     ciclo = CicloMensual.obtener_pendiente(request.user)
     if not ciclo:
@@ -859,15 +887,10 @@ def _serialize_configuracion(user):
 
 
 def _serialize_categorias(user):
-    try:
-        return list(Categoria.objects.filter(usuario=user).values(
-            'nombre', 'color', 'presupuesto_mensual'
-        ))
-    except Exception:
-        # Fallback si no tiene presupuesto_mensual
-        return list(Categoria.objects.filter(usuario=user).values(
-            'nombre', 'color'
-        ))
+    # Campos válidos del modelo Categoria: nombre, color, activa, orden
+    return list(Categoria.objects.filter(usuario=user).values(
+        'nombre', 'color', 'activa', 'orden'
+    ))
 
 
 def _serialize_movimientos(user):
@@ -1021,15 +1044,15 @@ def _restore_configuracion(user, config_data):
 
 
 def _restore_categorias(user, categorias_data):
-    from decimal import Decimal
     for cat_data in categorias_data:
         defaults = {
-            'color': cat_data['color'],
+            'color': cat_data.get('color', '#6366f1'),
         }
-        # Solo agregar presupuesto_mensual si existe en los datos
-        if 'presupuesto_mensual' in cat_data:
-            defaults['presupuesto_mensual'] = Decimal(cat_data['presupuesto_mensual'])
-        
+        if 'activa' in cat_data:
+            defaults['activa'] = cat_data['activa']
+        if 'orden' in cat_data:
+            defaults['orden'] = cat_data['orden']
+
         Categoria.objects.get_or_create(
             usuario=user,
             nombre=cat_data['nombre'],

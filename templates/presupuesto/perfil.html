@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+
+{% block title %}Mi perfil — FinanzasApp{% endblock %}
+{% block header_eyebrow %}Cuenta{% endblock %}
+{% block header_title %}Mi perfil{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto">
+
+    <!-- ===================== TABS ===================== -->
+    <div class="mb-6 flex flex-wrap gap-1 p-1 rounded-xl bg-fintech-card border border-fintech-border w-full sm:w-auto sm:inline-flex">
+        <a href="{% url 'perfil' %}" class="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-fintech-emerald/15 text-fintech-emeraldLight">
+            <i class="fas fa-user text-xs"></i> Perfil
+        </a>
+        <a href="{% url 'configuracion_editar' %}" class="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-slate-400 hover:text-white transition-colors">
+            <i class="fas fa-sliders text-xs"></i> Preferencias
+        </a>
+    </div>
+
+    {% with info=config.avatar_info %}
+    <form method="post" class="space-y-6">
+        {% csrf_token %}
+
+        <!-- ===================== PROFILE HEADER CARD ===================== -->
+        <div class="bg-fintech-card rounded-2xl border border-fintech-border p-6 lg:p-8">
+            <div class="flex flex-col sm:flex-row items-center gap-5 text-center sm:text-left">
+                <div id="avatar-preview" class="w-20 h-20 rounded-full bg-gradient-to-br {{ info.gradient }} flex items-center justify-center text-white font-bold text-2xl shrink-0 shadow-lg">
+                    {% if info.icon %}
+                    <i class="{{ info.icon }}"></i>
+                    {% else %}
+                    <span>{{ user.first_name|default:user.username|slice:":1"|upper }}</span>
+                    {% endif %}
+                </div>
+                <div class="min-w-0">
+                    <h2 class="text-white font-bold text-xl truncate">{{ user.first_name|default:user.username }}</h2>
+                    <p class="text-slate-400 text-sm truncate">@{{ user.username }}</p>
+                    {% if user.email %}<p class="text-slate-500 text-xs mt-1 truncate"><i class="fas fa-envelope mr-1"></i>{{ user.email }}</p>{% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- ===================== AVATAR SELECTOR ===================== -->
+        <div class="bg-fintech-card rounded-2xl border border-fintech-border p-6 lg:p-8">
+            <div class="flex items-center gap-3 mb-5">
+                <div class="w-11 h-11 rounded-xl bg-fintech-cyan/15 flex items-center justify-center">
+                    <i class="fas fa-image text-fintech-cyan"></i>
+                </div>
+                <div>
+                    <h3 class="text-white font-bold text-lg leading-tight">Elige tu avatar</h3>
+                    <p class="text-slate-400 text-xs">Selecciona un icono para tu perfil.</p>
+                </div>
+            </div>
+
+            {{ form_avatar.avatar }}
+
+            <div class="grid grid-cols-4 sm:grid-cols-5 gap-3">
+                {% for clave, av in avatares %}
+                <button type="button" data-avatar="{{ clave }}"
+                    class="avatar-option group aspect-square rounded-2xl border-2 flex items-center justify-center transition-all
+                    {% if config.avatar == clave %}border-fintech-emerald bg-fintech-emerald/10{% else %}border-fintech-border bg-fintech-bg hover:border-slate-500{% endif %}"
+                    title="{{ clave }}">
+                    <span class="w-12 h-12 rounded-full bg-gradient-to-br {{ av.gradient }} flex items-center justify-center text-white text-lg font-bold">
+                        {% if av.icon %}
+                        <i class="{{ av.icon }}"></i>
+                        {% else %}
+                        <i class="fas fa-font"></i>
+                        {% endif %}
+                    </span>
+                </button>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- ===================== ACCOUNT DATA ===================== -->
+        <div class="bg-fintech-card rounded-2xl border border-fintech-border p-6 lg:p-8">
+            <div class="flex items-center gap-3 mb-5">
+                <div class="w-11 h-11 rounded-xl bg-fintech-emerald/15 flex items-center justify-center">
+                    <i class="fas fa-id-card text-fintech-emeraldLight"></i>
+                </div>
+                <div>
+                    <h3 class="text-white font-bold text-lg leading-tight">Datos personales</h3>
+                    <p class="text-slate-400 text-xs">Actualiza tu nombre y correo.</p>
+                </div>
+            </div>
+
+            <div class="space-y-5">
+                {% for field in form_usuario %}
+                <div>
+                    <label class="form-label">{{ field.label }}</label>
+                    {{ field }}
+                    {% for e in field.errors %}<p class="text-xs text-fintech-rose mt-1.5">{{ e }}</p>{% endfor %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <button type="submit" class="w-full bg-gradient-to-r from-fintech-emerald to-fintech-cyan text-white py-3.5 rounded-xl font-semibold hover:opacity-90 transition-opacity shadow-lg shadow-fintech-emerald/25">
+            Guardar cambios
+        </button>
+    </form>
+    {% endwith %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    (function () {
+        var input = document.getElementById('id_avatar');
+        var preview = document.getElementById('avatar-preview');
+        var options = document.querySelectorAll('.avatar-option');
+        var userInitial = "{{ user.first_name|default:user.username|slice:':1'|upper|escapejs }}";
+
+        options.forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var clave = btn.getAttribute('data-avatar');
+                if (input) input.value = clave;
+
+                options.forEach(function (b) {
+                    b.classList.remove('border-fintech-emerald', 'bg-fintech-emerald/10');
+                    b.classList.add('border-fintech-border', 'bg-fintech-bg');
+                });
+                btn.classList.remove('border-fintech-border', 'bg-fintech-bg');
+                btn.classList.add('border-fintech-emerald', 'bg-fintech-emerald/10');
+
+                // Sincronizar la vista previa grande con el círculo interior del botón.
+                var inner = btn.querySelector('span');
+                if (preview && inner) {
+                    preview.className = inner.className.replace('w-12 h-12 text-lg', 'w-20 h-20 text-2xl') + ' shrink-0 shadow-lg';
+                    preview.innerHTML = clave === 'inicial' ? '<span>' + userInitial + '</span>' : inner.innerHTML;
+                }
+            });
+        });
+    })();
+</script>
+{% endblock %}

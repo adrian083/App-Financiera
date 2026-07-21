@@ -33,6 +33,26 @@ class ConfiguracionUsuario(models.Model):
     )
     configurado = models.BooleanField(default=False)
     ha_visto_tutorial = models.BooleanField(default=False)
+    avatar = models.CharField(
+        max_length=30,
+        default='inicial',
+        verbose_name='Avatar de perfil',
+    )
+
+    # Avatares predeterminados basados en iconos SVG (Font Awesome) + gradientes.
+    # Evita el manejo de archivos MEDIA / Pillow.
+    AVATARES = {
+        'inicial': {'icon': None, 'gradient': 'from-fintech-cyan to-fintech-emerald'},
+        'zorro': {'icon': 'fa-solid fa-cat', 'gradient': 'from-orange-500 to-amber-400'},
+        'cohete': {'icon': 'fa-solid fa-rocket', 'gradient': 'from-fintech-cyan to-blue-500'},
+        'rayo': {'icon': 'fa-solid fa-bolt', 'gradient': 'from-amber-400 to-yellow-500'},
+        'corona': {'icon': 'fa-solid fa-crown', 'gradient': 'from-yellow-500 to-amber-400'},
+        'planta': {'icon': 'fa-solid fa-seedling', 'gradient': 'from-fintech-emerald to-green-500'},
+        'diamante': {'icon': 'fa-solid fa-gem', 'gradient': 'from-fintech-cyan to-teal-400'},
+        'fuego': {'icon': 'fa-solid fa-fire', 'gradient': 'from-fintech-rose to-orange-500'},
+        'astronauta': {'icon': 'fa-solid fa-user-astronaut', 'gradient': 'from-indigo-500 to-fintech-cyan'},
+        'robot': {'icon': 'fa-solid fa-robot', 'gradient': 'from-slate-500 to-fintech-cyan'},
+    }
 
     class Meta:
         verbose_name = 'Configuración de usuario'
@@ -45,6 +65,15 @@ class ConfiguracionUsuario(models.Model):
     def obtener(cls, usuario):
         obj, _ = cls.objects.get_or_create(usuario=usuario)
         return obj
+
+    def avatar_info(self):
+        """Devuelve la configuración visual del avatar seleccionado."""
+        return self.AVATARES.get(self.avatar, self.AVATARES['inicial'])
+
+    @classmethod
+    def avatares_disponibles(cls):
+        """Lista de tuplas (clave, config) para renderizar el selector."""
+        return list(cls.AVATARES.items())
 
 
 class WidgetConfiguracion(models.Model):

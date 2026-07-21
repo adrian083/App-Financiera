@@ -1,0 +1,14 @@
+{% comment %}
+Renderiza el avatar del usuario.
+Params: size (ej. 'w-10 h-10'), text (ej. 'text-sm').
+Usa config.avatar_info del context processor; cae al inicial si no hay config.
+{% endcomment %}
+{% if config %}{% with info=config.avatar_info %}
+<span class="{{ size }} rounded-full bg-gradient-to-br {{ info.gradient }} flex items-center justify-center text-white font-bold {{ text }} shrink-0">
+    {% if info.icon %}<i class="{{ info.icon }}"></i>{% else %}{{ user.first_name|default:user.username|slice:":1"|upper }}{% endif %}
+</span>
+{% endwith %}{% else %}
+<span class="{{ size }} rounded-full bg-gradient-to-br from-fintech-cyan to-fintech-emerald flex items-center justify-center text-white font-bold {{ text }} shrink-0">
+    {{ user.first_name|default:user.username|slice:":1"|upper }}
+</span>
+{% endif %}

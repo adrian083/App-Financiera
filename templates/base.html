@@ -80,13 +80,13 @@
 
         <div class="p-4 border-t border-fintech-border shrink-0">
             <div class="flex items-center gap-3 px-3 py-3 rounded-xl bg-fintech-bg border border-fintech-border">
-                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-fintech-cyan to-fintech-emerald flex items-center justify-center text-white font-bold text-sm shrink-0">
-                    {{ user.username|slice:":1"|upper }}
-                </div>
-                <div class="flex-1 min-w-0">
+                <a href="{% url 'perfil' %}" title="Ver mi perfil">
+                    {% include 'partials/avatar.html' with size='w-10 h-10' text='text-sm' %}
+                </a>
+                <a href="{% url 'perfil' %}" class="flex-1 min-w-0">
                     <p class="text-white font-semibold text-sm truncate">{{ user.first_name|default:user.username }}</p>
                     <p class="text-slate-400 text-xs truncate">@{{ user.username }}</p>
-                </div>
+                </a>
                 <form method="post" action="{% url 'logout' %}">
                     {% csrf_token %}
                     <button type="submit" title="Cerrar sesión" class="w-9 h-9 rounded-lg flex items-center justify-center text-slate-400 hover:text-fintech-rose hover:bg-fintech-rose/10 transition-colors">
@@ -109,7 +109,9 @@
                     <i class="fas fa-coins text-fintech-cyan text-xs"></i>
                     <span class="font-semibold text-xs">{{ moneda_activa.codigo }}</span>
                 </a>
-                <a href="{% url 'configuracion_editar' %}" class="w-10 h-10 rounded-full bg-gradient-to-br from-fintech-cyan to-fintech-emerald flex items-center justify-center text-white font-bold text-sm">{{ user.username|slice:":1"|upper }}</a>
+                <a href="{% url 'perfil' %}" title="Mi perfil">
+                    {% include 'partials/avatar.html' with size='w-10 h-10' text='text-sm' %}
+                </a>
             </div>
         </div>
     </header>
@@ -131,7 +133,9 @@
                 <button type="button" class="w-11 h-11 rounded-xl bg-fintech-card border border-fintech-border flex items-center justify-center text-slate-300 hover:text-white hover:border-slate-500 transition-colors" title="Notificaciones">
                     <i class="far fa-bell text-lg"></i>
                 </button>
-                <a href="{% url 'configuracion_editar' %}" class="w-11 h-11 rounded-xl bg-gradient-to-br from-fintech-cyan to-fintech-emerald flex items-center justify-center text-white font-bold text-lg">{{ user.username|slice:":1"|upper }}</a>
+                <a href="{% url 'perfil' %}" title="Mi perfil">
+                    {% include 'partials/avatar.html' with size='w-11 h-11' text='text-lg' %}
+                </a>
                 <button type="button" onclick="finanzasQuickAdd()" class="flex items-center gap-2 px-5 h-11 rounded-xl bg-gradient-to-r from-fintech-emerald to-fintech-cyan text-white font-semibold hover:opacity-90 transition-all shadow-lg shadow-fintech-emerald/25">
                     <i class="fas fa-plus"></i>
                     <span>Registrar</span>
