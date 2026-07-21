@@ -628,7 +628,7 @@ def eliminar_gasto(request, gasto_id):
 @login_required
 def calendario_view(request):
     import calendar
-    from datetime import datetime
+    from datetime import datetime, date
     
     # Obtener mes y año de query params o usar actual
     year = int(request.GET.get('year', date.today().year))
