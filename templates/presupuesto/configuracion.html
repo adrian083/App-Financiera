@@ -22,10 +22,8 @@
     </div>
     {% else %}
     <div class="text-center mb-8">
-        <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-fintech-emerald to-fintech-cyan flex items-center justify-center mx-auto mb-4 shadow-lg shadow-fintech-emerald/25">
-            <i class="fas fa-wallet text-white text-2xl"></i>
-        </div>
-        <h1 class="text-2xl font-bold text-white">Bienvenido a FinanzasApp</h1>
+        {% include 'partials/logo.html' with size='w-16 h-16' %}
+        <h1 class="text-2xl font-bold text-white">Bienvenido a FinanzApp</h1>
         <p class="text-slate-400 text-sm mt-1">Configura tu salario y día de corte para iniciar tu primer ciclo.</p>
     </div>
     {% endif %}

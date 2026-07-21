@@ -67,9 +67,7 @@
     <!-- ===================== DESKTOP SIDEBAR ===================== -->
     <aside class="hidden lg:flex fixed left-0 top-0 h-screen w-64 bg-fintech-card border-r border-fintech-border flex-col z-40">
         <div class="flex items-center gap-3 px-6 h-20 border-b border-fintech-border shrink-0">
-            <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-fintech-emerald to-fintech-cyan flex items-center justify-center shadow-lg shadow-fintech-emerald/20">
-                <i class="fas fa-wallet text-white text-lg"></i>
-            </div>
+            {% include 'partials/logo.html' with size='w-11 h-11' %}
             <div class="leading-tight">
                 <h1 class="text-white font-bold text-lg">FinanzasApp</h1>
                 <p class="text-slate-400 text-xs">Finanzas personales</p>
@@ -103,9 +101,7 @@
     <header class="lg:hidden sticky top-0 z-40 bg-fintech-bg/90 backdrop-blur-lg border-b border-fintech-border">
         <div class="flex items-center justify-between px-4 h-16">
             <a href="{% url 'dashboard' %}" class="flex items-center gap-2.5">
-                <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-fintech-emerald to-fintech-cyan flex items-center justify-center">
-                    <i class="fas fa-wallet text-white"></i>
-                </div>
+                {% include 'partials/logo.html' with size='w-9 h-9' %}
                 <span class="text-white font-bold text-base">FinanzasApp</span>
             </a>
             <div class="flex items-center gap-2">
