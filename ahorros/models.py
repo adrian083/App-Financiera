@@ -96,10 +96,44 @@ class Inversion(models.Model):
         (EN_CURSO, 'En curso (plazo extendido)'),
     ]
 
+    ACCIONES = 'acciones'
+    CRIPTO = 'cripto'
+    FONDOS = 'fondos'
+    INMOBILIARIO = 'inmobiliario'
+    RENTA_FIJA = 'renta_fija'
+    OTRO = 'otro'
+
+    TIPOS_ACTIVO = [
+        (ACCIONES, 'Acciones'),
+        (CRIPTO, 'Criptomonedas'),
+        (FONDOS, 'Fondos indexados'),
+        (INMOBILIARIO, 'Bienes raíces'),
+        (RENTA_FIJA, 'Renta fija / CDT'),
+        (OTRO, 'Otro'),
+    ]
+
+    # color + icono para visualización de portafolio
+    META_ACTIVO = {
+        ACCIONES: {'color': '#06B6D4', 'icono': 'fa-arrow-trend-up'},
+        CRIPTO: {'color': '#F59E0B', 'icono': 'fa-bitcoin-sign'},
+        FONDOS: {'color': '#8B5CF6', 'icono': 'fa-layer-group'},
+        INMOBILIARIO: {'color': '#10B981', 'icono': 'fa-building'},
+        RENTA_FIJA: {'color': '#3B82F6', 'icono': 'fa-landmark'},
+        OTRO: {'color': '#94A3B8', 'icono': 'fa-coins'},
+    }
+
     usuario = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name='inversiones',
     )
     nombre = models.CharField(max_length=200)
+    tipo_activo = models.CharField(
+        max_length=20, choices=TIPOS_ACTIVO, default=OTRO,
+        verbose_name='Tipo de activo',
+    )
+    rendimiento_esperado = models.DecimalField(
+        max_digits=6, decimal_places=2, null=True, blank=True,
+        verbose_name='Rendimiento esperado (% anual)',
+    )
     monto_inicial = models.DecimalField(max_digits=14, decimal_places=0)
     monto_final = models.DecimalField(
         max_digits=14, decimal_places=0, null=True, blank=True,
@@ -140,6 +174,51 @@ class Inversion(models.Model):
             return None
         return self.monto_final - self.monto_inicial
 
+    @property
+    def roi(self):
+        """Retorno sobre la inversión en porcentaje (cerradas)."""
+        if self.monto_final is None or self.monto_inicial == 0:
+            return None
+        return (self.monto_final - self.monto_inicial) / self.monto_inicial * 100
+
+    @property
+    def rendimiento_proyectado(self):
+        """Ganancia proyectada en dinero según el rendimiento esperado."""
+        if not self.rendimiento_esperado:
+            return None
+        return (self.monto_inicial * self.rendimiento_esperado / 100).quantize(Decimal('1'))
+
+    @property
+    def color_activo(self):
+        return self.META_ACTIVO.get(self.tipo_activo, self.META_ACTIVO[self.OTRO])['color']
+
+    @property
+    def icono_activo(self):
+        return self.META_ACTIVO.get(self.tipo_activo, self.META_ACTIVO[self.OTRO])['icono']
+
+    @property
+    def esta_abierta(self):
+        return self.estado in (self.ACTIVA, self.EN_CURSO, self.VENCIDA_PENDIENTE)
+
+    @classmethod
+    def distribucion_portafolio(cls, usuario):
+        """Distribución del capital abierto por tipo de activo."""
+        abiertas = cls.objects.filter(
+            usuario=usuario,
+            estado__in=[cls.ACTIVA, cls.EN_CURSO, cls.VENCIDA_PENDIENTE],
+        )
+        agrupado = {}
+        for inv in abiertas:
+            meta = cls.META_ACTIVO.get(inv.tipo_activo, cls.META_ACTIVO[cls.OTRO])
+            key = inv.get_tipo_activo_display()
+            if key not in agrupado:
+                agrupado[key] = {'total': Decimal('0'), 'color': meta['color'], 'icono': meta['icono']}
+            agrupado[key]['total'] += inv.monto_inicial
+        return [
+            {'nombre': k, 'total': v['total'], 'color': v['color'], 'icono': v['icono']}
+            for k, v in sorted(agrupado.items(), key=lambda x: -x[1]['total'])
+        ]
+
     @classmethod
     def total_ganancias(cls, usuario):
         total = Decimal('0')
@@ -164,3 +243,88 @@ class Inversion(models.Model):
             usuario=usuario,
             estado__in=[cls.ACTIVA, cls.EN_CURSO, cls.VENCIDA_PENDIENTE],
         ).aggregate(t=Sum('monto_inicial'))['t'] or Decimal('0')
+
+    @classmethod
+    def capital_invertido(cls, usuario):
+        return cls.monto_congelado(usuario)
+
+
+class MetaAhorro(models.Model):
+    """Objetivo de ahorro a corto/mediano plazo (fondo de emergencia, viaje, etc.)."""
+
+    ICONOS = [
+        ('fa-shield-halved', 'Fondo de emergencia'),
+        ('fa-umbrella-beach', 'Vacaciones / Viaje'),
+        ('fa-laptop', 'Tecnología'),
+        ('fa-car', 'Vehículo'),
+        ('fa-house', 'Vivienda / Hogar'),
+        ('fa-graduation-cap', 'Educación'),
+        ('fa-gift', 'Regalo / Evento'),
+        ('fa-piggy-bank', 'General'),
+    ]
+
+    usuario = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='metas_ahorro',
+    )
+    nombre = models.CharField(max_length=120)
+    icono = models.CharField(max_length=40, choices=ICONOS, default='fa-piggy-bank')
+    color = models.CharField(max_length=7, default='#10B981')
+    monto_objetivo = models.DecimalField(max_digits=14, decimal_places=0)
+    saldo_actual = models.DecimalField(
+        max_digits=14, decimal_places=0, default=Decimal('0'),
+    )
+    fecha_objetivo = models.DateField(null=True, blank=True)
+    completada = models.BooleanField(default=False)
+    creada = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        ordering = ['completada', '-creada']
+        verbose_name = 'Meta de ahorro'
+        verbose_name_plural = 'Metas de ahorro'
+
+    def __str__(self):
+        return f'{self.nombre} ({self.saldo_actual}/{self.monto_objetivo})'
+
+    @property
+    def progreso(self):
+        if self.monto_objetivo <= 0:
+            return 0
+        pct = int(self.saldo_actual / self.monto_objetivo * 100)
+        return min(pct, 100)
+
+    @property
+    def restante(self):
+        return max(self.monto_objetivo - self.saldo_actual, Decimal('0'))
+
+    @property
+    def dias_restantes(self):
+        if not self.fecha_objetivo:
+            return None
+        return (self.fecha_objetivo - timezone.now().date()).days
+
+    @classmethod
+    def total_ahorrado(cls, usuario):
+        return cls.objects.filter(usuario=usuario).aggregate(
+            t=Sum('saldo_actual'))['t'] or Decimal('0')
+
+    @classmethod
+    def total_objetivo(cls, usuario):
+        return cls.objects.filter(usuario=usuario).aggregate(
+            t=Sum('monto_objetivo'))['t'] or Decimal('0')
+
+
+class DepositoMeta(models.Model):
+    """Historial de aportes a una meta de ahorro."""
+
+    meta = models.ForeignKey(
+        MetaAhorro, on_delete=models.CASCADE, related_name='depositos',
+    )
+    monto = models.DecimalField(max_digits=14, decimal_places=0)
+    nota = models.CharField(max_length=200, blank=True)
+    fecha = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        ordering = ['-fecha']
+
+    def __str__(self):
+        return f'Aporte {self.monto} a {self.meta.nombre}'

@@ -1,5 +1,6 @@
 from django import forms
 
+from core.currency import moneda_choices
 from core.form_styles import FORM_INPUT, FORM_INPUT_COP, FORM_INPUT_LG, FORM_INPUT_SM
 from core.utils.moneda import parse_cop
 from presupuesto.models import (
@@ -25,10 +26,15 @@ class ConfiguracionForm(forms.ModelForm):
             'data-cop': 'true',
         }),
     )
+    moneda = forms.ChoiceField(
+        label='Moneda de visualización',
+        choices=moneda_choices(),
+        widget=forms.Select(attrs={'class': FORM_INPUT}),
+    )
 
     class Meta:
         model = ConfiguracionUsuario
-        fields = ['salario_base', 'dia_corte', 'dias_plazo_tolerancia']
+        fields = ['salario_base', 'moneda', 'dia_corte', 'dias_plazo_tolerancia']
         widgets = {
             'dia_corte': forms.NumberInput(attrs={
                 'class': FORM_INPUT,
@@ -44,6 +50,7 @@ class ConfiguracionForm(forms.ModelForm):
             'dias_plazo_tolerancia': 'Días de plazo/tolerancia',
         }
         help_texts = {
+            'moneda': 'Solo cambia el símbolo mostrado; no convierte los montos guardados.',
             'dias_plazo_tolerancia': 'Días extra para confirmar pago cuando el día de corte cae en fin de semana o festivo.',
         }
 

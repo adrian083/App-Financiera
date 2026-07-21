@@ -60,7 +60,10 @@
             </div>
         </div>
         <p class="text-3xl lg:text-4xl font-extrabold text-fintech-emeraldLight tracking-tight">{{ ciclo.saldo_disponible|cop }}</p>
-        <p class="text-xs text-slate-400 mt-2">Ciclo {{ ciclo.etiqueta }}</p>
+        <div class="flex items-center gap-2 mt-2">
+            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-fintech-emerald/15 border border-fintech-emerald/30 text-fintech-emeraldLight text-[11px] font-semibold">{{ moneda_activa.etiqueta }}</span>
+            <p class="text-xs text-slate-400">Ciclo {{ ciclo.etiqueta }}</p>
+        </div>
     </div>
 
     <div class="bg-fintech-card rounded-2xl border border-fintech-border p-5 lg:p-6 transition-all duration-300 hover:border-slate-500">

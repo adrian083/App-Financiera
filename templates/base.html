@@ -109,9 +109,10 @@
                 <span class="text-white font-bold text-base">FinanzasApp</span>
             </a>
             <div class="flex items-center gap-2">
-                <button type="button" class="w-10 h-10 rounded-full bg-fintech-card border border-fintech-border flex items-center justify-center text-slate-300" title="Notificaciones">
-                    <i class="far fa-bell"></i>
-                </button>
+                <a href="{% url 'configuracion_editar' %}" title="Cambiar moneda" class="flex items-center gap-1.5 h-10 px-3 rounded-full bg-fintech-card border border-fintech-border text-slate-200">
+                    <i class="fas fa-coins text-fintech-cyan text-xs"></i>
+                    <span class="font-semibold text-xs">{{ moneda_activa.codigo }}</span>
+                </a>
                 <span class="w-10 h-10 rounded-full bg-gradient-to-br from-fintech-cyan to-fintech-emerald flex items-center justify-center text-white font-bold text-sm">{{ user.username|slice:":1"|upper }}</span>
             </div>
         </div>
@@ -126,6 +127,11 @@
                 <h2 class="text-white font-bold text-xl">{% block header_title %}Hola, {{ user.first_name|default:user.username }}{% endblock %}</h2>
             </div>
             <div class="flex items-center gap-3">
+                <a href="{% url 'configuracion_editar' %}" title="Cambiar moneda de visualización" class="flex items-center gap-2 h-11 px-3.5 rounded-xl bg-fintech-card border border-fintech-border text-slate-300 hover:text-white hover:border-fintech-cyan/50 transition-colors">
+                    <i class="fas fa-coins text-fintech-cyan text-sm"></i>
+                    <span class="font-semibold text-sm">{{ moneda_activa.codigo }}</span>
+                    <span class="text-slate-400 text-xs">{{ moneda_activa.simbolo }}</span>
+                </a>
                 <button type="button" class="w-11 h-11 rounded-xl bg-fintech-card border border-fintech-border flex items-center justify-center text-slate-300 hover:text-white hover:border-slate-500 transition-colors" title="Notificaciones">
                     <i class="far fa-bell text-lg"></i>
                 </button>

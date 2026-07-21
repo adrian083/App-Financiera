@@ -26,6 +26,11 @@ class ConfiguracionUsuario(models.Model):
         default=3,
         verbose_name='Días de plazo/tolerancia',
     )
+    moneda = models.CharField(
+        max_length=3,
+        default='COP',
+        verbose_name='Moneda de visualización',
+    )
     configurado = models.BooleanField(default=False)
     ha_visto_tutorial = models.BooleanField(default=False)
 
@@ -198,6 +203,10 @@ class Movimiento(models.Model):
         related_name='movimientos',
     )
     es_gasto_fijo = models.BooleanField(default=False)
+    pagado = models.BooleanField(default=True, verbose_name='Pagado')
+    fecha_vencimiento = models.DateField(
+        null=True, blank=True, verbose_name='Fecha de vencimiento',
+    )
     plantilla_origen = models.ForeignKey(
         GastoFijoPlantilla, on_delete=models.SET_NULL,
         null=True, blank=True, related_name='movimientos_generados',

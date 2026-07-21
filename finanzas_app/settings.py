@@ -25,14 +25,19 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-x%dsh=gr!#!9_cva2k$8f9xz!4=hxgmjnvwnadc4f!)qc5epf^'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('DJANGO_DEBUG', 'False') == 'True'
+DEBUG = os.environ.get('DJANGO_DEBUG', 'True') == 'True'
 ALLOWED_HOSTS = os.environ.get(
-    'DJANGO_ALLOWED_HOSTS', 'AppFinanciera.pythonanywhere.com',
+    'DJANGO_ALLOWED_HOSTS', '*',
 ).split(',')
 
 # Trust the dev preview origin(s) for CSRF-protected POST requests.
+# In the v0 preview the app is served over https from *.vusercontent.net.
 _csrf_origins = os.environ.get('DJANGO_CSRF_TRUSTED_ORIGINS', '')
-CSRF_TRUSTED_ORIGINS = [o for o in _csrf_origins.split(',') if o]
+CSRF_TRUSTED_ORIGINS = [o for o in _csrf_origins.split(',') if o] + [
+    'https://*.vusercontent.net',
+    'https://*.v0.dev',
+    'https://*.v0.app',
+]
 
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'dashboard'
@@ -61,6 +66,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'core.middleware.CurrencyMiddleware',
 ]
 
 ROOT_URLCONF = 'finanzas_app.urls'
@@ -76,6 +82,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'core.context_processors.moneda',
             ],
         },
     },
