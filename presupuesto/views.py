@@ -110,7 +110,7 @@ def dashboard(request):
     from presupuesto.models import GastoFijoPlantilla, EventoCalendario
     from datetime import date, timedelta
     
-    inversiones_activas = Inversion.objects.filter(usuario=user, activa=True)
+    inversiones_activas = Inversion.objects.filter(usuario=user, estado=Inversion.ACTIVA)
     metas_ahorro = MetaAhorro.objects.filter(usuario=user)
     gastos_fijos = GastoFijoPlantilla.objects.filter(usuario=user, activa=True)
     proximos_eventos = EventoCalendario.objects.filter(
