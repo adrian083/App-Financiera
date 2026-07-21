@@ -28,6 +28,7 @@ from presupuesto.models import (
     Categoria,
     CicloMensual,
     ConfiguracionUsuario,
+    EventoCalendario,
     GastoFijoPlantilla,
     Movimiento,
 )
@@ -476,3 +477,97 @@ def eliminar_gasto(request, gasto_id):
     movimiento.delete()
     messages.success(request, 'Gasto eliminado.')
     return redirect('dashboard')
+
+
+@login_required
+def calendario_view(request):
+    import calendar
+    from datetime import datetime
+    
+    # Obtener mes y año de query params o usar actual
+    year = int(request.GET.get('year', date.today().year))
+    month = int(request.GET.get('month', date.today().month))
+    
+    # Obtener eventos del mes
+    primer_dia = date(year, month, 1)
+    ultimo_dia = date(year, month, calendar.monthrange(year, month)[1])
+    
+    eventos = EventoCalendario.objects.filter(
+        usuario=request.user,
+        fecha__gte=primer_dia,
+        fecha__lte=ultimo_dia,
+    ).order_by('fecha')
+    
+    # Crear diccionario de eventos por día
+    eventos_por_dia = {}
+    for evento in eventos:
+        dia = evento.fecha.day
+        if dia not in eventos_por_dia:
+            eventos_por_dia[dia] = []
+        eventos_por_dia[dia].append(evento)
+    
+    # Generar calendario
+    cal = calendar.Calendar()
+    semanas = cal.monthdayscalendar(year, month)
+    
+    # Nombres de días en español
+    dias_semana = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
+    meses_es = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+                'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
+    
+    # Navegación mes anterior/siguiente
+    mes_anterior = month - 1 if month > 1 else 12
+    año_anterior = year if month > 1 else year - 1
+    mes_siguiente = month + 1 if month < 12 else 1
+    año_siguiente = year if month < 12 else year + 1
+    
+    context = {
+        'year': year,
+        'month': month,
+        'mes_nombre': meses_es[month - 1],
+        'semanas': semanas,
+        'dias_semana': dias_semana,
+        'eventos_por_dia': eventos_por_dia,
+        'mes_anterior': mes_anterior,
+        'año_anterior': año_anterior,
+        'mes_siguiente': mes_siguiente,
+        'año_siguiente': año_siguiente,
+        'hoy': date.today(),
+    }
+    return render(request, 'presupuesto/calendario.html', context)
+
+
+@login_required
+@require_POST
+def crear_evento_calendario(request):
+    from core.utils.moneda import parse_cop
+    
+    titulo = request.POST.get('titulo')
+    fecha = request.POST.get('fecha')
+    tipo = request.POST.get('tipo', EventoCalendario.OTRO)
+    monto_str = request.POST.get('monto')
+    descripcion = request.POST.get('descripcion', '')
+    repetir_anualmente = request.POST.get('repetir_anualmente') == 'on'
+    
+    if not titulo or not fecha:
+        messages.error(request, 'El título y la fecha son requeridos.')
+        return redirect('calendario')
+    
+    monto = None
+    if monto_str:
+        monto = parse_cop(monto_str)
+    
+    EventoCalendario.objects.create(
+        usuario=request.user,
+        titulo=titulo,
+        descripcion=descripcion,
+        fecha=fecha,
+        tipo=tipo,
+        monto=monto,
+        repetir_anualmente=repetir_anualmente,
+    )
+    
+    messages.success(request, 'Evento creado exitosamente.')
+    return redirect('calendario')
+
+

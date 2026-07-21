@@ -157,6 +157,20 @@ class CicloMensual(models.Model):
 
 
 class GastoFijoPlantilla(models.Model):
+    MENSUAL = 'mensual'
+    BIMENSUAL = 'bimensual'
+    TRIMESTRAL = 'trimestral'
+    SEMESTRAL = 'semestral'
+    ANUAL = 'anual'
+    
+    FRECUENCIAS = [
+        (MENSUAL, 'Cada mes'),
+        (BIMENSUAL, 'Cada 2 meses'),
+        (TRIMESTRAL, 'Cada 3 meses'),
+        (SEMESTRAL, 'Cada 6 meses'),
+        (ANUAL, 'Cada año'),
+    ]
+    
     usuario = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name='gastos_fijos_plantilla',
     )
@@ -165,7 +179,15 @@ class GastoFijoPlantilla(models.Model):
     categoria = models.ForeignKey(
         Categoria, on_delete=models.PROTECT, related_name='gastos_fijos',
     )
+    frecuencia = models.CharField(
+        max_length=12, choices=FRECUENCIAS, default=MENSUAL,
+        verbose_name='Frecuencia de repetición',
+    )
     activa = models.BooleanField(default=True)
+    fecha_ultima_aplicacion = models.DateField(
+        null=True, blank=True,
+        verbose_name='Fecha de última aplicación',
+    )
 
     class Meta:
         ordering = ['descripcion']
@@ -173,7 +195,43 @@ class GastoFijoPlantilla(models.Model):
         verbose_name_plural = 'Gastos fijos (plantillas)'
 
     def __str__(self):
-        return f'{self.descripcion} ({self.monto})'
+        return f'{self.descripcion} ({self.monto}) - {self.get_frecuencia_display()}'
+
+
+class EventoCalendario(models.Model):
+    PAGO = 'pago'
+    RECORDATORIO = 'recordatorio'
+    CUMPLEANOS = 'cumpleanos'
+    OTRO = 'otro'
+    
+    TIPOS = [
+        (PAGO, 'Pago'),
+        (RECORDATORIO, 'Recordatorio'),
+        (CUMPLEANOS, 'Cumpleaños'),
+        (OTRO, 'Otro'),
+    ]
+    
+    usuario = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='eventos_calendario',
+    )
+    titulo = models.CharField(max_length=200)
+    descripcion = models.TextField(blank=True)
+    fecha = models.DateField()
+    tipo = models.CharField(max_length=15, choices=TIPOS, default=OTRO)
+    monto = models.DecimalField(
+        max_digits=14, decimal_places=0, null=True, blank=True,
+        verbose_name='Monto (opcional)',
+    )
+    repetir_anualmente = models.BooleanField(default=False)
+    completado = models.BooleanField(default=False)
+    
+    class Meta:
+        ordering = ['fecha', 'titulo']
+        verbose_name = 'Evento de calendario'
+        verbose_name_plural = 'Eventos de calendario'
+    
+    def __str__(self):
+        return f'{self.titulo} - {self.fecha}'
 
 
 class Movimiento(models.Model):

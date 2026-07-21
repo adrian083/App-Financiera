@@ -23,5 +23,7 @@ urlpatterns = [
     path('gastos-fijos/<int:pk>/editar/', views.gasto_fijo_editar, name='gasto_fijo_editar'),
     path('gastos-fijos/<int:pk>/eliminar/', views.gasto_fijo_eliminar, name='gasto_fijo_eliminar'),
     path('gastos-fijos/<int:pk>/toggle/', views.gasto_fijo_toggle_activa, name='gasto_fijo_toggle'),
+    path('calendario/', views.calendario_view, name='calendario'),
+    path('calendario/crear/', views.crear_evento_calendario, name='crear_evento_calendario'),
     path('tutorial/completar/', views.completar_tutorial, name='completar_tutorial'),
 ]

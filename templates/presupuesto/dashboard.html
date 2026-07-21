@@ -28,6 +28,24 @@
 </div>
 {% endif %}
 
+<!-- Alerta de ciclo pendiente de rotación -->
+{% if request.ciclo_pendiente_rotacion %}
+<div class="mb-6 rounded-2xl border border-fintech-rose/30 bg-fintech-rose/10 p-4">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div class="flex items-center gap-3">
+            <div class="w-12 h-12 rounded-xl bg-fintech-rose/20 flex items-center justify-center shrink-0">
+                <i class="fas fa-exclamation-circle text-fintech-rose text-xl"></i>
+            </div>
+            <div>
+                <p class="font-semibold text-fintech-rose">Ciclo vencido - Requiere cierre</p>
+                <p class="text-slate-400 text-sm mt-0.5">El ciclo <strong class="text-white">{{ request.ciclo_pendiente_rotacion.etiqueta }}</strong> ha superado el plazo de tolerancia. Debes cerrarlo para continuar.</p>
+            </div>
+        </div>
+        <a href="{% url 'cerrar_ciclo' request.ciclo_pendiente_rotacion.pk %}" class="px-4 py-2.5 rounded-xl bg-fintech-rose hover:bg-rose-500 text-white font-semibold transition-colors">Cerrar ciclo</a>
+    </div>
+</div>
+{% endif %}
+
 {% if inversiones_proximas or inversiones_vencidas %}
 <div class="mb-6 space-y-2">
     {% for inv in inversiones_vencidas %}

@@ -1,0 +1,145 @@
+{% extends 'base.html' %}
+{% load finanzas_tags %}
+
+{% block title %}Calendario — {{ mes_nombre }} {{ year }}{% endblock %}
+{% block header_eyebrow %}Organización{% endblock %}
+{% block header_title %}Calendario{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Navegación del mes -->
+    <div class="flex items-center justify-between">
+        <a href="{% url 'calendario' %}?year={{ año_anterior }}&month={{ mes_anterior }}" class="flex items-center gap-2 px-4 py-2 rounded-xl bg-fintech-card border border-fintech-border text-slate-300 hover:text-white hover:border-fintech-cyan/50 transition-colors">
+            <i class="fas fa-chevron-left"></i>
+            <span class="hidden sm:inline">Anterior</span>
+        </a>
+        <h2 class="text-2xl font-bold text-white">{{ mes_nombre }} {{ year }}</h2>
+        <a href="{% url 'calendario' %}?year={{ año_siguiente }}&month={{ mes_siguiente }}" class="flex items-center gap-2 px-4 py-2 rounded-xl bg-fintech-card border border-fintech-border text-slate-300 hover:text-white hover:border-fintech-cyan/50 transition-colors">
+            <span class="hidden sm:inline">Siguiente</span>
+            <i class="fas fa-chevron-right"></i>
+        </a>
+    </div>
+
+    <!-- Calendario -->
+    <div class="bg-fintech-card rounded-2xl border border-fintech-border p-4 lg:p-6">
+        <!-- Días de la semana -->
+        <div class="grid grid-cols-7 gap-2 mb-4">
+            {% for dia in dias_semana %}
+            <div class="text-center text-slate-400 text-sm font-medium py-2">{{ dia }}</div>
+            {% endfor %}
+        </div>
+        
+        <!-- Días del mes -->
+        <div class="grid grid-cols-7 gap-2">
+            {% for semana in semanas %}
+                {% for dia in semana %}
+                    {% if dia == 0 %}
+                    <div class="h-24 lg:h-32"></div>
+                    {% else %}
+                    <div class="h-24 lg:h-32 rounded-xl border border-fintech-border p-2 {% if hoy.day == dia and hoy.month == month and hoy.year == year %}bg-fintech-cyan/10 border-fintech-cyan/30{% else %}bg-fintech-bg{% endif %} hover:border-fintech-cyan/30 transition-colors">
+                        <div class="flex justify-between items-start mb-1">
+                            <span class="text-sm font-medium {% if hoy.day == dia and hoy.month == month and hoy.year == year %}text-fintech-cyan{% else %}text-slate-300{% endif %}">{{ dia }}</span>
+                            {% if dia in eventos_por_dia %}
+                            <span class="w-2 h-2 rounded-full bg-fintech-cyan"></span>
+                            {% endif %}
+                        </div>
+                        {% if dia in eventos_por_dia %}
+                        <div class="space-y-1 overflow-y-auto max-h-16 lg:max-h-20">
+                            {% for evento in eventos_por_dia|dict_get:dia %}
+                            <div class="text-xs p-1 rounded truncate {% if evento.tipo == 'pago' %}bg-fintech-rose/20 text-fintech-rose{% elif evento.tipo == 'recordatorio' %}bg-amber-500/20 text-amber-300{% elif evento.tipo == 'cumpleanos' %}bg-fintech-emerald/20 text-fintech-emeraldLight{% else %}bg-blue-500/20 text-blue-300{% endif %}">
+                                {{ evento.titulo }}
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                {% endfor %}
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Lista de eventos del mes -->
+    <div class="bg-fintech-card rounded-2xl border border-fintech-border p-4 lg:p-6">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-bold text-white">Eventos del mes</h3>
+            <button onclick="openModal('modal-crear-evento')" class="flex items-center gap-2 px-4 py-2 rounded-xl bg-fintech-cyan hover:bg-cyan-500 text-white text-sm font-semibold transition-colors">
+                <i class="fas fa-plus"></i>
+                Nuevo evento
+            </button>
+        </div>
+        {% if eventos_por_dia %}
+        <div class="space-y-2">
+            {% for dia, eventos in eventos_por_dia.items %}
+            <div class="flex items-start gap-3 p-3 rounded-xl bg-fintech-bg border border-fintech-border">
+                <div class="w-12 h-12 rounded-lg bg-fintech-cyan/20 flex items-center justify-center shrink-0">
+                    <span class="text-fintech-cyan font-bold">{{ dia }}</span>
+                </div>
+                <div class="flex-1 space-y-1">
+                    {% for evento in eventos %}
+                    <div class="flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full {% if evento.tipo == 'pago' %}bg-fintech-rose{% elif evento.tipo == 'recordatorio' %}bg-amber-400{% elif evento.tipo == 'cumpleanos' %}bg-fintech-emeraldLight{% else %}bg-blue-400{% endif %}"></span>
+                        <span class="text-white text-sm">{{ evento.titulo }}</span>
+                        {% if evento.monto %}
+                        <span class="text-slate-400 text-xs">{{ evento.monto|cop }}</span>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-8">
+            <i class="fas fa-calendar-alt text-slate-600 text-4xl mb-3"></i>
+            <p class="text-slate-400">Sin eventos este mes</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Modal crear evento -->
+<div id="modal-crear-evento" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-4 backdrop-blur-sm">
+    <div class="bg-fintech-card rounded-3xl shadow-2xl max-w-md w-full p-6 border border-fintech-border max-h-[90vh] overflow-y-auto">
+        <div class="flex justify-between items-center mb-6">
+            <div class="flex items-center gap-3">
+                <div class="w-11 h-11 rounded-xl bg-fintech-cyan/20 flex items-center justify-center"><i class="fas fa-calendar-plus text-fintech-cyan"></i></div>
+                <h2 class="text-xl font-bold text-white">Nuevo evento</h2>
+            </div>
+            <button onclick="closeModal('modal-crear-evento')" class="text-slate-400 hover:text-white text-2xl transition-colors"><i class="fas fa-times"></i></button>
+        </div>
+        <form method="post" action="{% url 'crear_evento_calendario' %}" class="space-y-4">
+            {% csrf_token %}
+            <div><label class="form-label">Título</label><input type="text" name="titulo" class="form-input" required></div>
+            <div><label class="form-label">Fecha</label><input type="date" name="fecha" class="form-input" required></div>
+            <div><label class="form-label">Tipo</label><select name="tipo" class="form-input">
+                <option value="pago">Pago</option>
+                <option value="recordatorio">Recordatorio</option>
+                <option value="cumpleanos">Cumpleaños</option>
+                <option value="otro">Otro</option>
+            </select></div>
+            <div><label class="form-label">Monto (opcional)</label><input type="text" name="monto" class="form-input input-cop" data-cop="true"></div>
+            <div><label class="form-label">Descripción</label><textarea name="descripcion" class="form-input" rows="2"></textarea></div>
+            <div class="flex items-center gap-2">
+                <input type="checkbox" name="repetir_anualmente" id="repetir_anualmente" class="rounded">
+                <label for="repetir_anualmente" class="text-slate-300 text-sm">Repetir anualmente</label>
+            </div>
+            <button type="submit" class="w-full bg-fintech-cyan hover:bg-cyan-500 text-white py-3.5 rounded-xl font-semibold transition-colors">Crear evento</button>
+        </form>
+    </div>
+</div>
+
+<script>
+function openModal(id) {
+    const el = document.getElementById(id);
+    el.classList.remove('hidden');
+    el.classList.add('flex');
+    if (typeof initCOPInputs === 'function') initCOPInputs();
+}
+function closeModal(id) {
+    const el = document.getElementById(id);
+    el.classList.add('hidden');
+    el.classList.remove('flex');
+}
+</script>
+{% endblock %}

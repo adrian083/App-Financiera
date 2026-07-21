@@ -128,10 +128,11 @@ class GastoFijoPlantillaForm(forms.ModelForm):
 
     class Meta:
         model = GastoFijoPlantilla
-        fields = ['descripcion', 'monto', 'categoria', 'activa']
+        fields = ['descripcion', 'monto', 'categoria', 'frecuencia', 'activa']
         widgets = {
             'descripcion': forms.TextInput(attrs={'class': FORM_INPUT}),
             'categoria': forms.Select(attrs={'class': FORM_INPUT}),
+            'frecuencia': forms.Select(attrs={'class': FORM_INPUT}),
             'activa': forms.CheckboxInput(attrs={'class': 'rounded border-slate-300 dark:border-slate-600'}),
         }
 

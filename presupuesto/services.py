@@ -21,19 +21,57 @@ from presupuesto.models import (
 )
 
 
+def debe_aplicar_gasto_fijo(plantilla: GastoFijoPlantilla, fecha_ciclo: date) -> bool:
+    """Determina si un gasto fijo debe aplicarse en el ciclo actual según su frecuencia."""
+    if not plantilla.fecha_ultima_aplicacion:
+        return True  # Primera vez, siempre aplicar
+    
+    meses_frecuencia = {
+        GastoFijoPlantilla.MENSUAL: 1,
+        GastoFijoPlantilla.BIMENSUAL: 2,
+        GastoFijoPlantilla.TRIMESTRAL: 3,
+        GastoFijoPlantilla.SEMESTRAL: 6,
+        GastoFijoPlantilla.ANUAL: 12,
+    }
+    
+    meses = meses_frecuencia.get(plantilla.frecuencia, 1)
+    
+    # Calcular fecha de próxima aplicación esperada
+    ultima = plantilla.fecha_ultima_aplicacion
+    # Avanzar meses según frecuencia
+    year = ultima.year
+    month = ultima.month + meses
+    while month > 12:
+        month -= 12
+        year += 1
+    
+    # Ajustar día si el mes no tiene ese día
+    import calendar
+    max_day = calendar.monthrange(year, month)[1]
+    day = min(ultima.day, max_day)
+    
+    proxima_aplicacion = date(year, month, day)
+    
+    return fecha_ciclo >= proxima_aplicacion
+
+
 def copiar_gastos_fijos(usuario, ciclo: CicloMensual):
-    """Clona plantillas de gastos fijos al nuevo ciclo."""
+    """Clona plantillas de gastos fijos al nuevo ciclo respetando la frecuencia."""
     for plantilla in GastoFijoPlantilla.objects.filter(usuario=usuario, activa=True):
-        Movimiento.objects.create(
-            usuario=usuario,
-            ciclo=ciclo,
-            tipo=Movimiento.GASTO,
-            monto=plantilla.monto,
-            descripcion=plantilla.descripcion,
-            categoria=plantilla.categoria,
-            es_gasto_fijo=True,
-            plantilla_origen=plantilla,
-        )
+        if debe_aplicar_gasto_fijo(plantilla, ciclo.fecha_inicio):
+            Movimiento.objects.create(
+                usuario=usuario,
+                ciclo=ciclo,
+                tipo=Movimiento.GASTO,
+                monto=plantilla.monto,
+                descripcion=plantilla.descripcion,
+                categoria=plantilla.categoria,
+                es_gasto_fijo=True,
+                plantilla_origen=plantilla,
+            )
+            # Actualizar fecha de última aplicación
+            plantilla.fecha_ultima_aplicacion = ciclo.fecha_inicio
+            plantilla.save(update_fields=['fecha_ultima_aplicacion'])
 
 
 def crear_nuevo_ciclo(

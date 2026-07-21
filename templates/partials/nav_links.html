@@ -10,6 +10,10 @@ Sidebar navigation links. Expects `url_name` = request.resolver_match.url_name.
     <i class="fas fa-calendar-alt w-5 text-center text-lg"></i>
     <span>Gastos Fijos</span>
 </a>
+<a href="{% url 'calendario' %}" class="{% if url_name == 'calendario' %}{{ active }}{% else %}{{ idle }}{% endif %}">
+    <i class="fas fa-calendar w-5 text-center text-lg"></i>
+    <span>Calendario</span>
+</a>
 <a href="{% url 'categorias_lista' %}" class="{% if url_name == 'categorias_lista' %}{{ active }}{% else %}{{ idle }}{% endif %}">
     <i class="fas fa-tags w-5 text-center text-lg"></i>
     <span>Categorías</span>
