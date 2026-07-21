@@ -180,6 +180,7 @@ def dashboard(request):
     return render(request, 'presupuesto/dashboard.html', context)
 
 
+@login_required
 def configuracion_inicial(request):
     try:
         config = ConfiguracionUsuario.obtener(request.user)
