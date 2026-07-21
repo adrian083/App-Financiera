@@ -1,26 +1,17 @@
 <!DOCTYPE html>
-<html lang="es-CO" class="scroll-smooth">
+<html lang="es-CO" class="dark scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <meta name="theme-color" content="#4f46e5">
+    <meta name="theme-color" content="#0f172a">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="FinanzasApp">
     <title>{% block title %}FinanzasApp{% endblock %}</title>
     {% load static %}
     <link rel="icon" type="image/png" href="{% static 'icons/logo.png' %}">
     <link rel="apple-touch-icon" href="{% static 'icons/logo.png' %}">
     <link rel="manifest" href="{% static 'manifest.json' %}">
-    <script>
-        (function () {
-            const t = localStorage.getItem('theme');
-            if (t === 'dark' || (!t && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-                document.documentElement.classList.add('dark');
-                document.querySelector('meta[name="theme-color"]')?.setAttribute('content', '#0f172a');
-            }
-        })();
-    </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script>
@@ -29,9 +20,9 @@
             theme: {
                 extend: {
                     colors: {
-                        primary: { 50: '#eef2ff', 500: '#6366f1', 600: '#4f46e5', 700: '#4338ca' },
                         fintech: {
                             bg: '#0F172A',
+                            bg2: '#111827',
                             card: '#1E293B',
                             border: '#334155',
                             emerald: '#10B981',
@@ -40,344 +31,180 @@
                             cyan: '#06B6D4',
                         }
                     },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
                     animation: {
                         'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                        'float': 'float 3s ease-in-out infinite',
                     },
-                    keyframes: {
-                        float: {
-                            '0%, 100%': { transform: 'translateY(0)' },
-                            '50%': { transform: 'translateY(-10px)' },
-                        }
-                    }
                 }
             }
         }
     </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        /* Corrección de contraste forzado para Modo Oscuro */
-        html.dark body {
-            background-color: #0f172a !important;
-            color: #ffffff !important;
-        }
-
-        html.dark nav,
-        html.dark header,
-        html.dark #mobile-menu,
-        html.dark #sidebar {
-            background-color: #0f172a !important;
-            border-color: #1e293b !important;
-        }
-
-        html.dark nav a,
-        html.dark nav button,
-        html.dark #mobile-menu a,
-        html.dark #mobile-menu button,
-        html.dark nav span {
-            color: #f8fafc !important;
-        }
-
-        html.dark nav a:hover,
-        html.dark #mobile-menu a:hover {
-            background-color: #1e293b !important;
-        }
-
-        html.dark p,
-        html.dark span,
-        html.dark label,
-        html.dark div,
-        html.dark a,
-        html.dark li,
-        html.dark td,
-        html.dark th {
-            color: #f8fafc !important;
-        }
-
-        html.dark .text-muted,
-        html.dark .text-gray-500,
-        html.dark .text-slate-400,
-        html.dark .text-slate-500 {
-            color: #cbd5e1 !important;
-        }
-
-        html.dark input,
-        html.dark select,
-        html.dark textarea {
-            background-color: #0f172a !important;
-            color: #ffffff !important;
-            border-color: #475569 !important;
-        }
-
-        html.dark .bg-slate-50 {
-            background-color: #0f172a !important;
-        }
-
-        html.dark .bg-slate-100 {
-            background-color: #111827 !important;
-        }
-
-        html.dark .bg-slate-200 {
-            background-color: #1f2937 !important;
-        }
-
-        html.dark .border-slate-100 {
-            border-color: #334155 !important;
-        }
-
-        html.dark .border-slate-200 {
-            border-color: #475569 !important;
-        }
-
-        html.dark .border-slate-300 {
-            border-color: #64748b !important;
-        }
-
-        html.dark .hover\:bg-slate-100:hover {
-            background-color: rgba(148, 163, 184, 0.1) !important;
-        }
-
-        html.dark .hover\:bg-slate-200:hover,
-        html.dark .dark\:hover\:bg-slate-700:hover {
-            background-color: #334155 !important;
-        }
-
-        body {
-            font-size: 1rem;
-            line-height: 1.75;
-        }
-
-        button,
-        .form-input,
-        .input-cop,
-        input,
-        select,
-        textarea {
-            font-size: 1rem !important;
-            min-height: 3.25rem !important;
-            padding: 0.85rem 1rem !important;
-        }
-
-        button {
-            padding: 1rem 1.4rem !important;
-        }
-
-        a,
-        button {
-            line-height: 1.4;
-            min-height: 2.75rem;
-        }
-
-        .form-label {
-            font-size: 0.975rem;
-            font-weight: 600;
-        }
-
-        /* Soporte Móvil y Modo Oscuro Global */
-        html.dark, html.dark body {
-          background-color: #020617 !important; /* slate-950 */
-          color: #f8fafc !important;
-        }
-
-        html.dark input, 
-        html.dark select, 
-        html.dark textarea {
-          background-color: #0f172a !important; /* slate-900 */
-          color: #ffffff !important;
-          border-color: #334155 !important;
-        }
-
-        /* Evitar scroll horizontal indeseado en móviles */
-        body {
-          overflow-x: hidden;
-          -webkit-tap-highlight-color: transparent;
-        }
+        html, body { background-color: #0F172A; color: #f8fafc; }
+        body { font-family: 'Inter', system-ui, sans-serif; overflow-x: hidden; -webkit-tap-highlight-color: transparent; }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+        /* Thin themed scrollbar for the main area */
+        ::-webkit-scrollbar { width: 10px; height: 10px; }
+        ::-webkit-scrollbar-track { background: #0F172A; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 6px; border: 2px solid #0F172A; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+        [x-cloak] { display: none !important; }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-    <script src="{% static 'js/theme.js' %}"></script>
     <link rel="stylesheet" href="{% static 'css/forms.css' %}">
     <script src="{% static 'js/cop.js' %}" defer></script>
-    <style>[x-cloak]{display:none!important}</style>
     {% block extra_head %}{% endblock %}
 </head>
-<body class="bg-slate-100 dark:bg-slate-950 min-h-screen text-slate-900 dark:text-white transition-colors duration-200">
-    {% if user.is_authenticated %}
-    <header class="fixed inset-x-0 top-0 z-50 bg-white dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 shadow-md">
-        <div class="max-w-7xl mx-auto flex items-center justify-between px-4 py-3">
-            <!-- Logo + Nombre -->
-            <div class="flex items-center gap-3">
-                <a href="{% url 'dashboard' %}" class="flex items-center gap-3 group">
-                    {% include 'partials/logo.html' %}
-                    <span class="text-xl font-bold text-slate-900 dark:text-slate-100 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">FinanzasApp</span>
-                </a>
+<body class="min-h-screen bg-fintech-bg text-white antialiased">
+{% if user.is_authenticated %}
+    {% with url_name=request.resolver_match.url_name %}
+    <!-- ===================== DESKTOP SIDEBAR ===================== -->
+    <aside class="hidden lg:flex fixed left-0 top-0 h-screen w-64 bg-fintech-card border-r border-fintech-border flex-col z-40">
+        <div class="flex items-center gap-3 px-6 h-20 border-b border-fintech-border shrink-0">
+            <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-fintech-emerald to-fintech-cyan flex items-center justify-center shadow-lg shadow-fintech-emerald/20">
+                <i class="fas fa-wallet text-white text-lg"></i>
             </div>
-
-            <!-- Desktop Navigation - Links principales -->
-            <nav class="hidden md:flex items-center gap-1">
-                <a href="{% url 'dashboard' %}" class="px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 {% if request.resolver_match.url_name == 'dashboard' %}bg-primary-100 text-primary-700 dark:bg-primary-900/40 dark:text-primary-100 shadow-sm{% else %}text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800{% endif %}">Presupuesto</a>
-                <a href="{% url 'dashboard_ahorros' %}" class="px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 {% if request.resolver_match.url_name == 'dashboard_ahorros' %}bg-primary-100 text-primary-700 dark:bg-primary-900/40 dark:text-primary-100 shadow-sm{% else %}text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800{% endif %}">Ahorros</a>
-                <a href="{% url 'historico_meses' %}" class="px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 {% if request.resolver_match.url_name == 'historico_meses' %}bg-primary-100 text-primary-700 dark:bg-primary-900/40 dark:text-primary-100 shadow-sm{% else %}text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800{% endif %}">Histórico</a>
-                <a href="{% url 'categorias_lista' %}" class="px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 {% if request.resolver_match.url_name == 'categorias_lista' %}bg-primary-100 text-primary-700 dark:bg-primary-900/40 dark:text-primary-100 shadow-sm{% else %}text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800{% endif %}">Categorías</a>
-                <a href="{% url 'configuracion_editar' %}" class="px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800" title="Configuración">⚙️</a>
-            </nav>
-
-            <!-- Desktop Navigation - Controles de usuario -->
-            <div class="hidden md:flex items-center gap-3">
-                <!-- Toggle Modo Oscuro -->
-                <button type="button" data-theme-toggle class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-slate-700 dark:text-slate-100 bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 transition-all duration-200 border border-slate-200 dark:border-slate-700" title="Cambiar tema" aria-label="Cambiar tema">
-                    <span data-theme-icon="sun" class="text-lg">☀️</span>
-                    <span data-theme-icon="moon" class="hidden text-lg">🌙</span>
-                </button>
-                
-                <!-- Usuario -->
-                <div class="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
-                    <span class="w-8 h-8 flex items-center justify-center rounded-full bg-primary-500 text-white text-sm font-bold">{{ user.username|slice:":1"|upper }}</span>
-                    <span class="text-sm font-medium text-slate-700 dark:text-slate-100">{{ user.username }}</span>
-                </div>
-                
-                <!-- Botón Salir -->
-                <form method="post" action="{% url 'logout' %}" class="inline">
-                    {% csrf_token %}
-                    <button type="submit" class="flex items-center gap-2 px-4 py-2 rounded-lg bg-red-500 hover:bg-red-600 text-white text-sm font-medium transition-all duration-200 shadow-sm hover:shadow">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                        </svg>
-                        Salir
-                    </button>
-                </form>
+            <div class="leading-tight">
+                <h1 class="text-white font-bold text-lg">FinanzasApp</h1>
+                <p class="text-slate-400 text-xs">Finanzas personales</p>
             </div>
-
-            <!-- Botón Hamburguesa Móvil -->
-            <button type="button" data-mobile-menu-toggle class="md:hidden p-2 rounded-lg text-slate-900 dark:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" aria-label="Abrir menú móvil">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
-            </button>
         </div>
 
-        <!-- Menú Móvil -->
-        <div id="mobile-menu" class="hidden md:hidden border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 shadow-lg">
-            <nav class="px-4 py-5 space-y-1">
-                <!-- Logo + Nombre en móvil -->
-                <div class="flex items-center gap-3 pb-4 mb-4 border-b border-slate-200 dark:border-slate-800">
-                    {% include 'partials/logo.html' %}
-                    <span class="text-lg font-bold text-slate-900 dark:text-slate-100">FinanzasApp</span>
+        <nav class="flex-1 overflow-y-auto p-4 space-y-1 scrollbar-hide">
+            {% include 'partials/nav_links.html' with variant='sidebar' url_name=url_name %}
+        </nav>
+
+        <div class="p-4 border-t border-fintech-border shrink-0">
+            <div class="flex items-center gap-3 px-3 py-3 rounded-xl bg-fintech-bg border border-fintech-border">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-fintech-cyan to-fintech-emerald flex items-center justify-center text-white font-bold text-sm shrink-0">
+                    {{ user.username|slice:":1"|upper }}
                 </div>
-                
-                <!-- Enlaces de navegación -->
-                <a href="{% url 'dashboard' %}" class="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                    </svg>
-                    Presupuesto
-                </a>
-                <a href="{% url 'dashboard_ahorros' %}" class="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    Ahorros
-                </a>
-                <a href="{% url 'historico_meses' %}" class="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    Histórico
-                </a>
-                <a href="{% url 'categorias_lista' %}" class="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                    </svg>
-                    Categorías
-                </a>
-                <a href="{% url 'configuracion_editar' %}" class="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                    Configuración
-                </a>
-                
-                <!-- Separador -->
-                <div class="my-4 border-t border-slate-200 dark:border-slate-800"></div>
-                
-                <!-- Toggle Modo Oscuro -->
-                <button type="button" data-theme-toggle class="flex items-center gap-3 w-full rounded-lg px-4 py-3 text-sm font-medium text-slate-700 dark:text-slate-100 bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors">
-                    <span data-theme-icon="sun" class="text-lg">☀️</span>
-                    <span data-theme-icon="moon" class="hidden text-lg">🌙</span>
-                    <span>Modo oscuro</span>
-                </button>
-                
-                <!-- Usuario -->
-                <div class="flex items-center gap-3 rounded-lg px-4 py-3 bg-slate-100 dark:bg-slate-900">
-                    <div class="w-10 h-10 flex items-center justify-center rounded-full bg-primary-500 text-white text-base font-bold">{{ user.username|slice:":1"|upper }}</div>
-                    <div>
-                        <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Usuario</div>
-                        <div class="text-sm font-semibold text-slate-700 dark:text-slate-100">{{ user.username }}</div>
-                    </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-white font-semibold text-sm truncate">{{ user.first_name|default:user.username }}</p>
+                    <p class="text-slate-400 text-xs truncate">@{{ user.username }}</p>
                 </div>
-                
-                <!-- Botón Salir -->
                 <form method="post" action="{% url 'logout' %}">
                     {% csrf_token %}
-                    <button type="submit" class="flex items-center justify-center gap-2 w-full rounded-lg bg-red-500 hover:bg-red-600 text-white px-4 py-3 text-sm font-medium transition-colors shadow-sm">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                        </svg>
-                        Salir
+                    <button type="submit" title="Cerrar sesión" class="w-9 h-9 rounded-lg flex items-center justify-center text-slate-400 hover:text-fintech-rose hover:bg-fintech-rose/10 transition-colors">
+                        <i class="fas fa-sign-out-alt"></i>
                     </button>
                 </form>
-            </nav>
+            </div>
+        </div>
+    </aside>
+
+    <!-- ===================== MOBILE TOP BAR ===================== -->
+    <header class="lg:hidden sticky top-0 z-40 bg-fintech-bg/90 backdrop-blur-lg border-b border-fintech-border">
+        <div class="flex items-center justify-between px-4 h-16">
+            <a href="{% url 'dashboard' %}" class="flex items-center gap-2.5">
+                <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-fintech-emerald to-fintech-cyan flex items-center justify-center">
+                    <i class="fas fa-wallet text-white"></i>
+                </div>
+                <span class="text-white font-bold text-base">FinanzasApp</span>
+            </a>
+            <div class="flex items-center gap-2">
+                <button type="button" class="w-10 h-10 rounded-full bg-fintech-card border border-fintech-border flex items-center justify-center text-slate-300" title="Notificaciones">
+                    <i class="far fa-bell"></i>
+                </button>
+                <span class="w-10 h-10 rounded-full bg-gradient-to-br from-fintech-cyan to-fintech-emerald flex items-center justify-center text-white font-bold text-sm">{{ user.username|slice:":1"|upper }}</span>
+            </div>
         </div>
     </header>
-    {% endif %}
 
-    <main class="max-w-6xl mx-auto px-4 py-6 pt-24 md:px-6">
-        {% if messages %}
-        <div class="mb-4 space-y-2">
-            {% for message in messages %}
-            <div class="rounded-lg px-4 py-3 text-sm
-                {% if message.tags == 'success' %}bg-emerald-50 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-200 border border-emerald-200 dark:border-emerald-700
-                {% elif message.tags == 'error' %}bg-red-50 dark:bg-red-900/30 text-red-800 dark:text-red-200 border border-red-200 dark:border-red-700
-                {% elif message.tags == 'warning' %}bg-amber-50 dark:bg-amber-900/30 text-amber-800 dark:text-amber-200 border border-amber-200 dark:border-amber-700
-                {% else %}bg-blue-50 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 border border-blue-200 dark:border-blue-700{% endif %}">
-                {{ message }}
+    <!-- ===================== MAIN AREA ===================== -->
+    <div class="lg:ml-64 flex flex-col min-h-screen">
+        <!-- Desktop top header -->
+        <header class="hidden lg:flex sticky top-0 z-30 h-20 items-center justify-between px-8 bg-fintech-bg/80 backdrop-blur-lg border-b border-fintech-border">
+            <div>
+                <p class="text-slate-400 text-sm">{% block header_eyebrow %}Bienvenido de nuevo{% endblock %}</p>
+                <h2 class="text-white font-bold text-xl">{% block header_title %}Hola, {{ user.first_name|default:user.username }}{% endblock %}</h2>
             </div>
-            {% endfor %}
+            <div class="flex items-center gap-3">
+                <button type="button" class="w-11 h-11 rounded-xl bg-fintech-card border border-fintech-border flex items-center justify-center text-slate-300 hover:text-white hover:border-slate-500 transition-colors" title="Notificaciones">
+                    <i class="far fa-bell text-lg"></i>
+                </button>
+                <button type="button" onclick="finanzasQuickAdd()" class="flex items-center gap-2 px-5 h-11 rounded-xl bg-gradient-to-r from-fintech-emerald to-fintech-cyan text-white font-semibold hover:opacity-90 transition-all shadow-lg shadow-fintech-emerald/25">
+                    <i class="fas fa-plus"></i>
+                    <span>Registrar</span>
+                </button>
+            </div>
+        </header>
+
+        <main class="flex-1 px-4 py-5 lg:px-8 lg:py-8 pb-28 lg:pb-8">
+            {% if messages %}
+            <div class="mb-6 space-y-2">
+                {% for message in messages %}
+                <div class="flex items-center gap-3 rounded-xl px-4 py-3 text-sm border
+                    {% if message.tags == 'success' %}bg-fintech-emerald/10 text-fintech-emeraldLight border-fintech-emerald/30
+                    {% elif message.tags == 'error' %}bg-fintech-rose/10 text-fintech-rose border-fintech-rose/30
+                    {% elif message.tags == 'warning' %}bg-amber-500/10 text-amber-300 border-amber-500/30
+                    {% else %}bg-fintech-cyan/10 text-fintech-cyan border-fintech-cyan/30{% endif %}">
+                    <i class="fas {% if message.tags == 'success' %}fa-check-circle{% elif message.tags == 'error' %}fa-times-circle{% elif message.tags == 'warning' %}fa-exclamation-triangle{% else %}fa-info-circle{% endif %}"></i>
+                    <span>{{ message }}</span>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+
+    <!-- ===================== MOBILE BOTTOM NAV ===================== -->
+    <nav class="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-fintech-card/95 backdrop-blur-lg border-t border-fintech-border">
+        <div class="grid grid-cols-5 items-center px-2 py-2">
+            <a href="{% url 'dashboard' %}" class="flex flex-col items-center gap-1 py-1 {% if url_name == 'dashboard' %}text-fintech-emeraldLight{% else %}text-slate-400{% endif %}">
+                <i class="fas fa-home text-lg"></i>
+                <span class="text-[11px] font-medium">Inicio</span>
+            </a>
+            <a href="{% url 'dashboard_ahorros' %}" class="flex flex-col items-center gap-1 py-1 {% if url_name == 'dashboard_ahorros' %}text-fintech-emeraldLight{% else %}text-slate-400{% endif %}">
+                <i class="fas fa-piggy-bank text-lg"></i>
+                <span class="text-[11px] font-medium">Ahorros</span>
+            </a>
+            <div class="flex justify-center">
+                <button type="button" onclick="finanzasQuickAdd()" class="relative -top-5 w-14 h-14 rounded-full bg-gradient-to-br from-fintech-emerald to-fintech-cyan text-white shadow-lg shadow-fintech-emerald/40 flex items-center justify-center hover:scale-105 transition-transform">
+                    <i class="fas fa-plus text-2xl"></i>
+                </button>
+            </div>
+            <a href="{% url 'historico_meses' %}" class="flex flex-col items-center gap-1 py-1 {% if url_name == 'historico_meses' %}text-fintech-emeraldLight{% else %}text-slate-400{% endif %}">
+                <i class="fas fa-chart-line text-lg"></i>
+                <span class="text-[11px] font-medium">Histórico</span>
+            </a>
+            <a href="{% url 'configuracion_editar' %}" class="flex flex-col items-center gap-1 py-1 {% if url_name == 'configuracion_editar' %}text-fintech-emeraldLight{% else %}text-slate-400{% endif %}">
+                <i class="fas fa-cog text-lg"></i>
+                <span class="text-[11px] font-medium">Ajustes</span>
+            </a>
         </div>
-        {% endif %}
-        {% block content %}{% endblock %}
+    </nav>
+    {% endwith %}
+{% else %}
+    <main class="min-h-screen">
+        {% block content_public %}{% endblock %}
     </main>
+{% endif %}
 
     {% block modals %}{% endblock %}
-    {% block extra_js %}{% endblock %}
 
     <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        if (typeof initThemeControls === 'function') initThemeControls();
-
-        const mobileToggle = document.querySelector('[data-mobile-menu-toggle]');
-        const mobileMenu = document.getElementById('mobile-menu');
-
-        if (mobileToggle && mobileMenu) {
-            mobileToggle.addEventListener('click', function () {
-                mobileMenu.classList.toggle('hidden');
-                mobileMenu.classList.toggle('block');
+        // Default quick-add behaviour: navigate to the dashboard.
+        // Pages with a quick-add modal (e.g. dashboard) override this.
+        window.finanzasQuickAdd = function () {
+            window.location.href = "{% url 'dashboard' %}";
+        };
+        document.addEventListener('DOMContentLoaded', function () {
+            if (typeof initCOPInputs === 'function') initCOPInputs();
+        });
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function () {
+                navigator.serviceWorker.register('{% static "js/service-worker.js" %}').catch(function () {});
             });
         }
-
-        document.querySelectorAll('#mobile-menu a, #mobile-menu button[data-theme-toggle]').forEach((item) => {
-            item.addEventListener('click', function () {
-                if (mobileMenu && !mobileMenu.classList.contains('hidden')) {
-                    mobileMenu.classList.add('hidden');
-                    mobileMenu.classList.remove('block');
-                }
-            });
-        });
-    });
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('{% static "js/service-worker.js" %}').catch(() => {});
-        });
-    }
     </script>
+    {% block extra_js %}{% endblock %}
 </body>
 </html>
