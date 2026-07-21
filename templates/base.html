@@ -7,92 +7,105 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="FinanzasApp">
+    
     <title>{% block title %}FinanzasApp{% endblock %}</title>
+    
     {% load static %}
     <link rel="icon" type="image/png" href="{% static 'icons/logo.png' %}">
     <link rel="apple-touch-icon" href="{% static 'icons/logo.png' %}">
     <link rel="manifest" href="{% static 'manifest.json' %}">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Tailwind Config ANTES del CDN para evitar parpadeos -->
     <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        fintech: {
-                            bg: '#0F172A',
-                            bg2: '#111827',
-                            card: '#1E293B',
-                            border: '#334155',
-                            emerald: '#10B981',
-                            emeraldLight: '#34D399',
-                            rose: '#F43F5E',
-                            cyan: '#06B6D4',
+        window.tailwind = {
+            config: {
+                darkMode: 'class',
+                theme: {
+                    extend: {
+                        colors: {
+                            fintech: {
+                                bg: '#0F172A',
+                                bg2: '#111827',
+                                card: '#1E293B',
+                                border: '#334155',
+                                emerald: '#10B981',
+                                emeraldLight: '#34D399',
+                                rose: '#F43F5E',
+                                cyan: '#06B6D4',
+                            }
+                        },
+                        fontFamily: {
+                            sans: ['Inter', 'system-ui', 'sans-serif'],
                         }
-                    },
-                    fontFamily: {
-                        sans: ['Inter', 'system-ui', 'sans-serif'],
-                    },
-                    animation: {
-                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                    },
+                    }
                 }
             }
         }
     </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
     <style>
         html, body { background-color: #0F172A; color: #f8fafc; }
         body { font-family: 'Inter', system-ui, sans-serif; overflow-x: hidden; -webkit-tap-highlight-color: transparent; }
         .scrollbar-hide::-webkit-scrollbar { display: none; }
         .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
-        /* Thin themed scrollbar for the main area */
-        ::-webkit-scrollbar { width: 10px; height: 10px; }
+        
+        /* Custom scrollbar para PC */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: #0F172A; }
-        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 6px; border: 2px solid #0F172A; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 9999px; }
         ::-webkit-scrollbar-thumb:hover { background: #475569; }
         [x-cloak] { display: none !important; }
     </style>
+    
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <link rel="stylesheet" href="{% static 'css/forms.css' %}">
     <script src="{% static 'js/cop.js' %}" defer></script>
     {% block extra_head %}{% endblock %}
 </head>
-<body class="min-h-screen bg-fintech-bg text-white antialiased">
+
+<body class="min-h-screen bg-fintech-bg text-white antialiased flex flex-col">
+
 {% if user.is_authenticated %}
     {% with url_name=request.resolver_match.url_name %}
+    
     <!-- ===================== DESKTOP SIDEBAR ===================== -->
     <aside class="hidden lg:flex fixed left-0 top-0 h-screen w-64 bg-fintech-card border-r border-fintech-border flex-col z-40">
+        <!-- Logo Header -->
         <div class="flex items-center gap-3 px-6 h-20 border-b border-fintech-border shrink-0">
-            <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-fintech-emerald to-fintech-cyan flex items-center justify-center shadow-lg shadow-fintech-emerald/20">
-                <i class="fas fa-wallet text-white text-lg"></i>
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-fintech-emerald to-fintech-cyan flex items-center justify-center shadow-lg shadow-fintech-emerald/20">
+                <i class="fas fa-wallet text-white text-base"></i>
             </div>
             <div class="leading-tight">
-                <h1 class="text-white font-bold text-lg">FinanzasApp</h1>
-                <p class="text-slate-400 text-xs">Finanzas personales</p>
+                <h1 class="text-white font-bold text-base">FinanzasApp</h1>
+                <p class="text-slate-400 text-[11px]">Control Personal</p>
             </div>
         </div>
 
+        <!-- Links del menú con Scroll propio -->
         <nav class="flex-1 overflow-y-auto p-4 space-y-1 scrollbar-hide">
             {% include 'partials/nav_links.html' with variant='sidebar' url_name=url_name %}
         </nav>
 
-        <div class="p-4 border-t border-fintech-border shrink-0">
-            <div class="flex items-center gap-3 px-3 py-3 rounded-xl bg-fintech-bg border border-fintech-border">
-                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-fintech-cyan to-fintech-emerald flex items-center justify-center text-white font-bold text-sm shrink-0">
+        <!-- User Profile Bottom Bar -->
+        <div class="p-4 border-t border-fintech-border shrink-0 bg-fintech-card">
+            <div class="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-fintech-bg border border-fintech-border">
+                <div class="w-9 h-9 rounded-full bg-gradient-to-br from-fintech-cyan to-fintech-emerald flex items-center justify-center text-white font-bold text-xs shrink-0">
                     {{ user.username|slice:":1"|upper }}
                 </div>
                 <div class="flex-1 min-w-0">
-                    <p class="text-white font-semibold text-sm truncate">{{ user.first_name|default:user.username }}</p>
-                    <p class="text-slate-400 text-xs truncate">@{{ user.username }}</p>
+                    <p class="text-white font-semibold text-xs truncate">{{ user.first_name|default:user.username }}</p>
+                    <p class="text-slate-400 text-[10px] truncate">@{{ user.username }}</p>
                 </div>
                 <form method="post" action="{% url 'logout' %}">
                     {% csrf_token %}
-                    <button type="submit" title="Cerrar sesión" class="w-9 h-9 rounded-lg flex items-center justify-center text-slate-400 hover:text-fintech-rose hover:bg-fintech-rose/10 transition-colors">
-                        <i class="fas fa-sign-out-alt"></i>
+                    <button type="submit" title="Cerrar sesión" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-fintech-rose hover:bg-fintech-rose/10 transition-colors">
+                        <i class="fas fa-sign-out-alt text-sm"></i>
                     </button>
                 </form>
             </div>
@@ -100,43 +113,46 @@
     </aside>
 
     <!-- ===================== MOBILE TOP BAR ===================== -->
-    <header class="lg:hidden sticky top-0 z-40 bg-fintech-bg/90 backdrop-blur-lg border-b border-fintech-border">
-        <div class="flex items-center justify-between px-4 h-16">
-            <a href="{% url 'dashboard' %}" class="flex items-center gap-2.5">
-                <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-fintech-emerald to-fintech-cyan flex items-center justify-center">
-                    <i class="fas fa-wallet text-white"></i>
+    <header class="lg:hidden sticky top-0 z-40 bg-fintech-bg/90 backdrop-blur-md border-b border-fintech-border shrink-0">
+        <div class="flex items-center justify-between px-4 h-14">
+            <a href="{% url 'dashboard' %}" class="flex items-center gap-2">
+                <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-fintech-emerald to-fintech-cyan flex items-center justify-center">
+                    <i class="fas fa-wallet text-white text-xs"></i>
                 </div>
                 <span class="text-white font-bold text-base">FinanzasApp</span>
             </a>
             <div class="flex items-center gap-2">
-                <button type="button" class="w-10 h-10 rounded-full bg-fintech-card border border-fintech-border flex items-center justify-center text-slate-300" title="Notificaciones">
-                    <i class="far fa-bell"></i>
+                <button type="button" class="w-9 h-9 rounded-full bg-fintech-card border border-fintech-border flex items-center justify-center text-slate-300" title="Notificaciones">
+                    <i class="far fa-bell text-xs"></i>
                 </button>
-                <span class="w-10 h-10 rounded-full bg-gradient-to-br from-fintech-cyan to-fintech-emerald flex items-center justify-center text-white font-bold text-sm">{{ user.username|slice:":1"|upper }}</span>
+                <span class="w-9 h-9 rounded-full bg-gradient-to-br from-fintech-cyan to-fintech-emerald flex items-center justify-center text-white font-bold text-xs">
+                    {{ user.username|slice:":1"|upper }}
+                </span>
             </div>
         </div>
     </header>
 
-    <!-- ===================== MAIN AREA ===================== -->
-    <div class="lg:ml-64 flex flex-col min-h-screen">
-        <!-- Desktop top header -->
-        <header class="hidden lg:flex sticky top-0 z-30 h-20 items-center justify-between px-8 bg-fintech-bg/80 backdrop-blur-lg border-b border-fintech-border">
+    <!-- ===================== MAIN CONTENT AREA ===================== -->
+    <div class="lg:ml-64 flex-1 flex flex-col min-w-0">
+        
+        <!-- Desktop Top Header -->
+        <header class="hidden lg:flex sticky top-0 z-30 h-16 items-center justify-between px-8 bg-fintech-bg/80 backdrop-blur-md border-b border-fintech-border">
             <div>
-                <p class="text-slate-400 text-sm">{% block header_eyebrow %}Bienvenido de nuevo{% endblock %}</p>
-                <h2 class="text-white font-bold text-xl">{% block header_title %}Hola, {{ user.first_name|default:user.username }}{% endblock %}</h2>
+                <h2 class="text-white font-bold text-lg">{% block header_title %}Hola, {{ user.first_name|default:user.username }}{% endblock %}</h2>
             </div>
             <div class="flex items-center gap-3">
-                <button type="button" class="w-11 h-11 rounded-xl bg-fintech-card border border-fintech-border flex items-center justify-center text-slate-300 hover:text-white hover:border-slate-500 transition-colors" title="Notificaciones">
-                    <i class="far fa-bell text-lg"></i>
+                <button type="button" class="w-10 h-10 rounded-xl bg-fintech-card border border-fintech-border flex items-center justify-center text-slate-300 hover:text-white transition-colors" title="Notificaciones">
+                    <i class="far fa-bell text-sm"></i>
                 </button>
-                <button type="button" onclick="finanzasQuickAdd()" class="flex items-center gap-2 px-5 h-11 rounded-xl bg-gradient-to-r from-fintech-emerald to-fintech-cyan text-white font-semibold hover:opacity-90 transition-all shadow-lg shadow-fintech-emerald/25">
-                    <i class="fas fa-plus"></i>
-                    <span>Registrar</span>
+                <button type="button" onclick="finanzasQuickAdd()" class="flex items-center gap-2 px-4 h-10 rounded-xl bg-gradient-to-r from-fintech-emerald to-fintech-cyan text-white text-sm font-semibold hover:opacity-90 transition-all shadow-md shadow-fintech-emerald/20">
+                    <i class="fas fa-plus text-xs"></i>
+                    <span>Registrar Movimiento</span>
                 </button>
             </div>
         </header>
 
-        <main class="flex-1 px-4 py-5 lg:px-8 lg:py-8 pb-28 lg:pb-8">
+        <!-- Main Body -->
+        <main class="flex-1 px-4 py-6 lg:px-8 lg:py-8 pb-24 lg:pb-8 max-w-7xl w-full mx-auto">
             {% if messages %}
             <div class="mb-6 space-y-2">
                 {% for message in messages %}
@@ -151,39 +167,51 @@
                 {% endfor %}
             </div>
             {% endif %}
+
             {% block content %}{% endblock %}
         </main>
     </div>
 
     <!-- ===================== MOBILE BOTTOM NAV ===================== -->
-    <nav class="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-fintech-card/95 backdrop-blur-lg border-t border-fintech-border">
-        <div class="grid grid-cols-5 items-center px-2 py-2">
-            <a href="{% url 'dashboard' %}" class="flex flex-col items-center gap-1 py-1 {% if url_name == 'dashboard' %}text-fintech-emeraldLight{% else %}text-slate-400{% endif %}">
-                <i class="fas fa-home text-lg"></i>
-                <span class="text-[11px] font-medium">Inicio</span>
+    <nav class="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-fintech-card/95 backdrop-blur-md border-t border-fintech-border pb-safe">
+        <div class="grid grid-cols-5 items-center px-1 h-16">
+            
+            <a href="{% url 'dashboard' %}" class="flex flex-col items-center justify-center gap-1 h-full {% if url_name == 'dashboard' %}text-fintech-emeraldLight{% else %}text-slate-400{% endif %}">
+                <i class="fas fa-home text-base"></i>
+                <span class="text-[10px] font-medium">Inicio</span>
             </a>
-            <a href="{% url 'dashboard_ahorros' %}" class="flex flex-col items-center gap-1 py-1 {% if url_name == 'dashboard_ahorros' %}text-fintech-emeraldLight{% else %}text-slate-400{% endif %}">
-                <i class="fas fa-piggy-bank text-lg"></i>
-                <span class="text-[11px] font-medium">Ahorros</span>
+
+            <!-- Reemplaza con la url real cuando exista en urls.py -->
+            <a href="#" class="flex flex-col items-center justify-center gap-1 h-full text-slate-400 hover:text-white">
+                <i class="fas fa-piggy-bank text-base"></i>
+                <span class="text-[10px] font-medium">Ahorros</span>
             </a>
-            <div class="flex justify-center">
-                <button type="button" onclick="finanzasQuickAdd()" class="relative -top-5 w-14 h-14 rounded-full bg-gradient-to-br from-fintech-emerald to-fintech-cyan text-white shadow-lg shadow-fintech-emerald/40 flex items-center justify-center hover:scale-105 transition-transform">
-                    <i class="fas fa-plus text-2xl"></i>
+
+            <!-- Botón flotante central centrado -->
+            <div class="flex items-center justify-center h-full">
+                <button type="button" onclick="finanzasQuickAdd()" class="w-12 h-12 rounded-full bg-gradient-to-br from-fintech-emerald to-fintech-cyan text-white shadow-lg shadow-fintech-emerald/30 flex items-center justify-center active:scale-95 transition-transform">
+                    <i class="fas fa-plus text-lg"></i>
                 </button>
             </div>
-            <a href="{% url 'historico_meses' %}" class="flex flex-col items-center gap-1 py-1 {% if url_name == 'historico_meses' %}text-fintech-emeraldLight{% else %}text-slate-400{% endif %}">
-                <i class="fas fa-chart-line text-lg"></i>
-                <span class="text-[11px] font-medium">Histórico</span>
+
+            <!-- Reemplaza con la url real cuando exista en urls.py -->
+            <a href="#" class="flex flex-col items-center justify-center gap-1 h-full text-slate-400 hover:text-white">
+                <i class="fas fa-chart-line text-base"></i>
+                <span class="text-[10px] font-medium">Histórico</span>
             </a>
-            <a href="{% url 'configuracion_editar' %}" class="flex flex-col items-center gap-1 py-1 {% if url_name == 'configuracion_editar' %}text-fintech-emeraldLight{% else %}text-slate-400{% endif %}">
-                <i class="fas fa-cog text-lg"></i>
-                <span class="text-[11px] font-medium">Ajustes</span>
+
+            <!-- Reemplaza con la url real cuando exista en urls.py -->
+            <a href="#" class="flex flex-col items-center justify-center gap-1 h-full text-slate-400 hover:text-white">
+                <i class="fas fa-cog text-base"></i>
+                <span class="text-[10px] font-medium">Ajustes</span>
             </a>
+
         </div>
     </nav>
     {% endwith %}
+
 {% else %}
-    <main class="min-h-screen">
+    <main class="min-h-screen flex-1">
         {% block content_public %}{% endblock %}
     </main>
 {% endif %}
@@ -191,8 +219,6 @@
     {% block modals %}{% endblock %}
 
     <script>
-        // Default quick-add behaviour: navigate to the dashboard.
-        // Pages with a quick-add modal (e.g. dashboard) override this.
         window.finanzasQuickAdd = function () {
             window.location.href = "{% url 'dashboard' %}";
         };
