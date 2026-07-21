@@ -6,6 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.http import JsonResponse, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 try:
@@ -835,26 +836,39 @@ def backup_restaurar(request):
         
         try:
             with transaction.atomic():
-                # Restaurar configuración
-                _restore_configuracion(request.user, datos.get('configuracion'))
-                
-                # Restaurar categorías
-                _restore_categorias(request.user, datos.get('categorias', []))
-                
-                # Restaurar gastos fijos
-                _restore_gastos_fijos(request.user, datos.get('gastos_fijos', []))
-                
-                # Restaurar eventos de calendario
-                _restore_eventos(request.user, datos.get('eventos_calendario', []))
-                
-                # Restaurar metas de ahorro
-                _restore_metas_ahorro(request.user, datos.get('metas_ahorro', []))
-                
-                # Restaurar configuración de widgets
-                _restore_widgets_config(request.user, datos.get('widgets_config'))
-                
-                messages.success(request, 'Backup restaurado exitosamente.')
-                messages.warning(request, 'Nota: Movimientos, ciclos e inversiones no fueron restaurados para evitar inconsistencias.')
+                user = request.user
+
+                # 1. Borrar los datos actuales del usuario (reemplazo completo).
+                #    El orden respeta las llaves foráneas (dependientes primero).
+                _wipe_datos_usuario(user)
+
+                # 2. Recrear en orden de dependencias, mapeando referencias.
+                _restore_configuracion(user, datos.get('configuracion'))
+
+                cat_map = _restore_categorias(user, datos.get('categorias', []))
+
+                ciclo_map = _restore_ciclos(user, datos.get('ciclos', []))
+
+                _restore_gastos_fijos(user, datos.get('gastos_fijos', []), cat_map)
+
+                _restore_movimientos(user, datos.get('movimientos', []), ciclo_map, cat_map)
+
+                _restore_eventos(user, datos.get('eventos_calendario', []))
+
+                fondo = _restore_fondo_ahorro(user, datos.get('fondo_ahorro'))
+
+                inv_map = _restore_inversiones(user, datos.get('inversiones', []))
+
+                _restore_movimientos_patrimonio(
+                    user, datos.get('movimientos_patrimonio', []),
+                    fondo, inv_map, ciclo_map,
+                )
+
+                _restore_metas_ahorro(user, datos.get('metas_ahorro', []))
+
+                _restore_widgets_config(user, datos.get('widgets_config'))
+
+                messages.success(request, 'Backup restaurado exitosamente. Todos tus datos fueron reemplazados con la copia.')
         except Exception as e:
             messages.error(request, f'Error al restaurar backup: {str(e)}')
             return redirect('backup_gestion')
@@ -897,6 +911,7 @@ def _serialize_movimientos(user):
     movimientos = []
     for mov in Movimiento.objects.filter(usuario=user):
         movimientos.append({
+            'ciclo_ref': mov.ciclo_id,
             'tipo': mov.tipo,
             'monto': str(mov.monto),
             'descripcion': mov.descripcion,
@@ -913,7 +928,10 @@ def _serialize_ciclos(user):
     ciclos = []
     for ciclo in CicloMensual.objects.filter(usuario=user):
         ciclos.append({
+            'ref': ciclo.id,
             'fecha_inicio': ciclo.fecha_inicio.isoformat(),
+            'fecha_fin': ciclo.fecha_fin.isoformat(),
+            'etiqueta': ciclo.etiqueta,
             'fecha_cierre': ciclo.fecha_cierre.isoformat() if ciclo.fecha_cierre else None,
             'salario_ciclo': str(ciclo.salario_ciclo),
             'estado': ciclo.estado,
@@ -965,6 +983,7 @@ def _serialize_inversiones(user):
     inversiones = []
     for inv in Inversion.objects.filter(usuario=user):
         inversiones.append({
+            'ref': inv.id,
             'nombre': inv.nombre,
             'monto_inicial': str(inv.monto_inicial),
             'monto_final': str(inv.monto_final) if inv.monto_final else None,
@@ -972,6 +991,7 @@ def _serialize_inversiones(user):
             'tipo_activo': inv.tipo_activo,
             'fecha_inicio': inv.fecha_inicio.isoformat() if inv.fecha_inicio else None,
             'fecha_vencimiento': inv.fecha_vencimiento.isoformat() if inv.fecha_vencimiento else None,
+            'fecha_cierre': inv.fecha_cierre.isoformat() if inv.fecha_cierre else None,
             'estado': inv.estado,
             'notas': inv.notas,
         })
@@ -1000,6 +1020,8 @@ def _serialize_movimientos_patrimonio(user):
             'tipo': mov.tipo,
             'monto': str(mov.monto),
             'descripcion': mov.descripcion,
+            'inversion_ref': mov.inversion_id,
+            'ciclo_ref': mov.ciclo_id,
             'fecha': mov.fecha.isoformat(),
         })
     return movimientos
@@ -1016,111 +1038,199 @@ def _serialize_widgets_config(user):
 
 
 # Funciones auxiliares para restauración
+def _wipe_datos_usuario(user):
+    """Elimina todos los datos financieros del usuario antes de restaurar.
+
+    Se borra en orden de dependencias (registros dependientes primero) para
+    respetar las llaves foráneas.
+    """
+    # Patrimonio / inversiones (dependen de fondo, inversión y ciclo)
+    MovimientoPatrimonio.objects.filter(usuario=user).delete()
+    Inversion.objects.filter(usuario=user).delete()
+    FondoAhorro.objects.filter(usuario=user).delete()
+    # Metas de ahorro (DepositoMeta se borra en cascada)
+    MetaAhorro.objects.filter(usuario=user).delete()
+    # Movimientos antes que ciclos y categorías
+    Movimiento.objects.filter(usuario=user).delete()
+    # Gastos fijos antes que categorías (FK PROTECT)
+    GastoFijoPlantilla.objects.filter(usuario=user).delete()
+    CicloMensual.objects.filter(usuario=user).delete()
+    Categoria.objects.filter(usuario=user).delete()
+    EventoCalendario.objects.filter(usuario=user).delete()
+
+
 def _restore_configuracion(user, config_data):
     if not config_data:
         return
-    
+
     from decimal import Decimal
-    config, created = ConfiguracionUsuario.objects.get_or_create(
-        usuario=user,
-        defaults={
-            'salario_base': Decimal(config_data['salario_base']),
-            'dia_corte': config_data['dia_corte'],
-            'dias_plazo_tolerancia': config_data['dias_plazo_tolerancia'],
-            'moneda': config_data['moneda'],
-            'configurado': config_data['configurado'],
-            'ha_visto_tutorial': config_data['ha_visto_tutorial'],
-        }
-    )
-    
-    if not created:
-        config.salario_base = Decimal(config_data['salario_base'])
-        config.dia_corte = config_data['dia_corte']
-        config.dias_plazo_tolerancia = config_data['dias_plazo_tolerancia']
-        config.moneda = config_data['moneda']
-        config.configurado = config_data['configurado']
-        config.ha_visto_tutorial = config_data['ha_visto_tutorial']
-        config.save()
+    config = ConfiguracionUsuario.obtener(user)
+    config.salario_base = Decimal(config_data.get('salario_base', '0'))
+    config.dia_corte = config_data.get('dia_corte', 30)
+    config.dias_plazo_tolerancia = config_data.get('dias_plazo_tolerancia', 3)
+    config.moneda = config_data.get('moneda', 'COP')
+    config.configurado = config_data.get('configurado', False)
+    config.ha_visto_tutorial = config_data.get('ha_visto_tutorial', False)
+    config.save()
 
 
 def _restore_categorias(user, categorias_data):
+    """Recrea las categorías y devuelve un mapa nombre -> objeto Categoria."""
+    cat_map = {}
     for cat_data in categorias_data:
-        defaults = {
-            'color': cat_data.get('color', '#6366f1'),
-        }
-        if 'activa' in cat_data:
-            defaults['activa'] = cat_data['activa']
-        if 'orden' in cat_data:
-            defaults['orden'] = cat_data['orden']
-
-        Categoria.objects.get_or_create(
+        categoria = Categoria.objects.create(
             usuario=user,
             nombre=cat_data['nombre'],
-            defaults=defaults
+            color=cat_data.get('color', '#6366f1'),
+            activa=cat_data.get('activa', True),
+            orden=cat_data.get('orden', 0),
+        )
+        cat_map[cat_data['nombre']] = categoria
+    return cat_map
+
+
+def _restore_ciclos(user, ciclos_data):
+    """Recrea los ciclos y devuelve un mapa ref_original -> objeto CicloMensual."""
+    from decimal import Decimal
+    ciclo_map = {}
+    for ciclo_data in ciclos_data:
+        ciclo = CicloMensual.objects.create(
+            usuario=user,
+            fecha_inicio=datetime.fromisoformat(ciclo_data['fecha_inicio']).date(),
+            fecha_fin=datetime.fromisoformat(ciclo_data['fecha_fin']).date(),
+            etiqueta=ciclo_data.get('etiqueta', ''),
+            salario_ciclo=Decimal(ciclo_data.get('salario_ciclo', '0')),
+            estado=ciclo_data.get('estado', CicloMensual.ACTIVO),
+            sobrante_transferido=Decimal(ciclo_data.get('sobrante_transferido', '0')),
+            fecha_cierre=datetime.fromisoformat(ciclo_data['fecha_cierre']) if ciclo_data.get('fecha_cierre') else None,
+        )
+        if ciclo_data.get('ref') is not None:
+            ciclo_map[ciclo_data['ref']] = ciclo
+    return ciclo_map
+
+
+def _restore_gastos_fijos(user, gastos_data, cat_map):
+    from decimal import Decimal
+    for gasto_data in gastos_data:
+        categoria = cat_map.get(gasto_data.get('categoria_nombre'))
+        if categoria is None:
+            # La categoría es obligatoria (FK PROTECT); omitir si no existe.
+            continue
+        GastoFijoPlantilla.objects.create(
+            usuario=user,
+            descripcion=gasto_data['descripcion'],
+            monto=Decimal(gasto_data['monto']),
+            categoria=categoria,
+            frecuencia=gasto_data.get('frecuencia', GastoFijoPlantilla.MENSUAL),
+            activa=gasto_data.get('activa', True),
+            fecha_ultima_aplicacion=datetime.fromisoformat(gasto_data['fecha_ultima_aplicacion']).date() if gasto_data.get('fecha_ultima_aplicacion') else None,
         )
 
 
-def _restore_gastos_fijos(user, gastos_data):
+def _restore_movimientos(user, movimientos_data, ciclo_map, cat_map):
     from decimal import Decimal
-    for gasto_data in gastos_data:
-        categoria = None
-        if gasto_data.get('categoria_nombre'):
-            try:
-                categoria = Categoria.objects.get(usuario=user, nombre=gasto_data['categoria_nombre'])
-            except Categoria.DoesNotExist:
-                pass
-        
-        GastoFijoPlantilla.objects.get_or_create(
+    for mov_data in movimientos_data:
+        ciclo = ciclo_map.get(mov_data.get('ciclo_ref'))
+        if ciclo is None:
+            # Sin ciclo válido no se puede crear el movimiento (FK obligatoria).
+            continue
+        Movimiento.objects.create(
             usuario=user,
-            descripcion=gasto_data['descripcion'],
-            defaults={
-                'monto': Decimal(gasto_data['monto']),
-                'categoria': categoria,
-                'frecuencia': gasto_data['frecuencia'],
-                'activa': gasto_data['activa'],
-            }
+            ciclo=ciclo,
+            tipo=mov_data['tipo'],
+            monto=Decimal(mov_data['monto']),
+            descripcion=mov_data.get('descripcion', ''),
+            categoria=cat_map.get(mov_data.get('categoria_nombre')),
+            es_gasto_fijo=mov_data.get('es_gasto_fijo', False),
+            pagado=mov_data.get('pagado', True),
+            fecha_vencimiento=datetime.fromisoformat(mov_data['fecha_vencimiento']).date() if mov_data.get('fecha_vencimiento') else None,
+            fecha_registro=datetime.fromisoformat(mov_data['fecha_registro']) if mov_data.get('fecha_registro') else timezone.now(),
         )
 
 
 def _restore_eventos(user, eventos_data):
     from decimal import Decimal
     for evento_data in eventos_data:
-        EventoCalendario.objects.get_or_create(
+        EventoCalendario.objects.create(
             usuario=user,
             titulo=evento_data['titulo'],
             fecha=datetime.fromisoformat(evento_data['fecha']).date(),
-            defaults={
-                'descripcion': evento_data.get('descripcion', ''),
-                'tipo': evento_data['tipo'],
-                'monto': Decimal(evento_data['monto']) if evento_data.get('monto') else None,
-                'repetir_anualmente': evento_data['repetir_anualmente'],
-                'completado': evento_data['completado'],
-            }
+            descripcion=evento_data.get('descripcion', ''),
+            tipo=evento_data.get('tipo', EventoCalendario.OTRO),
+            monto=Decimal(evento_data['monto']) if evento_data.get('monto') else None,
+            repetir_anualmente=evento_data.get('repetir_anualmente', False),
+            completado=evento_data.get('completado', False),
+        )
+
+
+def _restore_fondo_ahorro(user, fondo_data):
+    """Recrea el fondo de ahorro y devuelve el objeto (necesario para el patrimonio)."""
+    from decimal import Decimal
+    fondo = FondoAhorro.obtener(user)
+    if fondo_data:
+        fondo.saldo_disponible = Decimal(fondo_data.get('saldo_disponible', '0'))
+        fondo.save()
+    return fondo
+
+
+def _restore_inversiones(user, inversiones_data):
+    """Recrea las inversiones y devuelve un mapa ref_original -> objeto Inversion."""
+    from decimal import Decimal
+    inv_map = {}
+    for inv_data in inversiones_data:
+        inv = Inversion.objects.create(
+            usuario=user,
+            nombre=inv_data['nombre'],
+            tipo_activo=inv_data.get('tipo_activo', Inversion.OTRO),
+            rendimiento_esperado=Decimal(inv_data['rendimiento_esperado']) if inv_data.get('rendimiento_esperado') else None,
+            monto_inicial=Decimal(inv_data['monto_inicial']),
+            monto_final=Decimal(inv_data['monto_final']) if inv_data.get('monto_final') else None,
+            fecha_inicio=datetime.fromisoformat(inv_data['fecha_inicio']).date() if inv_data.get('fecha_inicio') else timezone.now().date(),
+            fecha_vencimiento=datetime.fromisoformat(inv_data['fecha_vencimiento']).date() if inv_data.get('fecha_vencimiento') else timezone.now().date(),
+            estado=inv_data.get('estado', Inversion.ACTIVA),
+            fecha_cierre=datetime.fromisoformat(inv_data['fecha_cierre']) if inv_data.get('fecha_cierre') else None,
+            notas=inv_data.get('notas', ''),
+        )
+        if inv_data.get('ref') is not None:
+            inv_map[inv_data['ref']] = inv
+    return inv_map
+
+
+def _restore_movimientos_patrimonio(user, movimientos_data, fondo, inv_map, ciclo_map):
+    from decimal import Decimal
+    for mov_data in movimientos_data:
+        MovimientoPatrimonio.objects.create(
+            usuario=user,
+            tipo=mov_data['tipo'],
+            monto=Decimal(mov_data['monto']),
+            descripcion=mov_data.get('descripcion', ''),
+            fondo=fondo,
+            inversion=inv_map.get(mov_data.get('inversion_ref')),
+            ciclo=ciclo_map.get(mov_data.get('ciclo_ref')),
+            fecha=datetime.fromisoformat(mov_data['fecha']) if mov_data.get('fecha') else timezone.now(),
         )
 
 
 def _restore_metas_ahorro(user, metas_data):
     from decimal import Decimal
     for meta_data in metas_data:
-        MetaAhorro.objects.get_or_create(
+        MetaAhorro.objects.create(
             usuario=user,
             nombre=meta_data['nombre'],
-            defaults={
-                'monto_objetivo': Decimal(meta_data['monto_objetivo']),
-                'saldo_actual': Decimal(meta_data['saldo_actual']),
-                'icono': meta_data['icono'],
-                'color': meta_data.get('color', '#10B981'),
-                'fecha_objetivo': datetime.fromisoformat(meta_data['fecha_objetivo']).date() if meta_data.get('fecha_objetivo') else None,
-                'completada': meta_data.get('completada', False),
-            }
+            monto_objetivo=Decimal(meta_data['monto_objetivo']),
+            saldo_actual=Decimal(meta_data.get('saldo_actual', '0')),
+            icono=meta_data.get('icono', 'fa-piggy-bank'),
+            color=meta_data.get('color', '#10B981'),
+            fecha_objetivo=datetime.fromisoformat(meta_data['fecha_objetivo']).date() if meta_data.get('fecha_objetivo') else None,
+            completada=meta_data.get('completada', False),
         )
 
 
 def _restore_widgets_config(user, widgets_data):
     if not widgets_data:
         return
-    
-    config, created = WidgetConfiguracion.objects.get_or_create(usuario=user)
+
+    config = WidgetConfiguracion.obtener(user)
     config.widgets_activos = widgets_data.get('widgets_activos', [])
     config.save()
 

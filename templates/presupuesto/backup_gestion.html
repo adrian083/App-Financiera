@@ -38,20 +38,21 @@
             </div>
             <div class="flex-1">
                 <h2 class="text-xl font-bold text-white mb-2">Restaurar Backup</h2>
-                <p class="text-slate-400 text-sm mb-4">Restaura tus datos desde un archivo de backup previamente descargado. Se restaurará la configuración, categorías, gastos fijos, eventos y metas de ahorro.</p>
-                <div class="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 mb-4">
+                <p class="text-slate-400 text-sm mb-4">Restaura una copia completa de tus datos: configuración, categorías, ciclos, movimientos, gastos fijos, eventos, fondo de ahorro, inversiones, patrimonio y metas de ahorro.</p>
+                <div class="bg-fintech-rose/10 border border-fintech-rose/30 rounded-xl p-4 mb-4">
                     <div class="flex items-start gap-3">
-                        <i class="fas fa-exclamation-triangle text-amber-400 mt-0.5"></i>
+                        <i class="fas fa-exclamation-triangle text-fintech-rose mt-0.5"></i>
                         <div class="text-sm">
-                            <p class="text-amber-200 font-medium mb-1">Advertencia importante</p>
-                            <p class="text-amber-300/80">Movimientos, ciclos e inversiones no serán restaurados para evitar inconsistencias en los datos. Solo se restauran configuraciones y plantillas.</p>
+                            <p class="text-fintech-rose font-medium mb-1">Advertencia importante</p>
+                            <p class="text-rose-300/80">Al restaurar se <strong>reemplazarán todos tus datos actuales</strong> por los del archivo. Esta acción no se puede deshacer, así que asegúrate de tener una copia reciente antes de continuar.</p>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <form method="post" enctype="multipart/form-data" class="space-y-4">
+        <form method="post" enctype="multipart/form-data" class="space-y-4"
+            onsubmit="return confirm('Esto reemplazará TODOS tus datos actuales por los del archivo. ¿Deseas continuar?');">
             {% csrf_token %}
             <div>
                 <label class="block text-slate-300 text-sm font-medium mb-2">Archivo de Backup (.json)</label>
@@ -93,13 +94,13 @@
                 <i class="fas fa-check text-fintech-emeraldLight"></i>
                 <span>Configuración de widgets</span>
             </div>
-            <div class="flex items-center gap-3 text-slate-400">
-                <i class="fas fa-times text-fintech-rose"></i>
-                <span>Movimientos (no restaurados)</span>
+            <div class="flex items-center gap-3 text-slate-300">
+                <i class="fas fa-check text-fintech-emeraldLight"></i>
+                <span>Movimientos y ciclos mensuales</span>
             </div>
-            <div class="flex items-center gap-3 text-slate-400">
-                <i class="fas fa-times text-fintech-rose"></i>
-                <span>Ciclos mensuales (no restaurados)</span>
+            <div class="flex items-center gap-3 text-slate-300">
+                <i class="fas fa-check text-fintech-emeraldLight"></i>
+                <span>Fondo de ahorro, inversiones y patrimonio</span>
             </div>
         </div>
     </div>
