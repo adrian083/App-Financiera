@@ -26,5 +26,8 @@ urlpatterns = [
     path('calendario/', views.calendario_view, name='calendario'),
     path('calendario/crear/', views.crear_evento_calendario, name='crear_evento_calendario'),
     path('widgets/personizar/', views.personalizar_widgets, name='personalizar_widgets'),
+    path('backup/', views.backup_gestion, name='backup_gestion'),
+    path('backup/descargar/', views.backup_descargar, name='backup_descargar'),
+    path('backup/restaurar/', views.backup_restaurar, name='backup_restaurar'),
     path('tutorial/completar/', views.completar_tutorial, name='completar_tutorial'),
 ]

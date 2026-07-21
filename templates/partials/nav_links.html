@@ -34,4 +34,8 @@ Sidebar navigation links. Expects `url_name` = request.resolver_match.url_name.
     <i class="fas fa-th-large w-5 text-center text-lg"></i>
     <span>Widgets</span>
 </a>
+<a href="{% url 'backup_gestion' %}" class="{% if url_name == 'backup_gestion' or url_name == 'backup_descargar' or url_name == 'backup_restaurar' %}{{ active }}{% else %}{{ idle }}{% endif %}">
+    <i class="fas fa-database w-5 text-center text-lg"></i>
+    <span>Backup</span>
+</a>
 {% endwith %}

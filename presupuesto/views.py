@@ -1,11 +1,10 @@
 import json
-
-from datetime import date, timedelta
+from datetime import datetime
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
@@ -33,6 +32,7 @@ from presupuesto.models import (
     Movimiento,
     WidgetConfiguracion,
 )
+from ahorros.models import FondoAhorro, Inversion, MetaAhorro, MovimientoPatrimonio
 from presupuesto.services import (
     asegurar_ciclo_activo,
     cerrar_ciclo,
@@ -669,5 +669,342 @@ def personalizar_widgets(request):
         'widgets_activos': widgets_activos,
     }
     return render(request, 'presupuesto/personalizar_widgets.html', context)
+
+
+@login_required
+def backup_descargar(request):
+    """Descargar backup de todos los datos del usuario en formato JSON."""
+    user = request.user
+    
+    # Recopilar todos los datos
+    datos = {
+        'backup_fecha': datetime.now().isoformat(),
+        'usuario': {
+            'username': user.username,
+            'email': user.email,
+            'first_name': user.first_name,
+            'last_name': user.last_name,
+            'date_joined': user.date_joined.isoformat(),
+        },
+        'configuracion': _serialize_configuracion(user),
+        'categorias': _serialize_categorias(user),
+        'movimientos': _serialize_movimientos(user),
+        'ciclos': _serialize_ciclos(user),
+        'gastos_fijos': _serialize_gastos_fijos(user),
+        'eventos_calendario': _serialize_eventos(user),
+        'fondo_ahorro': _serialize_fondo_ahorro(user),
+        'inversiones': _serialize_inversiones(user),
+        'metas_ahorro': _serialize_metas_ahorro(user),
+        'movimientos_patrimonio': _serialize_movimientos_patrimonio(user),
+        'widgets_config': _serialize_widgets_config(user),
+    }
+    
+    # Crear respuesta HTTP con archivo JSON
+    response = HttpResponse(
+        json.dumps(datos, ensure_ascii=False, indent=2),
+        content_type='application/json'
+    )
+    response['Content-Disposition'] = f'attachment; filename="backup_{user.username}_{datetime.now().strftime("%Y%m%d_%H%M%S")}.json"'
+    return response
+
+
+@login_required
+def backup_restaurar(request):
+    """Restaurar datos desde un archivo JSON de backup."""
+    if request.method == 'POST':
+        archivo = request.FILES.get('archivo_backup')
+        if not archivo:
+            messages.error(request, 'Por favor selecciona un archivo de backup.')
+            return redirect('backup_gestion')
+        
+        try:
+            datos = json.loads(archivo.read().decode('utf-8'))
+        except json.JSONDecodeError:
+            messages.error(request, 'El archivo no es un JSON válido.')
+            return redirect('backup_gestion')
+        
+        try:
+            with transaction.atomic():
+                # Restaurar configuración
+                _restore_configuracion(request.user, datos.get('configuracion'))
+                
+                # Restaurar categorías
+                _restore_categorias(request.user, datos.get('categorias', []))
+                
+                # Restaurar gastos fijos
+                _restore_gastos_fijos(request.user, datos.get('gastos_fijos', []))
+                
+                # Restaurar eventos de calendario
+                _restore_eventos(request.user, datos.get('eventos_calendario', []))
+                
+                # Restaurar metas de ahorro
+                _restore_metas_ahorro(request.user, datos.get('metas_ahorro', []))
+                
+                # Restaurar configuración de widgets
+                _restore_widgets_config(request.user, datos.get('widgets_config'))
+                
+                messages.success(request, 'Backup restaurado exitosamente.')
+                messages.warning(request, 'Nota: Movimientos, ciclos e inversiones no fueron restaurados para evitar inconsistencias.')
+        except Exception as e:
+            messages.error(request, f'Error al restaurar backup: {str(e)}')
+            return redirect('backup_gestion')
+        
+        return redirect('dashboard')
+    
+    return render(request, 'presupuesto/backup_gestion.html')
+
+
+@login_required
+def backup_gestion(request):
+    """Página de gestión de backups."""
+    return render(request, 'presupuesto/backup_gestion.html')
+
+
+# Funciones auxiliares para serialización
+def _serialize_configuracion(user):
+    try:
+        config = ConfiguracionUsuario.objects.get(usuario=user)
+        return {
+            'salario_base': str(config.salario_base),
+            'dia_corte': config.dia_corte,
+            'dias_plazo_tolerancia': config.dias_plazo_tolerancia,
+            'moneda': config.moneda,
+            'configurado': config.configurado,
+            'ha_visto_tutorial': config.ha_visto_tutorial,
+        }
+    except ConfiguracionUsuario.DoesNotExist:
+        return None
+
+
+def _serialize_categorias(user):
+    return list(Categoria.objects.filter(usuario=user).values(
+        'nombre', 'color', 'tipo', 'presupuesto_mensual'
+    ))
+
+
+def _serialize_movimientos(user):
+    movimientos = []
+    for mov in Movimiento.objects.filter(usuario=user):
+        movimientos.append({
+            'tipo': mov.tipo,
+            'monto': str(mov.monto),
+            'descripcion': mov.descripcion,
+            'categoria_nombre': mov.categoria.nombre if mov.categoria else None,
+            'es_gasto_fijo': mov.es_gasto_fijo,
+            'pagado': mov.pagado,
+            'fecha_registro': mov.fecha_registro.isoformat(),
+            'fecha_vencimiento': mov.fecha_vencimiento.isoformat() if mov.fecha_vencimiento else None,
+        })
+    return movimientos
+
+
+def _serialize_ciclos(user):
+    ciclos = []
+    for ciclo in CicloMensual.objects.filter(usuario=user):
+        ciclos.append({
+            'fecha_inicio': ciclo.fecha_inicio.isoformat(),
+            'fecha_cierre': ciclo.fecha_cierre.isoformat() if ciclo.fecha_cierre else None,
+            'salario_ciclo': str(ciclo.salario_ciclo),
+            'estado': ciclo.estado,
+            'sobrante_transferido': str(ciclo.sobrante_transferido),
+        })
+    return ciclos
+
+
+def _serialize_gastos_fijos(user):
+    gastos = []
+    for gasto in GastoFijoPlantilla.objects.filter(usuario=user):
+        gastos.append({
+            'descripcion': gasto.descripcion,
+            'monto': str(gasto.monto),
+            'categoria_nombre': gasto.categoria.nombre if gasto.categoria else None,
+            'frecuencia': gasto.frecuencia,
+            'activa': gasto.activa,
+            'fecha_ultima_aplicacion': gasto.fecha_ultima_aplicacion.isoformat() if gasto.fecha_ultima_aplicacion else None,
+        })
+    return gastos
+
+
+def _serialize_eventos(user):
+    eventos = []
+    for evento in EventoCalendario.objects.filter(usuario=user):
+        eventos.append({
+            'titulo': evento.titulo,
+            'descripcion': evento.descripcion,
+            'fecha': evento.fecha.isoformat(),
+            'tipo': evento.tipo,
+            'monto': str(evento.monto) if evento.monto else None,
+            'repetir_anualmente': evento.repetir_anualmente,
+            'completado': evento.completado,
+        })
+    return eventos
+
+
+def _serialize_fondo_ahorro(user):
+    try:
+        fondo = FondoAhorro.objects.get(usuario=user)
+        return {
+            'saldo_disponible': str(fondo.saldo_disponible),
+        }
+    except FondoAhorro.DoesNotExist:
+        return None
+
+
+def _serialize_inversiones(user):
+    inversiones = []
+    for inv in Inversion.objects.filter(usuario=user):
+        inversiones.append({
+            'nombre': inv.nombre,
+            'monto_inicial': str(inv.monto_inicial),
+            'monto_final': str(inv.monto_final) if inv.monto_final else None,
+            'rendimiento_esperado': str(inv.rendimiento_esperado) if inv.rendimiento_esperado else None,
+            'tipo_activo': inv.tipo_activo,
+            'fecha_inicio': inv.fecha_inicio.isoformat() if inv.fecha_inicio else None,
+            'fecha_vencimiento': inv.fecha_vencimiento.isoformat() if inv.fecha_vencimiento else None,
+            'estado': inv.estado,
+            'notas': inv.notas,
+        })
+    return inversiones
+
+
+def _serialize_metas_ahorro(user):
+    metas = []
+    for meta in MetaAhorro.objects.filter(usuario=user):
+        metas.append({
+            'nombre': meta.nombre,
+            'objetivo': str(meta.objetivo),
+            'ahorrado': str(meta.ahorrado),
+            'icono': meta.icono,
+            'fecha_objetivo': meta.fecha_objetivo.isoformat() if meta.fecha_objetivo else None,
+        })
+    return metas
+
+
+def _serialize_movimientos_patrimonio(user):
+    movimientos = []
+    for mov in MovimientoPatrimonio.objects.filter(usuario=user):
+        movimientos.append({
+            'tipo': mov.tipo,
+            'monto': str(mov.monto),
+            'descripcion': mov.descripcion,
+            'fecha': mov.fecha.isoformat(),
+        })
+    return movimientos
+
+
+def _serialize_widgets_config(user):
+    try:
+        config = WidgetConfiguracion.objects.get(usuario=user)
+        return {
+            'widgets_activos': config.widgets_activos,
+        }
+    except WidgetConfiguracion.DoesNotExist:
+        return None
+
+
+# Funciones auxiliares para restauración
+def _restore_configuracion(user, config_data):
+    if not config_data:
+        return
+    
+    from decimal import Decimal
+    config, created = ConfiguracionUsuario.objects.get_or_create(
+        usuario=user,
+        defaults={
+            'salario_base': Decimal(config_data['salario_base']),
+            'dia_corte': config_data['dia_corte'],
+            'dias_plazo_tolerancia': config_data['dias_plazo_tolerancia'],
+            'moneda': config_data['moneda'],
+            'configurado': config_data['configurado'],
+            'ha_visto_tutorial': config_data['ha_visto_tutorial'],
+        }
+    )
+    
+    if not created:
+        config.salario_base = Decimal(config_data['salario_base'])
+        config.dia_corte = config_data['dia_corte']
+        config.dias_plazo_tolerancia = config_data['dias_plazo_tolerancia']
+        config.moneda = config_data['moneda']
+        config.configurado = config_data['configurado']
+        config.ha_visto_tutorial = config_data['ha_visto_tutorial']
+        config.save()
+
+
+def _restore_categorias(user, categorias_data):
+    from decimal import Decimal
+    for cat_data in categorias_data:
+        Categoria.objects.get_or_create(
+            usuario=user,
+            nombre=cat_data['nombre'],
+            defaults={
+                'color': cat_data['color'],
+                'tipo': cat_data['tipo'],
+                'presupuesto_mensual': Decimal(cat_data['presupuesto_mensual']),
+            }
+        )
+
+
+def _restore_gastos_fijos(user, gastos_data):
+    from decimal import Decimal
+    for gasto_data in gastos_data:
+        categoria = None
+        if gasto_data.get('categoria_nombre'):
+            try:
+                categoria = Categoria.objects.get(usuario=user, nombre=gasto_data['categoria_nombre'])
+            except Categoria.DoesNotExist:
+                pass
+        
+        GastoFijoPlantilla.objects.get_or_create(
+            usuario=user,
+            descripcion=gasto_data['descripcion'],
+            defaults={
+                'monto': Decimal(gasto_data['monto']),
+                'categoria': categoria,
+                'frecuencia': gasto_data['frecuencia'],
+                'activa': gasto_data['activa'],
+            }
+        )
+
+
+def _restore_eventos(user, eventos_data):
+    from decimal import Decimal
+    for evento_data in eventos_data:
+        EventoCalendario.objects.get_or_create(
+            usuario=user,
+            titulo=evento_data['titulo'],
+            fecha=datetime.fromisoformat(evento_data['fecha']).date(),
+            defaults={
+                'descripcion': evento_data.get('descripcion', ''),
+                'tipo': evento_data['tipo'],
+                'monto': Decimal(evento_data['monto']) if evento_data.get('monto') else None,
+                'repetir_anualmente': evento_data['repetir_anualmente'],
+                'completado': evento_data['completado'],
+            }
+        )
+
+
+def _restore_metas_ahorro(user, metas_data):
+    from decimal import Decimal
+    for meta_data in metas_data:
+        MetaAhorro.objects.get_or_create(
+            usuario=user,
+            nombre=meta_data['nombre'],
+            defaults={
+                'objetivo': Decimal(meta_data['objetivo']),
+                'ahorrado': Decimal(meta_data['ahorrado']),
+                'icono': meta_data['icono'],
+                'fecha_objetivo': datetime.fromisoformat(meta_data['fecha_objetivo']).date() if meta_data.get('fecha_objetivo') else None,
+            }
+        )
+
+
+def _restore_widgets_config(user, widgets_data):
+    if not widgets_data:
+        return
+    
+    config, created = WidgetConfiguracion.objects.get_or_create(usuario=user)
+    config.widgets_activos = widgets_data.get('widgets_activos', [])
+    config.save()
+
 
 
