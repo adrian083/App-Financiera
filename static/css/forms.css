@@ -1,39 +1,45 @@
 /**
- * FinanzasApp — Estilos globales de formularios (WCAG contrast).
+ * FinanzasApp — Estilos globales de formularios Fintech.
  * Clase principal: .form-input (también .input-cop para montos COP)
  */
 
-/* ── Modo claro ── */
+/* ── Modo Fintech (Dark Mode por defecto) ── */
 .form-input,
 .input-cop {
     width: 100%;
-    border-radius: 0.75rem;
-    border: 1px solid #cbd5e1;          /* slate-300 */
-    background-color: #ffffff;
-    color: #0f172a;                      /* slate-900 */
-    font-weight: 600;
-    padding: 0.75rem 1rem;
+    border-radius: 1rem;
+    border: 1px solid #334155;          /* fintech-border */
+    background-color: #1E293B;         /* fintech-card */
+    color: #ffffff;
+    font-weight: 500;
+    padding: 0.875rem 1rem;
     min-height: 3rem;
     font-size: 1rem;
-    transition: border-color 0.15s, box-shadow 0.15s;
+    transition: all 0.3s ease;
 }
 
 .form-input::placeholder,
 .input-cop::placeholder {
-    color: #94a3b8;                      /* slate-400 */
+    color: #64748b;                      /* slate-500 */
     font-weight: 400;
 }
 
 .form-input:focus,
 .input-cop:focus {
     outline: none;
-    border-color: #6366f1;                 /* indigo-500 */
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
+    border-color: #10B981;               /* fintech-emerald */
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+    background-color: #253045;
 }
 
 select.form-input {
-    appearance: auto;
+    appearance: none;
     cursor: pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    background-size: 1.25rem;
+    padding-right: 3rem;
 }
 
 textarea.form-input {
@@ -41,73 +47,71 @@ textarea.form-input {
     resize: vertical;
 }
 
-/* ── Modo oscuro ── */
-.dark input.form-input,
-.dark input.input-cop,
-.dark select.form-input,
-.dark textarea.form-input,
-.dark .form-input,
-.dark .input-cop {
-    background-color: #1e293b !important;  /* slate-800 */
-    color: #ffffff !important;
-    border-color: #475569 !important;      /* slate-600 */
+/* ── Modo claro (fallback) ── */
+html:not(.dark) .form-input,
+html:not(.dark) .input-cop {
+    background-color: #ffffff;
+    color: #0f172a;
+    border-color: #e2e8f0;
 }
 
-.dark input.form-input::placeholder,
-.dark input.input-cop::placeholder,
-.dark textarea.form-input::placeholder,
-.dark .form-input::placeholder,
-.dark .input-cop::placeholder {
-    color: #64748b !important;             /* slate-500 */
+html:not(.dark) .form-input::placeholder,
+html:not(.dark) .input-cop::placeholder {
+    color: #94a3b8;
 }
 
-.dark input.form-input:focus,
-.dark input.input-cop:focus,
-.dark select.form-input:focus,
-.dark textarea.form-input:focus,
-.dark .form-input:focus,
-.dark .input-cop:focus {
-    border-color: #6366f1 !important;      /* indigo-500 */
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.4) !important;
+html:not(.dark) .form-input:focus,
+html:not(.dark) .input-cop:focus {
+    border-color: #10B981;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+html:not(.dark) select.form-input {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2394a3b8'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
 }
 
 /* Red de seguridad: cualquier input/select/textarea sin clase explícita */
-.dark input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]):not([type="color"]):not([type="file"]):not([type="submit"]):not([type="button"]),
-.dark select,
-.dark textarea {
-    background-color: #1e293b !important;
+html.dark input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]):not([type="color"]):not([type="file"]):not([type="submit"]):not([type="button"]),
+html.dark select,
+html.dark textarea {
+    background-color: #1E293B !important;
     color: #ffffff !important;
-    border-color: #475569 !important;
+    border-color: #334155 !important;
 }
 
-.dark input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"])::placeholder,
-.dark textarea::placeholder {
+html.dark input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"])::placeholder,
+html.dark textarea::placeholder {
     color: #64748b !important;
 }
 
-.dark select option {
-    background-color: #1e293b;
+html.dark select option {
+    background-color: #1E293B;
     color: #ffffff;
 }
 
-.dark input[type="date"],
-.dark input[type="datetime-local"],
-.dark input[type="time"],
-.dark input[type="number"] {
+html.dark input[type="date"],
+html.dark input[type="datetime-local"],
+html.dark input[type="time"],
+html.dark input[type="number"] {
     color-scheme: dark;
 }
 
 /* Labels de formulario */
 .form-label {
     display: block;
-    font-size: 0.95rem;
+    font-size: 0.875rem;
     font-weight: 600;
-    color: #334155;                        /* slate-700 */
-    margin-bottom: 0.25rem;
+    color: #94a3b8;                        /* slate-400 */
+    margin-bottom: 0.5rem;
+    letter-spacing: 0.025em;
 }
 
-.dark .form-label {
-    color: #e2e8f0 !important;             /* slate-200 */
+html.dark .form-label {
+    color: #94a3b8;
+}
+
+html:not(.dark) .form-label {
+    color: #475569;
 }
 
 button,
@@ -120,24 +124,61 @@ textarea {
 }
 
 .text-sm {
-    font-size: 0.95rem !important;
-    line-height: 1.6 !important;
+    font-size: 0.875rem !important;
+    line-height: 1.5 !important;
 }
 
 .text-xs {
-    font-size: 0.88rem !important;
-    line-height: 1.55 !important;
+    font-size: 0.75rem !important;
+    line-height: 1.4 !important;
 }
 
 /* Autofill en Chrome (evita fondo amarillo ilegible) */
 input.form-input:-webkit-autofill,
 input.input-cop:-webkit-autofill {
+    -webkit-text-fill-color: #ffffff;
+    -webkit-box-shadow: 0 0 0 1000px #1E293B inset;
+}
+
+html:not(.dark) input.form-input:-webkit-autofill,
+html:not(.dark) input.input-cop:-webkit-autofill {
     -webkit-text-fill-color: #0f172a;
     -webkit-box-shadow: 0 0 0 1000px #ffffff inset;
 }
 
-.dark input.form-input:-webkit-autofill,
-.dark input.input-cop:-webkit-autofill {
-    -webkit-text-fill-color: #ffffff !important;
-    -webkit-box-shadow: 0 0 0 1000px #1e293b inset !important;
+/* Checkbox y Radio personalizados */
+input[type="checkbox"],
+input[type="radio"] {
+    accent-color: #10B981;
+    width: 1.125rem;
+    height: 1.125rem;
+    cursor: pointer;
+}
+
+html.dark input[type="checkbox"],
+html.dark input[type="radio"] {
+    accent-color: #10B981;
+}
+
+/* Scrollbar personalizado para selects y textareas */
+.form-input::-webkit-scrollbar,
+textarea::-webkit-scrollbar {
+    width: 8px;
+}
+
+.form-input::-webkit-scrollbar-track,
+textarea::-webkit-scrollbar-track {
+    background: #1E293B;
+    border-radius: 4px;
+}
+
+.form-input::-webkit-scrollbar-thumb,
+textarea::-webkit-scrollbar-thumb {
+    background: #334155;
+    border-radius: 4px;
+}
+
+.form-input::-webkit-scrollbar-thumb:hover,
+textarea::-webkit-scrollbar-thumb:hover {
+    background: #475569;
 }
