@@ -506,6 +506,9 @@ def calendario_view(request):
             eventos_por_dia[dia] = []
         eventos_por_dia[dia].append(evento)
     
+    # Crear lista de días con eventos para fácil acceso en template
+    dias_con_eventos = list(eventos_por_dia.keys())
+    
     # Generar calendario
     cal = calendar.Calendar()
     semanas = cal.monthdayscalendar(year, month)
