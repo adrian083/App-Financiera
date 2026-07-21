@@ -185,11 +185,18 @@
         <form method="post" action="{% url 'gasto_fijo_editar' p.pk %}" class="space-y-4">
             {% csrf_token %}
             <div><label class="form-label">Descripción</label><input type="text" name="descripcion" value="{{ p.descripcion }}" class="form-input" required></div>
-            <div><label class="form-label">Monto mensual</label><input type="text" name="monto" value="{{ p.monto }}" class="form-input input-cop" data-cop="true" required></div>
+            <div><label class="form-label">Monto</label><input type="text" name="monto" value="{{ p.monto }}" class="form-input input-cop" data-cop="true" required></div>
             <div><label class="form-label">Categoría</label><select name="categoria" class="form-input">
                 {% for cat in request.user.categorias.all %}
                 <option value="{{ cat.pk }}" {% if cat.pk == p.categoria.pk %}selected{% endif %}>{{ cat.nombre }}</option>
                 {% endfor %}
+            </select></div>
+            <div><label class="form-label">Frecuencia</label><select name="frecuencia" class="form-input">
+                <option value="mensual" {% if p.frecuencia == 'mensual' %}selected{% endif %}>Cada mes</option>
+                <option value="bimensual" {% if p.frecuencia == 'bimensual' %}selected{% endif %}>Cada 2 meses</option>
+                <option value="trimestral" {% if p.frecuencia == 'trimestral' %}selected{% endif %}>Cada 3 meses</option>
+                <option value="semestral" {% if p.frecuencia == 'semestral' %}selected{% endif %}>Cada 6 meses</option>
+                <option value="anual" {% if p.frecuencia == 'anual' %}selected{% endif %}>Cada año</option>
             </select></div>
             <label class="flex items-center gap-2 text-sm text-slate-400">
                 <input type="checkbox" name="activa" {% if p.activa %}checked{% endif %} class="rounded"> Activa (se copia al ciclo)
