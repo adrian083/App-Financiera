@@ -80,11 +80,24 @@ def dashboard(request):
         movimientos_qs = movimientos_qs.filter(tipo__in=[Movimiento.ENVIO_AHORRO, Movimiento.INYECCION_AHORRO])
 
     chart_labels, chart_data, chart_colors = [], [], []
+    gastos_categoria = ciclo.gastos_por_categoria() if ciclo else []
+    for item in gastos_categoria:
+        chart_labels.append(item['categoria__nombre'])
+        chart_data.append(int(item['total']))
+        chart_colors.append(item['categoria__color'])
+
+    # Serie histórica del balance (sobrante por ciclo cerrado + ciclo actual)
+    ciclos_cerrados = list(
+        CicloMensual.objects.filter(usuario=user, estado=CicloMensual.CERRADO)
+        .order_by('fecha_inicio')
+    )
+    balance_labels, balance_data = [], []
+    for c in ciclos_cerrados:
+        balance_labels.append(c.fecha_inicio.strftime('%d/%m'))
+        balance_data.append(int(c.sobrante_transferido))
     if ciclo:
-        for item in ciclo.gastos_por_categoria():
-            chart_labels.append(item['categoria__nombre'])
-            chart_data.append(int(item['total']))
-            chart_colors.append(item['categoria__color'])
+        balance_labels.append('Actual')
+        balance_data.append(int(ciclo.saldo_disponible()))
 
     fondo = FondoAhorro.obtener(user)
     inv_vencidas = inversiones_pendientes_cierre(user)
@@ -123,6 +136,9 @@ def dashboard(request):
         'chart_labels': json.dumps(chart_labels),
         'chart_data': json.dumps(chart_data),
         'chart_colors': json.dumps(chart_colors),
+        'gastos_categoria': gastos_categoria,
+        'balance_labels': json.dumps(balance_labels),
+        'balance_data': json.dumps(balance_data),
         'movimientos_recientes': movimientos_qs[:20],
         'form_gasto': MovimientoForm(usuario=user),
         'form_ingreso': IngresoForm(),
@@ -315,8 +331,12 @@ def detalle_ciclo(request, pk):
 @login_required
 def categorias_lista(request):
     categorias = Categoria.objects.filter(usuario=request.user)
+    config = ConfiguracionUsuario.obtener(request.user)
     return render(request, 'presupuesto/categorias.html', {
         'categorias': categorias,
+        'total_categorias': categorias.count(),
+        'total_activas': categorias.filter(activa=True).count(),
+        'config': config,
         'form': CategoriaForm(),
     })
 
@@ -337,9 +357,17 @@ def categoria_crear(request):
 
 @login_required
 def gastos_fijos_lista(request):
+    from django.db.models import Sum
+
     plantillas = GastoFijoPlantilla.objects.filter(usuario=request.user)
+    activas = plantillas.filter(activa=True)
+    total_fijo = activas.aggregate(t=Sum('monto'))['t'] or 0
     return render(request, 'presupuesto/gastos_fijos.html', {
         'plantillas': plantillas,
+        'total_fijo': total_fijo,
+        'total_plantillas': plantillas.count(),
+        'total_activas': activas.count(),
+        'total_inactivas': plantillas.filter(activa=False).count(),
         'form': GastoFijoPlantillaForm(usuario=request.user),
     })
 

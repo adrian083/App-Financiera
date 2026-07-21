@@ -10,6 +10,8 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
+import os
+
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -23,8 +25,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-x%dsh=gr!#!9_cva2k$8f9xz!4=hxgmjnvwnadc4f!)qc5epf^'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
-ALLOWED_HOSTS = ['AppFinanciera.pythonanywhere.com']
+DEBUG = os.environ.get('DJANGO_DEBUG', 'False') == 'True'
+ALLOWED_HOSTS = os.environ.get(
+    'DJANGO_ALLOWED_HOSTS', 'AppFinanciera.pythonanywhere.com',
+).split(',')
+
+# Trust the dev preview origin(s) for CSRF-protected POST requests.
+_csrf_origins = os.environ.get('DJANGO_CSRF_TRUSTED_ORIGINS', '')
+CSRF_TRUSTED_ORIGINS = [o for o in _csrf_origins.split(',') if o]
 
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'dashboard'

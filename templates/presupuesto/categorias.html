@@ -1,42 +1,96 @@
 {% extends 'base.html' %}
+{% load finanzas_tags %}
 
-{% block title %}Categorías{% endblock %}
+{% block title %}Categorías — FinanzasApp{% endblock %}
+{% block header_eyebrow %}Ajustes{% endblock %}
+{% block header_title %}Categorías de gastos{% endblock %}
 
 {% block content %}
-<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-    <div>
-        <h1 class="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-4">Categorías de gastos</h1>
-        <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm divide-y divide-slate-200 dark:divide-slate-700">
-            {% for cat in categorias %}
-            <div class="flex items-center justify-between px-4 py-3">
-                <div class="flex items-center gap-3">
-                    <span class="w-4 h-4 rounded-full" style="background: {{ cat.color }}"></span>
-                    <span class="font-medium text-slate-900 dark:text-slate-100">{{ cat.nombre }}</span>
+<!-- ===================== SETTINGS TABS ===================== -->
+<div class="mb-6 flex flex-wrap gap-1 p-1 rounded-xl bg-fintech-card border border-fintech-border w-full sm:w-auto sm:inline-flex">
+    <a href="{% url 'configuracion_editar' %}" class="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-slate-400 hover:text-white transition-colors">
+        <i class="fas fa-user text-xs"></i> Perfil y preferencias
+    </a>
+    <a href="{% url 'categorias_lista' %}" class="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-fintech-emerald/15 text-fintech-emeraldLight">
+        <i class="fas fa-tags text-xs"></i> Categorías
+    </a>
+    <a href="{% url 'gastos_fijos_lista' %}" class="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-slate-400 hover:text-white transition-colors">
+        <i class="fas fa-calendar-alt text-xs"></i> Gastos fijos
+    </a>
+</div>
+
+<div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+    <!-- ===================== CATEGORY LIST ===================== -->
+    <div class="xl:col-span-2">
+        <div class="bg-fintech-card rounded-2xl border border-fintech-border p-5 lg:p-6">
+            <div class="flex items-center justify-between mb-5">
+                <h2 class="text-white font-bold text-lg">Tus categorías</h2>
+                <div class="flex items-center gap-2">
+                    <span class="px-2.5 py-1 rounded-lg bg-fintech-bg border border-fintech-border text-slate-300 text-xs font-medium">{{ total_categorias }} total</span>
+                    <span class="px-2.5 py-1 rounded-lg bg-fintech-emerald/10 text-fintech-emeraldLight text-xs font-medium">{{ total_activas }} activas</span>
                 </div>
-                <span class="text-xs {% if cat.activa %}text-emerald-600{% else %}text-slate-500 dark:text-slate-300{% endif %}">
-                    {% if cat.activa %}Activa{% else %}Inactiva{% endif %}
-                </span>
             </div>
-            {% empty %}
-            <p class="px-4 py-6 text-slate-700 dark:text-slate-300 text-sm">No hay categorías. Crea la primera.</p>
-            {% endfor %}
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                {% for cat in categorias %}
+                <div class="group flex items-center gap-3 p-3.5 rounded-xl bg-fintech-bg border border-fintech-border hover:border-slate-500 transition-colors">
+                    <span class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style="background-color: {{ cat.color }}22;">
+                        <span class="w-4 h-4 rounded-full" style="background-color: {{ cat.color }};"></span>
+                    </span>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-white font-medium truncate">{{ cat.nombre }}</p>
+                        {% if cat.activa %}
+                        <span class="text-[11px] font-medium text-fintech-emeraldLight">Activa</span>
+                        {% else %}
+                        <span class="text-[11px] font-medium text-slate-500">Inactiva</span>
+                        {% endif %}
+                    </div>
+                    {% if user.is_staff %}
+                    <a href="{% url 'admin:presupuesto_categoria_change' cat.pk %}" title="Editar en admin"
+                        class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-500 hover:text-fintech-cyan hover:bg-fintech-cyan/10 transition-colors">
+                        <i class="fas fa-pen text-xs"></i>
+                    </a>
+                    {% endif %}
+                </div>
+                {% empty %}
+                <div class="sm:col-span-2 text-center py-12">
+                    <div class="w-16 h-16 rounded-2xl bg-fintech-bg border border-fintech-border flex items-center justify-center mx-auto mb-3">
+                        <i class="fas fa-tags text-slate-600 text-2xl"></i>
+                    </div>
+                    <p class="text-slate-400">No hay categorías todavía.</p>
+                    <p class="text-slate-500 text-sm mt-1">Crea la primera en el panel de la derecha.</p>
+                </div>
+                {% endfor %}
+            </div>
         </div>
     </div>
 
-    <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm h-fit">
-        <h2 class="font-semibold text-slate-900 dark:text-slate-100 mb-4">Nueva categoría</h2>
-        <form method="post" action="{% url 'categoria_crear' %}" class="space-y-3">
-            {% csrf_token %}
-            {% for field in form %}
-            <div>
-                <label class="block text-sm text-slate-700 dark:text-slate-300 mb-1">{{ field.label }}</label>
-                {{ field }}
+    <!-- ===================== ADD FORM ===================== -->
+    <div class="xl:col-span-1">
+        <div class="bg-fintech-card rounded-2xl border border-fintech-border p-5 lg:p-6 xl:sticky xl:top-24">
+            <div class="flex items-center gap-3 mb-5">
+                <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-fintech-emerald to-fintech-cyan flex items-center justify-center">
+                    <i class="fas fa-plus text-white"></i>
+                </div>
+                <div>
+                    <h2 class="text-white font-bold text-lg leading-tight">Nueva categoría</h2>
+                    <p class="text-slate-400 text-xs">Organiza tus gastos</p>
+                </div>
             </div>
-            {% endfor %}
-            <button type="submit" class="w-full bg-primary-600 text-white py-3 rounded-xl font-semibold hover:bg-primary-700 text-base">
-                Crear categoría
-            </button>
-        </form>
+            <form method="post" action="{% url 'categoria_crear' %}" class="space-y-4">
+                {% csrf_token %}
+                {% for field in form %}
+                <div>
+                    <label class="form-label">{{ field.label }}</label>
+                    {{ field }}
+                    {% for e in field.errors %}<p class="text-xs text-fintech-rose mt-1">{{ e }}</p>{% endfor %}
+                </div>
+                {% endfor %}
+                <button type="submit" class="w-full bg-gradient-to-r from-fintech-emerald to-fintech-cyan text-white py-3.5 rounded-xl font-semibold hover:opacity-90 transition-opacity shadow-lg shadow-fintech-emerald/25">
+                    Crear categoría
+                </button>
+            </form>
+        </div>
     </div>
 </div>
 {% endblock %}

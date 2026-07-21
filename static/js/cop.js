@@ -86,24 +86,26 @@ function toggleEnvioAhorro() {
     }
 }
 
-function initPieChart(canvasId, labels, data, colors) {
+function initPieChart(canvasId, labels, data, colors, showLegend) {
     const canvas = document.getElementById(canvasId);
     if (!canvas || !labels.length) return;
     new Chart(canvas, {
-        type: 'pie',
+        type: 'doughnut',
         data: {
             labels: labels,
             datasets: [{
                 data: data,
                 backgroundColor: colors,
                 borderWidth: 2,
-                borderColor: '#fff',
+                borderColor: '#0F172A',
             }]
         },
         options: {
             responsive: true,
+            maintainAspectRatio: false,
+            cutout: '62%',
             plugins: {
-                legend: { position: 'bottom' },
+                legend: { display: showLegend !== false, position: 'bottom', labels: { color: '#94A3B8', padding: 16 } },
                 tooltip: {
                     callbacks: {
                         label: function(ctx) {

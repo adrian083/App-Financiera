@@ -1,51 +1,202 @@
 {% extends 'base.html' %}
 {% load finanzas_tags %}
 
-{% block title %}Gastos fijos{% endblock %}
+{% block title %}Gastos fijos — FinanzasApp{% endblock %}
+{% block header_eyebrow %}Presupuesto{% endblock %}
+{% block header_title %}Gastos fijos y variables{% endblock %}
 
 {% block content %}
-<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-    <div>
-        <h1 class="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-2">Plantillas de gastos fijos</h1>
-        <p class="text-slate-600 dark:text-slate-400 text-sm mb-4">Se copian automáticamente al iniciar cada nuevo ciclo.</p>
-        <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm divide-y divide-slate-200 dark:divide-slate-700">
-            {% for p in plantillas %}
-            <div class="flex items-center justify-between px-4 py-3">
-                <div>
-                    <p class="font-medium text-slate-900 dark:text-slate-100">{{ p.descripcion }}</p>
-                    <p class="text-xs text-slate-500 dark:text-slate-400">{{ p.categoria.nombre }}</p>
+<!-- ===================== PAGE HEADING (mobile) ===================== -->
+<div class="lg:hidden mb-5">
+    <h1 class="text-2xl font-bold text-white">Gastos fijos</h1>
+    <p class="text-slate-400 text-sm mt-1">Plantillas que se copian al iniciar cada ciclo.</p>
+</div>
+
+<!-- ===================== SUMMARY CARDS ===================== -->
+<div class="grid grid-cols-2 xl:grid-cols-4 gap-3 lg:gap-5 mb-6">
+    <div class="bg-gradient-to-br from-fintech-rose/20 to-fintech-rose/5 rounded-2xl border border-fintech-rose/30 p-4 lg:p-5">
+        <div class="flex items-center justify-between mb-2">
+            <span class="text-slate-300 text-xs lg:text-sm font-medium">Total fijo mensual</span>
+            <div class="w-9 h-9 rounded-xl bg-fintech-rose/20 flex items-center justify-center shrink-0">
+                <i class="fas fa-file-invoice-dollar text-fintech-rose text-sm"></i>
+            </div>
+        </div>
+        <p class="text-xl lg:text-2xl font-extrabold text-fintech-rose tracking-tight">{{ total_fijo|cop }}</p>
+        <p class="text-[11px] text-slate-400 mt-1">Suma de plantillas activas</p>
+    </div>
+
+    <div class="bg-fintech-card rounded-2xl border border-fintech-border p-4 lg:p-5">
+        <div class="flex items-center justify-between mb-2">
+            <span class="text-slate-300 text-xs lg:text-sm font-medium">Plantillas</span>
+            <div class="w-9 h-9 rounded-xl bg-fintech-cyan/20 flex items-center justify-center shrink-0">
+                <i class="fas fa-layer-group text-fintech-cyan text-sm"></i>
+            </div>
+        </div>
+        <p class="text-xl lg:text-2xl font-extrabold text-white tracking-tight">{{ total_plantillas }}</p>
+        <p class="text-[11px] text-slate-400 mt-1">Gastos configurados</p>
+    </div>
+
+    <div class="bg-fintech-card rounded-2xl border border-fintech-border p-4 lg:p-5">
+        <div class="flex items-center justify-between mb-2">
+            <span class="text-slate-300 text-xs lg:text-sm font-medium">Activas</span>
+            <div class="w-9 h-9 rounded-xl bg-fintech-emerald/20 flex items-center justify-center shrink-0">
+                <i class="fas fa-circle-check text-fintech-emeraldLight text-sm"></i>
+            </div>
+        </div>
+        <p class="text-xl lg:text-2xl font-extrabold text-fintech-emeraldLight tracking-tight">{{ total_activas }}</p>
+        <p class="text-[11px] text-slate-400 mt-1">Se copian al ciclo</p>
+    </div>
+
+    <div class="bg-fintech-card rounded-2xl border border-fintech-border p-4 lg:p-5">
+        <div class="flex items-center justify-between mb-2">
+            <span class="text-slate-300 text-xs lg:text-sm font-medium">Inactivas</span>
+            <div class="w-9 h-9 rounded-xl bg-slate-500/20 flex items-center justify-center shrink-0">
+                <i class="fas fa-circle-pause text-slate-400 text-sm"></i>
+            </div>
+        </div>
+        <p class="text-xl lg:text-2xl font-extrabold text-slate-300 tracking-tight">{{ total_inactivas }}</p>
+        <p class="text-[11px] text-slate-400 mt-1">En pausa</p>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+    <!-- ===================== LIST + FILTERS ===================== -->
+    <div class="xl:col-span-2">
+        <div class="bg-fintech-card rounded-2xl border border-fintech-border p-4 lg:p-6">
+            <!-- Filter bar -->
+            <div class="flex flex-col sm:flex-row gap-3 mb-5">
+                <div class="relative flex-1">
+                    <i class="fas fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i>
+                    <input type="text" id="gf-search" placeholder="Buscar gasto…"
+                        class="w-full h-11 rounded-xl bg-fintech-bg border border-fintech-border pl-10 pr-4 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-fintech-emerald focus:ring-2 focus:ring-fintech-emerald/15 transition-all">
                 </div>
-                <div class="text-right">
-                    <p class="font-semibold text-slate-900 dark:text-slate-100">{{ p.monto|cop }}</p>
-                    <p class="text-xs {% if p.activa %}text-emerald-600{% else %}text-slate-400 dark:text-slate-500{% endif %}">
-                        {% if p.activa %}Activa{% else %}Inactiva{% endif %}
-                    </p>
+                <div class="flex gap-2">
+                    <button type="button" data-status="todos" class="gf-status-btn h-11 px-4 rounded-xl text-sm font-medium bg-fintech-emerald/10 text-fintech-emeraldLight border border-fintech-emerald/20 transition-colors">Todos</button>
+                    <button type="button" data-status="activa" class="gf-status-btn h-11 px-4 rounded-xl text-sm font-medium text-slate-400 border border-fintech-border hover:text-white transition-colors">Activas</button>
+                    <button type="button" data-status="inactiva" class="gf-status-btn h-11 px-4 rounded-xl text-sm font-medium text-slate-400 border border-fintech-border hover:text-white transition-colors">Inactivas</button>
                 </div>
             </div>
-            {% empty %}
-            <p class="px-4 py-6 text-slate-500 dark:text-slate-400 text-sm">No hay gastos fijos configurados.</p>
-            {% endfor %}
+
+            <!-- List -->
+            <div id="gf-list" class="space-y-2.5">
+                {% for p in plantillas %}
+                <div class="gf-item flex items-center gap-4 p-3.5 rounded-xl bg-fintech-bg border border-fintech-border hover:border-slate-500 transition-colors"
+                    data-name="{{ p.descripcion|lower }}" data-status="{% if p.activa %}activa{% else %}inactiva{% endif %}">
+                    <div class="w-11 h-11 rounded-xl flex items-center justify-center shrink-0" style="background-color: {{ p.categoria.color }}22;">
+                        <i class="fas fa-receipt" style="color: {{ p.categoria.color }};"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-white font-medium truncate">{{ p.descripcion }}</p>
+                        <div class="flex items-center gap-2 mt-1 flex-wrap">
+                            <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[11px] font-medium"
+                                style="background-color: {{ p.categoria.color }}1f; color: {{ p.categoria.color }};">
+                                <span class="w-1.5 h-1.5 rounded-full" style="background-color: {{ p.categoria.color }};"></span>
+                                {{ p.categoria.nombre }}
+                            </span>
+                            {% if p.activa %}
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium bg-fintech-emerald/10 text-fintech-emeraldLight">
+                                <i class="fas fa-circle text-[6px]"></i> Activa
+                            </span>
+                            {% else %}
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium bg-slate-500/15 text-slate-400">
+                                <i class="fas fa-circle text-[6px]"></i> Inactiva
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="text-right shrink-0">
+                        <p class="font-bold text-white">{{ p.monto|cop }}</p>
+                        <p class="text-slate-500 text-xs">/ mes</p>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-center py-12">
+                    <div class="w-16 h-16 rounded-2xl bg-fintech-bg border border-fintech-border flex items-center justify-center mx-auto mb-3">
+                        <i class="fas fa-calendar-alt text-slate-600 text-2xl"></i>
+                    </div>
+                    <p class="text-slate-400">No hay gastos fijos configurados.</p>
+                    <p class="text-slate-500 text-sm mt-1">Agrega tu primera plantilla en el panel de la derecha.</p>
+                </div>
+                {% endfor %}
+            </div>
+            <div id="gf-empty" class="hidden text-center py-10">
+                <i class="fas fa-search text-slate-600 text-2xl mb-2"></i>
+                <p class="text-slate-400 text-sm">Sin resultados para tu búsqueda.</p>
+            </div>
         </div>
     </div>
 
-    <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm h-fit">
-        <h2 class="font-semibold mb-4 text-slate-900 dark:text-slate-100">Agregar gasto fijo</h2>
-        <form method="post" action="{% url 'gasto_fijo_crear' %}" class="space-y-3">
-            {% csrf_token %}
-            {% for field in form %}
-            <div>
-                <label class="block text-sm text-slate-700 dark:text-slate-300 mb-1">{{ field.label }}</label>
-                {{ field }}
+    <!-- ===================== ADD FORM ===================== -->
+    <div class="xl:col-span-1">
+        <div class="bg-fintech-card rounded-2xl border border-fintech-border p-5 lg:p-6 xl:sticky xl:top-24">
+            <div class="flex items-center gap-3 mb-5">
+                <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-fintech-emerald to-fintech-cyan flex items-center justify-center">
+                    <i class="fas fa-plus text-white"></i>
+                </div>
+                <div>
+                    <h2 class="text-white font-bold text-lg leading-tight">Nuevo gasto fijo</h2>
+                    <p class="text-slate-400 text-xs">Se replica cada ciclo</p>
+                </div>
             </div>
-            {% endfor %}
-            <button type="submit" class="w-full bg-primary-600 text-white py-3 rounded-xl font-semibold hover:bg-primary-700 text-base">
-                Guardar plantilla
-            </button>
-        </form>
+            <form method="post" action="{% url 'gasto_fijo_crear' %}" class="space-y-4">
+                {% csrf_token %}
+                {% for field in form %}
+                <div>
+                    <label class="form-label">{{ field.label }}</label>
+                    {{ field }}
+                    {% for e in field.errors %}<p class="text-xs text-fintech-rose mt-1">{{ e }}</p>{% endfor %}
+                </div>
+                {% endfor %}
+                <button type="submit" class="w-full bg-gradient-to-r from-fintech-emerald to-fintech-cyan text-white py-3.5 rounded-xl font-semibold hover:opacity-90 transition-opacity shadow-lg shadow-fintech-emerald/25">
+                    Guardar plantilla
+                </button>
+            </form>
+        </div>
     </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
-<script>document.addEventListener('DOMContentLoaded', initCOPInputs);</script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    if (typeof initCOPInputs === 'function') initCOPInputs();
+
+    var search = document.getElementById('gf-search');
+    var items = Array.prototype.slice.call(document.querySelectorAll('.gf-item'));
+    var emptyState = document.getElementById('gf-empty');
+    var statusButtons = Array.prototype.slice.call(document.querySelectorAll('.gf-status-btn'));
+    var activeStatus = 'todos';
+
+    var onClasses = ['bg-fintech-emerald/10', 'text-fintech-emeraldLight', 'border-fintech-emerald/20'];
+    var offClasses = ['text-slate-400', 'hover:text-white'];
+
+    function applyFilter() {
+        var q = (search.value || '').trim().toLowerCase();
+        var visible = 0;
+        items.forEach(function (el) {
+            var matchName = el.getAttribute('data-name').indexOf(q) !== -1;
+            var matchStatus = activeStatus === 'todos' || el.getAttribute('data-status') === activeStatus;
+            var show = matchName && matchStatus;
+            el.classList.toggle('hidden', !show);
+            if (show) visible++;
+        });
+        if (emptyState) emptyState.classList.toggle('hidden', visible !== 0 || items.length === 0);
+    }
+
+    if (search) search.addEventListener('input', applyFilter);
+
+    statusButtons.forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            activeStatus = btn.getAttribute('data-status');
+            statusButtons.forEach(function (b) {
+                onClasses.forEach(function (c) { b.classList.remove(c); });
+                offClasses.forEach(function (c) { b.classList.add(c); });
+            });
+            offClasses.forEach(function (c) { btn.classList.remove(c); });
+            onClasses.forEach(function (c) { btn.classList.add(c); });
+            applyFilter();
+        });
+    });
+});
+</script>
 {% endblock %}

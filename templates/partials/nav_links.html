@@ -1,0 +1,29 @@
+{% comment %}
+Sidebar navigation links. Expects `url_name` = request.resolver_match.url_name.
+{% endcomment %}
+{% with active="flex items-center gap-3 px-4 py-3 rounded-xl bg-fintech-emerald/10 text-fintech-emeraldLight border border-fintech-emerald/20 font-medium transition-all" idle="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-fintech-bg border border-transparent hover:border-fintech-border font-medium transition-all" %}
+<a href="{% url 'dashboard' %}" class="{% if url_name == 'dashboard' %}{{ active }}{% else %}{{ idle }}{% endif %}">
+    <i class="fas fa-home w-5 text-center text-lg"></i>
+    <span>Dashboard</span>
+</a>
+<a href="{% url 'gastos_fijos_lista' %}" class="{% if url_name == 'gastos_fijos_lista' %}{{ active }}{% else %}{{ idle }}{% endif %}">
+    <i class="fas fa-calendar-alt w-5 text-center text-lg"></i>
+    <span>Gastos Fijos</span>
+</a>
+<a href="{% url 'categorias_lista' %}" class="{% if url_name == 'categorias_lista' %}{{ active }}{% else %}{{ idle }}{% endif %}">
+    <i class="fas fa-tags w-5 text-center text-lg"></i>
+    <span>Categorías</span>
+</a>
+<a href="{% url 'dashboard_ahorros' %}" class="{% if url_name == 'dashboard_ahorros' %}{{ active }}{% else %}{{ idle }}{% endif %}">
+    <i class="fas fa-piggy-bank w-5 text-center text-lg"></i>
+    <span>Ahorros</span>
+</a>
+<a href="{% url 'historico_meses' %}" class="{% if url_name == 'historico_meses' or url_name == 'detalle_ciclo' %}{{ active }}{% else %}{{ idle }}{% endif %}">
+    <i class="fas fa-chart-line w-5 text-center text-lg"></i>
+    <span>Histórico</span>
+</a>
+<a href="{% url 'configuracion_editar' %}" class="{% if url_name == 'configuracion_editar' or url_name == 'configuracion_inicial' %}{{ active }}{% else %}{{ idle }}{% endif %}">
+    <i class="fas fa-cog w-5 text-center text-lg"></i>
+    <span>Configuración</span>
+</a>
+{% endwith %}
