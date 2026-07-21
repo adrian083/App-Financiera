@@ -2,359 +2,193 @@
 {% load finanzas_tags static %}
 
 {% block title %}Dashboard — {{ ciclo.etiqueta|default:"FinanzasApp" }}{% endblock %}
+{% block header_eyebrow %}Ciclo actual{% endblock %}
+{% block header_title %}{{ ciclo.etiqueta|default:"Dashboard" }}{% endblock %}
 
 {% block content %}
 {% if ciclo %}
-<!-- Fintech Dashboard Container -->
-<div class="min-h-screen bg-fintech-bg pb-24 lg:pb-8">
-    
-    <!-- Mobile Header -->
-    <div class="lg:hidden sticky top-0 z-40 bg-fintech-bg/95 backdrop-blur-lg border-b border-fintech-border px-4 py-3">
-        <div class="flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-fintech-emerald to-fintech-cyan flex items-center justify-center">
-                    <i class="fas fa-wallet text-white text-lg"></i>
-                </div>
-                <div>
-                    <h1 class="text-white font-semibold text-lg">{{ ciclo.etiqueta }}</h1>
-                    <p class="text-slate-400 text-xs">Corte día {{ config.dia_corte }}</p>
-                </div>
+<!-- Alertas -->
+{% if ciclo_en_plazo_confirmacion and not ocultar_banner_pago %}
+<div class="mb-6 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div class="flex items-center gap-3">
+            <div class="w-12 h-12 rounded-xl bg-amber-500/20 flex items-center justify-center shrink-0">
+                <i class="fas fa-bell text-amber-400 text-xl"></i>
             </div>
-            <button onclick="openModal('modal-quick-add')" class="w-12 h-12 rounded-full bg-fintech-emerald hover:bg-fintech-emeraldLight text-white shadow-lg shadow-fintech-emerald/30 transition-all duration-300 hover:scale-110 flex items-center justify-center">
-                <i class="fas fa-plus text-xl"></i>
-            </button>
-        </div>
-    </div>
-
-    <!-- Desktop Sidebar -->
-    <div class="hidden lg:flex fixed left-0 top-0 h-screen w-64 bg-fintech-card border-r border-fintech-border flex-col z-40 overflow-y-auto">
-        <div class="p-6 border-b border-fintech-border pt-8">
-            <div class="flex items-center gap-3">
-                <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-fintech-emerald to-fintech-cyan flex items-center justify-center">
-                    <i class="fas fa-wallet text-white text-xl"></i>
-                </div>
-                <div>
-                    <h1 class="text-white font-bold text-xl">FinanzasApp</h1>
-                    <p class="text-slate-400 text-sm">{{ ciclo.etiqueta }}</p>
-                </div>
+            <div>
+                <p class="font-semibold text-amber-200">Fecha de pago estimada (Día {{ config.dia_corte }})</p>
+                <p class="text-slate-400 text-sm mt-0.5">Confirma antes del <strong class="text-amber-200">{{ fechas_plazo_confirmacion.1|date:"d/m/Y" }}</strong></p>
             </div>
         </div>
-        
-        <nav class="flex-1 p-4 space-y-2">
-            <a href="{% url 'dashboard' %}" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-fintech-emerald/10 text-fintech-emeraldLight border border-fintech-emerald/20 transition-all duration-300 hover:bg-fintech-emerald/20">
-                <i class="fas fa-home text-lg"></i>
-                <span class="font-medium">Dashboard</span>
-            </a>
-            <a href="{% url 'dashboard_ahorros' %}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-fintech-card border border-transparent hover:border-fintech-border transition-all duration-300">
-                <i class="fas fa-piggy-bank text-lg"></i>
-                <span class="font-medium">Ahorros</span>
-            </a>
-            <a href="{% url 'historico_meses' %}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-fintech-card border border-transparent hover:border-fintech-border transition-all duration-300">
-                <i class="fas fa-chart-line text-lg"></i>
-                <span class="font-medium">Histórico</span>
-            </a>
-            <a href="{% url 'categorias_lista' %}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-fintech-card border border-transparent hover:border-fintech-border transition-all duration-300">
-                <i class="fas fa-tags text-lg"></i>
-                <span class="font-medium">Categorías</span>
-            </a>
-            <a href="{% url 'gastos_fijos_lista' %}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-fintech-card border border-transparent hover:border-fintech-border transition-all duration-300">
-                <i class="fas fa-calendar-alt text-lg"></i>
-                <span class="font-medium">Gastos Fijos</span>
-            </a>
-            <a href="{% url 'configuracion_editar' %}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-fintech-card border border-transparent hover:border-fintech-border transition-all duration-300">
-                <i class="fas fa-cog text-lg"></i>
-                <span class="font-medium">Configuración</span>
-            </a>
-        </nav>
-        
-        <div class="p-4 border-t border-fintech-border">
-            <div class="flex items-center gap-3 px-4 py-3 rounded-xl bg-fintech-card border border-fintech-border">
-                <div class="w-10 h-10 rounded-full bg-fintech-cyan/20 flex items-center justify-center">
-                    <i class="fas fa-user text-fintech-cyan"></i>
-                </div>
-                <div class="flex-1">
-                    <p class="text-white font-medium text-sm">{{ user.username }}</p>
-                </div>
-                <a href="{% url 'logout' %}" class="text-slate-400 hover:text-fintech-rose transition-colors">
-                    <i class="fas fa-sign-out-alt"></i>
-                </a>
-            </div>
-        </div>
-    </div>
-
-    <!-- Main Content -->
-    <div class="lg:ml-64 p-4 lg:p-8">
-        
-        <!-- Alertas -->
-        {% if ciclo_en_plazo_confirmacion and not ocultar_banner_pago %}
-        <div class="mb-6 rounded-2xl border border-amber-500/30 bg-gradient-to-r from-amber-900/20 to-amber-800/20 p-4 backdrop-blur-sm transition-all duration-300 hover:shadow-lg hover:shadow-amber-500/10">
-            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <div class="flex items-center gap-3">
-                    <div class="w-12 h-12 rounded-xl bg-amber-500/20 flex items-center justify-center">
-                        <i class="fas fa-bell text-amber-400 text-xl"></i>
-                    </div>
-                    <div>
-                        <p class="font-semibold text-amber-200">📢 Fecha de pago estimada (Día {{ config.dia_corte }})</p>
-                        <p class="text-slate-400 text-sm mt-1">
-                            Confirma antes del <strong>{{ fechas_plazo_confirmacion.1|date:"d/m/Y" }}</strong>
-                        </p>
-                    </div>
-                </div>
-                <div class="flex flex-wrap gap-2">
-                    <a href="{% url 'confirmar_ciclo' %}" class="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-white font-medium transition-all duration-300 hover:scale-105">
-                        Confirmar pago
-                    </a>
-                    <a href="{% url 'ocultar_banner_pago' %}" class="px-4 py-2 rounded-xl border border-slate-600 text-slate-300 hover:bg-slate-700 transition-all duration-300">
-                        Aún no
-                    </a>
-                </div>
-            </div>
-        </div>
-        {% endif %}
-        
-        {% if inversiones_proximas or inversiones_vencidas %}
-        <div class="mb-6 space-y-2">
-            {% for inv in inversiones_vencidas %}
-            <div class="rounded-xl px-4 py-3 bg-gradient-to-r from-red-900/20 to-red-800/20 border border-red-500/30 text-red-200 text-sm transition-all duration-300 hover:shadow-lg hover:shadow-red-500/10">
-                <div class="flex items-center gap-3">
-                    <i class="fas fa-exclamation-triangle text-red-400"></i>
-                    <span><strong>{{ inv.nombre }}</strong> — {{ inv.monto_inicial|cop }}</span>
-                    <a href="{% url 'dashboard_ahorros' %}" class="ml-auto text-red-400 hover:text-red-300 underline">Gestionar</a>
-                </div>
-            </div>
-            {% endfor %}
-            {% for inv in inversiones_proximas %}
-            <div class="rounded-xl px-4 py-3 bg-gradient-to-r from-amber-900/20 to-amber-800/20 border border-amber-500/30 text-amber-200 text-sm transition-all duration-300 hover:shadow-lg hover:shadow-amber-500/10">
-                <div class="flex items-center gap-3">
-                    <i class="fas fa-clock text-amber-400"></i>
-                    <span>Vence {{ inv.fecha_vencimiento|date:"d/m/Y" }}: <strong>{{ inv.nombre }}</strong></span>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-        {% endif %}
-
-        <!-- Balance Cards Carousel (Mobile) / Grid (Desktop) -->
-        <div class="mb-8">
-            <h2 class="text-white font-bold text-xl mb-4 lg:hidden">Tu Balance</h2>
-            
-            <!-- Mobile Carousel -->
-            <div class="lg:hidden flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide">
-                <div class="flex-shrink-0 w-72 snap-center">
-                    <div class="bg-gradient-to-br from-fintech-emerald/20 to-fintech-emerald/5 rounded-2xl border border-fintech-emerald/30 p-5 backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-fintech-emerald/20">
-                        <div class="flex items-center justify-between mb-3">
-                            <span class="text-slate-400 text-sm font-medium">Disponible</span>
-                            <div class="w-8 h-8 rounded-lg bg-fintech-emerald/20 flex items-center justify-center">
-                                <i class="fas fa-wallet text-fintech-emerald"></i>
-                            </div>
-                        </div>
-                        <p class="text-3xl font-bold text-fintech-emeraldLight">{{ ciclo.saldo_disponible|cop }}</p>
-                        <div class="mt-3 flex items-center gap-2">
-                            <span class="text-xs text-slate-400">Ciclo actual</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="flex-shrink-0 w-72 snap-center">
-                    <div class="bg-fintech-card rounded-2xl border border-fintech-border p-5 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-fintech-border/20">
-                        <div class="flex items-center justify-between mb-3">
-                            <span class="text-slate-400 text-sm font-medium">Salario</span>
-                            <div class="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center">
-                                <i class="fas fa-money-bill-wave text-blue-400"></i>
-                            </div>
-                        </div>
-                        <p class="text-2xl font-bold text-white">{{ ciclo.salario_ciclo|cop }}</p>
-                    </div>
-                </div>
-                
-                <div class="flex-shrink-0 w-72 snap-center">
-                    <div class="bg-fintech-card rounded-2xl border border-fintech-border p-5 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-fintech-border/20">
-                        <div class="flex items-center justify-between mb-3">
-                            <span class="text-slate-400 text-sm font-medium">Gastos</span>
-                            <div class="w-8 h-8 rounded-lg bg-fintech-rose/20 flex items-center justify-center">
-                                <i class="fas fa-arrow-down text-fintech-rose"></i>
-                            </div>
-                        </div>
-                        <p class="text-2xl font-bold text-fintech-rose">{{ ciclo.total_gastos|cop }}</p>
-                    </div>
-                </div>
-                
-                <div class="flex-shrink-0 w-72 snap-center">
-                    <div class="bg-fintech-card rounded-2xl border border-fintech-border p-5 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-fintech-border/20">
-                        <div class="flex items-center justify-between mb-3">
-                            <span class="text-slate-400 text-sm font-medium">Ahorro</span>
-                            <div class="w-8 h-8 rounded-lg bg-fintech-cyan/20 flex items-center justify-center">
-                                <i class="fas fa-piggy-bank text-fintech-cyan"></i>
-                            </div>
-                        </div>
-                        <p class="text-2xl font-bold text-fintech-cyan">{{ ciclo.total_enviado_ahorro|cop }}</p>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Desktop Grid -->
-            <div class="hidden lg:grid grid-cols-4 gap-6">
-                <div class="bg-gradient-to-br from-fintech-emerald/20 to-fintech-emerald/5 rounded-2xl border border-fintech-emerald/30 p-6 backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-fintech-emerald/20">
-                    <div class="flex items-center justify-between mb-4">
-                        <span class="text-slate-400 text-sm font-medium">Disponible</span>
-                        <div class="w-10 h-10 rounded-xl bg-fintech-emerald/20 flex items-center justify-center">
-                            <i class="fas fa-wallet text-fintech-emerald text-lg"></i>
-                        </div>
-                    </div>
-                    <p class="text-4xl font-bold text-fintech-emeraldLight">{{ ciclo.saldo_disponible|cop }}</p>
-                    <div class="mt-4 flex items-center gap-2">
-                        <span class="text-xs text-slate-400">Ciclo actual</span>
-                    </div>
-                </div>
-                
-                <div class="bg-fintech-card rounded-2xl border border-fintech-border p-6 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-fintech-border/20">
-                    <div class="flex items-center justify-between mb-4">
-                        <span class="text-slate-400 text-sm font-medium">Salario</span>
-                        <div class="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center">
-                            <i class="fas fa-money-bill-wave text-blue-400 text-lg"></i>
-                        </div>
-                    </div>
-                    <p class="text-3xl font-bold text-white">{{ ciclo.salario_ciclo|cop }}</p>
-                </div>
-                
-                <div class="bg-fintech-card rounded-2xl border border-fintech-border p-6 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-fintech-border/20">
-                    <div class="flex items-center justify-between mb-4">
-                        <span class="text-slate-400 text-sm font-medium">Gastos</span>
-                        <div class="w-10 h-10 rounded-xl bg-fintech-rose/20 flex items-center justify-center">
-                            <i class="fas fa-arrow-down text-fintech-rose text-lg"></i>
-                        </div>
-                    </div>
-                    <p class="text-3xl font-bold text-fintech-rose">{{ ciclo.total_gastos|cop }}</p>
-                </div>
-                
-                <div class="bg-fintech-card rounded-2xl border border-fintech-border p-6 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-fintech-border/20">
-                    <div class="flex items-center justify-between mb-4">
-                        <span class="text-slate-400 text-sm font-medium">Ahorro</span>
-                        <div class="w-10 h-10 rounded-xl bg-fintech-cyan/20 flex items-center justify-center">
-                            <i class="fas fa-piggy-bank text-fintech-cyan text-lg"></i>
-                        </div>
-                    </div>
-                    <p class="text-3xl font-bold text-fintech-cyan">{{ ciclo.total_enviado_ahorro|cop }}</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- Charts and Transactions Grid -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            
-            <!-- Balance Chart -->
-            <div class="lg:col-span-2 bg-fintech-card rounded-2xl border border-fintech-border p-6 transition-all duration-300 hover:shadow-xl hover:shadow-fintech-border/20">
-                <div class="flex items-center justify-between mb-6">
-                    <h2 class="text-white font-bold text-lg">Evolución del Balance</h2>
-                    <div class="flex gap-2">
-                        <button class="px-3 py-1 rounded-lg text-xs font-medium bg-fintech-emerald/10 text-fintech-emeraldLight border border-fintech-emerald/20 transition-all duration-300 hover:bg-fintech-emerald/20">Mes</button>
-                        <button class="px-3 py-1 rounded-lg text-xs font-medium text-slate-400 hover:text-white hover:bg-fintech-card border border-transparent hover:border-fintech-border transition-all duration-300">Año</button>
-                    </div>
-                </div>
-                <div class="h-64 max-h-[300px]">
-                    <canvas id="balanceChart"></canvas>
-                </div>
-            </div>
-
-            <!-- Expenses Donut Chart -->
-            <div class="bg-fintech-card rounded-2xl border border-fintech-border p-6 transition-all duration-300 hover:shadow-xl hover:shadow-fintech-border/20 lg:col-span-1">
-                <h2 class="text-white font-bold text-lg mb-6">Gastos por Categoría</h2>
-                {% if chart_data != "[]" %}
-                <div class="h-48 max-h-[200px] flex items-center justify-center">
-                    <canvas id="chartGastos"></canvas>
-                </div>
-                <div class="mt-4 space-y-2 pb-4">
-                    {% for label in chart_labels %}
-                    <div class="flex items-center justify-between text-sm">
-                        <span class="text-slate-400">{{ label }}</span>
-                        <span class="text-white font-medium">{{ chart_data|slice:forloop.counter0|first }}</span>
-                    </div>
-                    {% endfor %}
-                </div>
-                {% else %}
-                <p class="text-slate-400 text-sm text-center py-8">Sin gastos registrados.</p>
-                {% endif %}
-            </div>
-
-            <!-- Recent Transactions -->
-            <div class="lg:col-span-3 bg-fintech-card rounded-2xl border border-fintech-border p-6 transition-all duration-300 hover:shadow-xl hover:shadow-fintech-border/20">
-                <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
-                    <h2 class="text-white font-bold text-lg">Movimientos Recientes</h2>
-                    <div class="flex gap-2">
-                        <a href="?filtro=todos" class="px-3 py-1 rounded-lg text-xs font-medium {% if filtro_actual == 'todos' %}bg-fintech-emerald/10 text-fintech-emeraldLight border border-fintech-emerald/20{% else %}text-slate-400 hover:text-white hover:bg-fintech-card border border-transparent hover:border-fintech-border{% endif %} transition-all duration-300">Todos</a>
-                        <a href="?filtro=gasto" class="px-3 py-1 rounded-lg text-xs font-medium {% if filtro_actual == 'gasto' %}bg-fintech-rose/10 text-fintech-rose border border-fintech-rose/20{% else %}text-slate-400 hover:text-white hover:bg-fintech-card border border-transparent hover:border-fintech-border{% endif %} transition-all duration-300">Gastos</a>
-                        <a href="?filtro=ingreso" class="px-3 py-1 rounded-lg text-xs font-medium {% if filtro_actual == 'ingreso' %}bg-fintech-emerald/10 text-fintech-emeraldLight border border-fintech-emerald/20{% else %}text-slate-400 hover:text-white hover:bg-fintech-card border border-transparent hover:border-fintech-border{% endif %} transition-all duration-300">Ingresos</a>
-                        <a href="?filtro=ahorro" class="px-3 py-1 rounded-lg text-xs font-medium {% if filtro_actual == 'ahorro' %}bg-fintech-cyan/10 text-fintech-cyan border border-fintech-cyan/20{% else %}text-slate-400 hover:text-white hover:bg-fintech-card border border-transparent hover:border-fintech-border{% endif %} transition-all duration-300">Ahorro</a>
-                    </div>
-                </div>
-                
-                <div class="space-y-3">
-                    {% for m in movimientos_recientes %}
-                    <div class="flex items-center gap-4 p-4 rounded-xl bg-fintech-bg/50 border border-fintech-border transition-all duration-300 hover:bg-fintech-bg hover:scale-[1.02] hover:shadow-lg hover:shadow-fintech-border/10">
-                        <div class="w-12 h-12 rounded-xl flex items-center justify-center
-                            {% if m.tipo == 'gasto' %}bg-fintech-rose/20{% elif m.tipo == 'ingreso' %}bg-fintech-emerald/20{% elif m.tipo == 'envio_ahorro' %}bg-fintech-cyan/20{% else %}bg-blue-500/20{% endif %}">
-                            <i class="fas 
-                                {% if m.tipo == 'gasto' %}fa-arrow-down text-fintech-rose
-                                {% elif m.tipo == 'ingreso' %}fa-arrow-up text-fintech-emeraldLight
-                                {% elif m.tipo == 'envio_ahorro' %}fa-piggy-bank text-fintech-cyan
-                                {% else %}fa-plus text-blue-400{% endif %} text-lg"></i>
-                        </div>
-                        <div class="flex-1">
-                            <p class="text-white font-medium">{{ m.descripcion }}</p>
-                            <p class="text-slate-400 text-sm">{% if m.categoria %}{{ m.categoria.nombre }}{% endif %}</p>
-                        </div>
-                        <div class="text-right">
-                            <p class="text-white font-bold {% if m.tipo == 'gasto' %}text-fintech-rose{% elif m.tipo == 'ingreso' %}text-fintech-emeraldLight{% elif m.tipo == 'envio_ahorro' %}text-fintech-cyan{% endif %}">{{ m.monto|cop }}</p>
-                            <p class="text-slate-500 text-xs">{{ m.fecha|date:"d/m" }}</p>
-                        </div>
-                    </div>
-                    {% empty %}
-                    <div class="text-center py-8">
-                        <i class="fas fa-receipt text-slate-600 text-4xl mb-3"></i>
-                        <p class="text-slate-400">Sin movimientos registrados</p>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Mobile Bottom Navigation -->
-    <div class="lg:hidden fixed bottom-0 left-0 right-0 bg-fintech-card/95 backdrop-blur-lg border-t border-fintech-border z-50">
-        <div class="flex items-center justify-around py-3">
-            <a href="{% url 'dashboard' %}" class="flex flex-col items-center gap-1 text-fintech-emeraldLight">
-                <i class="fas fa-home text-xl"></i>
-                <span class="text-xs font-medium">Inicio</span>
-            </a>
-            <a href="{% url 'dashboard_ahorros' %}" class="flex flex-col items-center gap-1 text-slate-400 hover:text-white transition-colors">
-                <i class="fas fa-piggy-bank text-xl"></i>
-                <span class="text-xs font-medium">Ahorros</span>
-            </a>
-            <button onclick="openModal('modal-quick-add')" class="relative -top-6 w-14 h-14 rounded-full bg-gradient-to-br from-fintech-emerald to-fintech-cyan text-white shadow-lg shadow-fintech-emerald/30 flex items-center justify-center animate-pulse-slow hover:scale-110 transition-transform">
-                <i class="fas fa-plus text-2xl"></i>
-            </button>
-            <a href="{% url 'historico_meses' %}" class="flex flex-col items-center gap-1 text-slate-400 hover:text-white transition-colors">
-                <i class="fas fa-chart-line text-xl"></i>
-                <span class="text-xs font-medium">Histórico</span>
-            </a>
-            <a href="{% url 'configuracion_editar' %}" class="flex flex-col items-center gap-1 text-slate-400 hover:text-white transition-colors">
-                <i class="fas fa-cog text-xl"></i>
-                <span class="text-xs font-medium">Config</span>
-            </a>
+        <div class="flex flex-wrap gap-2">
+            <a href="{% url 'confirmar_ciclo' %}" class="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-900 font-semibold transition-colors">Confirmar pago</a>
+            <a href="{% url 'ocultar_banner_pago' %}" class="px-4 py-2.5 rounded-xl border border-slate-600 text-slate-300 hover:bg-fintech-card transition-colors">Aún no</a>
         </div>
     </div>
 </div>
+{% endif %}
+
+{% if inversiones_proximas or inversiones_vencidas %}
+<div class="mb-6 space-y-2">
+    {% for inv in inversiones_vencidas %}
+    <div class="rounded-xl px-4 py-3 bg-fintech-rose/10 border border-fintech-rose/30 text-sm">
+        <div class="flex items-center gap-3">
+            <i class="fas fa-exclamation-triangle text-fintech-rose"></i>
+            <span class="text-slate-200"><strong class="text-white">{{ inv.nombre }}</strong> — {{ inv.monto_inicial|cop }}</span>
+            <a href="{% url 'dashboard_ahorros' %}" class="ml-auto text-fintech-rose hover:underline font-medium">Gestionar</a>
+        </div>
+    </div>
+    {% endfor %}
+    {% for inv in inversiones_proximas %}
+    <div class="rounded-xl px-4 py-3 bg-amber-500/10 border border-amber-500/30 text-sm">
+        <div class="flex items-center gap-3">
+            <i class="fas fa-clock text-amber-400"></i>
+            <span class="text-slate-200">Vence {{ inv.fecha_vencimiento|date:"d/m/Y" }}: <strong class="text-white">{{ inv.nombre }}</strong></span>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<!-- Hero Cards -->
+<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 lg:gap-6 mb-6 lg:mb-8">
+    <div class="bg-gradient-to-br from-fintech-emerald/20 to-fintech-emerald/5 rounded-2xl border border-fintech-emerald/30 p-5 lg:p-6 transition-all duration-300 hover:shadow-xl hover:shadow-fintech-emerald/10">
+        <div class="flex items-center justify-between mb-3">
+            <span class="text-slate-300 text-sm font-medium">Saldo disponible</span>
+            <div class="w-10 h-10 rounded-xl bg-fintech-emerald/20 flex items-center justify-center">
+                <i class="fas fa-wallet text-fintech-emeraldLight"></i>
+            </div>
+        </div>
+        <p class="text-3xl lg:text-4xl font-extrabold text-fintech-emeraldLight tracking-tight">{{ ciclo.saldo_disponible|cop }}</p>
+        <p class="text-xs text-slate-400 mt-2">Ciclo {{ ciclo.etiqueta }}</p>
+    </div>
+
+    <div class="bg-fintech-card rounded-2xl border border-fintech-border p-5 lg:p-6 transition-all duration-300 hover:border-slate-500">
+        <div class="flex items-center justify-between mb-3">
+            <span class="text-slate-300 text-sm font-medium">Ingresos del mes</span>
+            <div class="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center">
+                <i class="fas fa-arrow-up text-blue-400"></i>
+            </div>
+        </div>
+        <p class="text-2xl lg:text-3xl font-bold text-white tracking-tight">{{ ciclo.total_ingresos|cop }}</p>
+        <p class="text-xs text-slate-400 mt-2">Salario {{ ciclo.salario_ciclo|cop }}</p>
+    </div>
+
+    <div class="bg-fintech-card rounded-2xl border border-fintech-border p-5 lg:p-6 transition-all duration-300 hover:border-slate-500">
+        <div class="flex items-center justify-between mb-3">
+            <span class="text-slate-300 text-sm font-medium">Gastos del mes</span>
+            <div class="w-10 h-10 rounded-xl bg-fintech-rose/20 flex items-center justify-center">
+                <i class="fas fa-arrow-down text-fintech-rose"></i>
+            </div>
+        </div>
+        <p class="text-2xl lg:text-3xl font-bold text-fintech-rose tracking-tight">{{ ciclo.total_gastos|cop }}</p>
+        <p class="text-xs text-slate-400 mt-2">Enviado a ahorro {{ ciclo.total_enviado_ahorro|cop }}</p>
+    </div>
+
+    <div class="bg-fintech-card rounded-2xl border border-fintech-border p-5 lg:p-6 transition-all duration-300 hover:border-slate-500">
+        <div class="flex items-center justify-between mb-3">
+            <span class="text-slate-300 text-sm font-medium">Fondo de ahorro</span>
+            <div class="w-10 h-10 rounded-xl bg-fintech-cyan/20 flex items-center justify-center">
+                <i class="fas fa-piggy-bank text-fintech-cyan"></i>
+            </div>
+        </div>
+        <p class="text-2xl lg:text-3xl font-bold text-fintech-cyan tracking-tight">{{ fondo.saldo_disponible|cop }}</p>
+        <a href="{% url 'dashboard_ahorros' %}" class="text-xs text-fintech-cyan hover:underline mt-2 inline-block">Ver ahorros e inversiones</a>
+    </div>
+</div>
+
+<!-- Charts -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6 mb-6 lg:mb-8">
+    <div class="lg:col-span-2 bg-fintech-card rounded-2xl border border-fintech-border p-5 lg:p-6">
+        <div class="flex items-center justify-between mb-4">
+            <div>
+                <h2 class="text-white font-bold text-lg">Evolución del balance</h2>
+                <p class="text-slate-400 text-sm">Sobrante transferido por ciclo</p>
+            </div>
+        </div>
+        <div class="h-64 max-h-[280px]">
+            <canvas id="balanceChart"></canvas>
+        </div>
+    </div>
+
+    <div class="bg-fintech-card rounded-2xl border border-fintech-border p-5 lg:p-6">
+        <h2 class="text-white font-bold text-lg mb-4">Gastos por categoría</h2>
+        {% if chart_data != "[]" %}
+        <div class="h-44 max-h-[180px] flex items-center justify-center">
+            <canvas id="chartGastos"></canvas>
+        </div>
+        <div class="mt-5 space-y-2.5 max-h-40 overflow-y-auto scrollbar-hide">
+            {% for row in gastos_categoria %}
+            <div class="flex items-center justify-between gap-3 text-sm">
+                <span class="flex items-center gap-2 min-w-0">
+                    <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color: {{ row.categoria__color }}"></span>
+                    <span class="text-slate-300 truncate">{{ row.categoria__nombre }}</span>
+                </span>
+                <span class="text-white font-semibold shrink-0">{{ row.total|cop }}</span>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-10">
+            <i class="fas fa-chart-pie text-slate-600 text-3xl mb-2"></i>
+            <p class="text-slate-400 text-sm">Sin gastos registrados.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Recent Transactions -->
+<div class="bg-fintech-card rounded-2xl border border-fintech-border p-5 lg:p-6">
+    <div class="flex flex-wrap items-center justify-between gap-4 mb-5">
+        <h2 class="text-white font-bold text-lg">Movimientos recientes</h2>
+        <div class="flex flex-wrap gap-2">
+            {% with pill_on="px-3 py-1.5 rounded-lg text-xs font-medium border" pill_off="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-white border border-transparent hover:border-fintech-border transition-colors" %}
+            <a href="?filtro=todos" class="{% if filtro_actual == 'todos' %}{{ pill_on }} bg-fintech-emerald/10 text-fintech-emeraldLight border-fintech-emerald/20{% else %}{{ pill_off }}{% endif %}">Todos</a>
+            <a href="?filtro=gasto" class="{% if filtro_actual == 'gasto' %}{{ pill_on }} bg-fintech-rose/10 text-fintech-rose border-fintech-rose/20{% else %}{{ pill_off }}{% endif %}">Gastos</a>
+            <a href="?filtro=ingreso" class="{% if filtro_actual == 'ingreso' %}{{ pill_on }} bg-fintech-emerald/10 text-fintech-emeraldLight border-fintech-emerald/20{% else %}{{ pill_off }}{% endif %}">Ingresos</a>
+            <a href="?filtro=ahorro" class="{% if filtro_actual == 'ahorro' %}{{ pill_on }} bg-fintech-cyan/10 text-fintech-cyan border-fintech-cyan/20{% else %}{{ pill_off }}{% endif %}">Ahorro</a>
+            {% endwith %}
+        </div>
+    </div>
+
+    <div class="space-y-2.5">
+        {% for m in movimientos_recientes %}
+        <div class="flex items-center gap-4 p-3.5 rounded-xl bg-fintech-bg border border-fintech-border transition-colors hover:border-slate-500">
+            <div class="w-11 h-11 rounded-xl flex items-center justify-center shrink-0
+                {% if m.tipo == 'gasto' %}bg-fintech-rose/15{% elif m.tipo == 'ingreso' %}bg-fintech-emerald/15{% elif m.tipo == 'envio_ahorro' %}bg-fintech-cyan/15{% else %}bg-blue-500/15{% endif %}">
+                <i class="fas
+                    {% if m.tipo == 'gasto' %}fa-arrow-down text-fintech-rose
+                    {% elif m.tipo == 'ingreso' %}fa-arrow-up text-fintech-emeraldLight
+                    {% elif m.tipo == 'envio_ahorro' %}fa-piggy-bank text-fintech-cyan
+                    {% else %}fa-plus text-blue-400{% endif %}"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+                <p class="text-white font-medium truncate">{{ m.descripcion }}</p>
+                <p class="text-slate-400 text-sm">{% if m.categoria %}{{ m.categoria.nombre }}{% else %}{{ m.get_tipo_display }}{% endif %}{% if m.es_gasto_fijo %} · Fijo{% endif %}</p>
+            </div>
+            <div class="text-right shrink-0">
+                <p class="font-bold {% if m.tipo == 'gasto' %}text-fintech-rose{% elif m.tipo == 'ingreso' %}text-fintech-emeraldLight{% elif m.tipo == 'envio_ahorro' %}text-fintech-cyan{% else %}text-white{% endif %}">{{ m.monto|cop }}</p>
+                <p class="text-slate-500 text-xs">{{ m.fecha_registro|date:"d/m" }}</p>
+            </div>
+        </div>
+        {% empty %}
+        <div class="text-center py-10">
+            <i class="fas fa-receipt text-slate-600 text-4xl mb-3"></i>
+            <p class="text-slate-400">Sin movimientos registrados</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
 {% else %}
-<div class="min-h-screen bg-fintech-bg flex items-center justify-center p-4">
+<div class="min-h-[70vh] flex items-center justify-center p-4">
     <div class="text-center">
         <div class="w-20 h-20 rounded-2xl bg-gradient-to-br from-fintech-emerald to-fintech-cyan flex items-center justify-center mx-auto mb-6">
             <i class="fas fa-wallet text-white text-3xl"></i>
         </div>
         <h2 class="text-white font-bold text-2xl mb-2">Bienvenido a FinanzasApp</h2>
         <p class="text-slate-400 mb-6">Configura tu aplicación para comenzar</p>
-        <a href="{% url 'configuracion_inicial' %}" class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-fintech-emerald to-fintech-cyan text-white font-semibold hover:scale-105 transition-transform">
-            <i class="fas fa-cog"></i>
-            Configurar ahora
+        <a href="{% url 'configuracion_inicial' %}" class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-fintech-emerald to-fintech-cyan text-white font-semibold hover:opacity-90 transition-opacity">
+            <i class="fas fa-cog"></i> Configurar ahora
         </a>
     </div>
 </div>
@@ -368,31 +202,22 @@
 
 <!-- Quick Add Modal -->
 <div id="modal-quick-add" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-4 backdrop-blur-sm">
-    <div class="bg-fintech-card rounded-3xl shadow-2xl max-w-sm w-full p-6 border border-fintech-border max-h-[90vh] overflow-y-auto">
+    <div class="bg-fintech-card rounded-3xl shadow-2xl max-w-sm w-full p-6 border border-fintech-border">
         <div class="flex justify-between items-center mb-6">
-            <h2 class="text-xl font-bold text-white">Nueva Transacción</h2>
-            <button onclick="closeModal('modal-quick-add')" class="text-slate-400 hover:text-white text-2xl transition-colors">
-                <i class="fas fa-times"></i>
-            </button>
+            <h2 class="text-xl font-bold text-white">Nueva transacción</h2>
+            <button onclick="closeModal('modal-quick-add')" class="text-slate-400 hover:text-white text-2xl transition-colors"><i class="fas fa-times"></i></button>
         </div>
-        
-        <div class="grid grid-cols-3 gap-3 mb-6">
-            <button onclick="openModal('modal-gasto'); closeModal('modal-quick-add')" class="flex flex-col items-center gap-2 p-4 rounded-xl bg-fintech-rose/10 border border-fintech-rose/30 hover:bg-fintech-rose/20 transition-all duration-300 hover:scale-105">
-                <div class="w-12 h-12 rounded-full bg-fintech-rose/20 flex items-center justify-center">
-                    <i class="fas fa-arrow-down text-fintech-rose text-lg"></i>
-                </div>
+        <div class="grid grid-cols-3 gap-3">
+            <button onclick="openModal('modal-gasto'); closeModal('modal-quick-add')" class="flex flex-col items-center gap-2 p-4 rounded-xl bg-fintech-rose/10 border border-fintech-rose/30 hover:bg-fintech-rose/20 transition-colors">
+                <div class="w-12 h-12 rounded-full bg-fintech-rose/20 flex items-center justify-center"><i class="fas fa-arrow-down text-fintech-rose text-lg"></i></div>
                 <span class="text-fintech-rose font-medium text-sm">Gasto</span>
             </button>
-            <button onclick="openModal('modal-ingreso'); closeModal('modal-quick-add')" class="flex flex-col items-center gap-2 p-4 rounded-xl bg-fintech-emerald/10 border border-fintech-emerald/30 hover:bg-fintech-emerald/20 transition-all duration-300 hover:scale-105">
-                <div class="w-12 h-12 rounded-full bg-fintech-emerald/20 flex items-center justify-center">
-                    <i class="fas fa-arrow-up text-fintech-emeraldLight text-lg"></i>
-                </div>
+            <button onclick="openModal('modal-ingreso'); closeModal('modal-quick-add')" class="flex flex-col items-center gap-2 p-4 rounded-xl bg-fintech-emerald/10 border border-fintech-emerald/30 hover:bg-fintech-emerald/20 transition-colors">
+                <div class="w-12 h-12 rounded-full bg-fintech-emerald/20 flex items-center justify-center"><i class="fas fa-arrow-up text-fintech-emeraldLight text-lg"></i></div>
                 <span class="text-fintech-emeraldLight font-medium text-sm">Ingreso</span>
             </button>
-            <button onclick="openModal('modal-ahorro'); closeModal('modal-quick-add')" class="flex flex-col items-center gap-2 p-4 rounded-xl bg-fintech-cyan/10 border border-fintech-cyan/30 hover:bg-fintech-cyan/20 transition-all duration-300 hover:scale-105">
-                <div class="w-12 h-12 rounded-full bg-fintech-cyan/20 flex items-center justify-center">
-                    <i class="fas fa-piggy-bank text-fintech-cyan text-lg"></i>
-                </div>
+            <button onclick="openModal('modal-ahorro'); closeModal('modal-quick-add')" class="flex flex-col items-center gap-2 p-4 rounded-xl bg-fintech-cyan/10 border border-fintech-cyan/30 hover:bg-fintech-cyan/20 transition-colors">
+                <div class="w-12 h-12 rounded-full bg-fintech-cyan/20 flex items-center justify-center"><i class="fas fa-piggy-bank text-fintech-cyan text-lg"></i></div>
                 <span class="text-fintech-cyan font-medium text-sm">Ahorro</span>
             </button>
         </div>
@@ -404,36 +229,19 @@
     <div class="bg-fintech-card rounded-3xl shadow-2xl max-w-md w-full p-6 border border-fintech-border max-h-[90vh] overflow-y-auto">
         <div class="flex justify-between items-center mb-6">
             <div class="flex items-center gap-3">
-                <div class="w-12 h-12 rounded-xl bg-fintech-rose/20 flex items-center justify-center">
-                    <i class="fas fa-arrow-down text-fintech-rose text-lg"></i>
-                </div>
-                <h2 class="text-xl font-bold text-white">Nuevo Gasto</h2>
+                <div class="w-11 h-11 rounded-xl bg-fintech-rose/20 flex items-center justify-center"><i class="fas fa-arrow-down text-fintech-rose"></i></div>
+                <h2 class="text-xl font-bold text-white">Nuevo gasto</h2>
             </div>
-            <button onclick="closeModal('modal-gasto')" class="text-slate-400 hover:text-white text-2xl transition-colors">
-                <i class="fas fa-times"></i>
-            </button>
+            <button onclick="closeModal('modal-gasto')" class="text-slate-400 hover:text-white text-2xl transition-colors"><i class="fas fa-times"></i></button>
         </div>
         <form method="post" action="{% url 'registrar_gasto' %}" class="space-y-4">
             {% csrf_token %}
             <input type="hidden" name="ciclo_id" value="{{ ciclo.pk }}">
-            <div>
-                <label class="block text-sm font-medium text-slate-300 mb-2">Monto</label>
-                {{ form_gasto.monto }}
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-slate-300 mb-2">Descripción</label>
-                {{ form_gasto.descripcion }}
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-slate-300 mb-2">Categoría</label>
-                {{ form_gasto.categoria }}
-            </div>
-            <label class="flex items-center gap-2 text-sm text-slate-400">
-                {{ form_gasto.es_gasto_fijo }} Guardar como gasto fijo
-            </label>
-            <button type="submit" class="w-full bg-gradient-to-r from-fintech-rose to-rose-600 text-white py-4 rounded-xl font-semibold hover:scale-105 transition-transform shadow-lg shadow-fintech-rose/30">
-                Registrar Gasto
-            </button>
+            <div><label class="form-label">Monto</label>{{ form_gasto.monto }}</div>
+            <div><label class="form-label">Descripción</label>{{ form_gasto.descripcion }}</div>
+            <div><label class="form-label">Categoría</label>{{ form_gasto.categoria }}</div>
+            <label class="flex items-center gap-2 text-sm text-slate-400">{{ form_gasto.es_gasto_fijo }} Guardar como gasto fijo</label>
+            <button type="submit" class="w-full bg-fintech-rose hover:bg-rose-600 text-white py-3.5 rounded-xl font-semibold transition-colors">Registrar gasto</button>
         </form>
     </div>
 </div>
@@ -443,29 +251,17 @@
     <div class="bg-fintech-card rounded-3xl shadow-2xl max-w-md w-full p-6 border border-fintech-border max-h-[90vh] overflow-y-auto">
         <div class="flex justify-between items-center mb-6">
             <div class="flex items-center gap-3">
-                <div class="w-12 h-12 rounded-xl bg-fintech-emerald/20 flex items-center justify-center">
-                    <i class="fas fa-arrow-up text-fintech-emeraldLight text-lg"></i>
-                </div>
-                <h2 class="text-xl font-bold text-white">Nuevo Ingreso</h2>
+                <div class="w-11 h-11 rounded-xl bg-fintech-emerald/20 flex items-center justify-center"><i class="fas fa-arrow-up text-fintech-emeraldLight"></i></div>
+                <h2 class="text-xl font-bold text-white">Nuevo ingreso</h2>
             </div>
-            <button onclick="closeModal('modal-ingreso')" class="text-slate-400 hover:text-white text-2xl transition-colors">
-                <i class="fas fa-times"></i>
-            </button>
+            <button onclick="closeModal('modal-ingreso')" class="text-slate-400 hover:text-white text-2xl transition-colors"><i class="fas fa-times"></i></button>
         </div>
         <form method="post" action="{% url 'registrar_ingreso' %}" class="space-y-4">
             {% csrf_token %}
             <input type="hidden" name="ciclo_id" value="{{ ciclo.pk }}">
-            <div>
-                <label class="block text-sm font-medium text-slate-300 mb-2">Monto</label>
-                {{ form_ingreso.monto }}
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-slate-300 mb-2">Descripción</label>
-                {{ form_ingreso.descripcion }}
-            </div>
-            <button type="submit" class="w-full bg-gradient-to-r from-fintech-emerald to-emerald-600 text-white py-4 rounded-xl font-semibold hover:scale-105 transition-transform shadow-lg shadow-fintech-emerald/30">
-                Registrar Ingreso
-            </button>
+            <div><label class="form-label">Monto</label>{{ form_ingreso.monto }}</div>
+            <div><label class="form-label">Descripción</label>{{ form_ingreso.descripcion }}</div>
+            <button type="submit" class="w-full bg-fintech-emerald hover:bg-emerald-600 text-white py-3.5 rounded-xl font-semibold transition-colors">Registrar ingreso</button>
         </form>
     </div>
 </div>
@@ -475,30 +271,18 @@
     <div class="bg-fintech-card rounded-3xl shadow-2xl max-w-md w-full p-6 border border-fintech-border max-h-[90vh] overflow-y-auto">
         <div class="flex justify-between items-center mb-6">
             <div class="flex items-center gap-3">
-                <div class="w-12 h-12 rounded-xl bg-fintech-cyan/20 flex items-center justify-center">
-                    <i class="fas fa-piggy-bank text-fintech-cyan text-lg"></i>
-                </div>
-                <h2 class="text-xl font-bold text-white">Transferir a Ahorro</h2>
+                <div class="w-11 h-11 rounded-xl bg-fintech-cyan/20 flex items-center justify-center"><i class="fas fa-piggy-bank text-fintech-cyan"></i></div>
+                <h2 class="text-xl font-bold text-white">Transferir a ahorro</h2>
             </div>
-            <button onclick="closeModal('modal-ahorro')" class="text-slate-400 hover:text-white text-2xl transition-colors">
-                <i class="fas fa-times"></i>
-            </button>
+            <button onclick="closeModal('modal-ahorro')" class="text-slate-400 hover:text-white text-2xl transition-colors"><i class="fas fa-times"></i></button>
         </div>
         <p class="text-slate-400 text-sm mb-4">Transferencia interna — no cuenta como gasto por categoría.</p>
         <form method="post" action="{% url 'registrar_envio_ahorro' %}" class="space-y-4">
             {% csrf_token %}
             <input type="hidden" name="ciclo_id" value="{{ ciclo.pk }}">
-            <div>
-                <label class="block text-sm font-medium text-slate-300 mb-2">Monto</label>
-                {{ form_ahorro.monto }}
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-slate-300 mb-2">Descripción</label>
-                {{ form_ahorro.descripcion }}
-            </div>
-            <button type="submit" class="w-full bg-gradient-to-r from-fintech-cyan to-cyan-600 text-white py-4 rounded-xl font-semibold hover:scale-105 transition-transform shadow-lg shadow-fintech-cyan/30">
-                Transferir
-            </button>
+            <div><label class="form-label">Monto</label>{{ form_ahorro.monto }}</div>
+            <div><label class="form-label">Descripción</label>{{ form_ahorro.descripcion }}</div>
+            <button type="submit" class="w-full bg-fintech-cyan hover:bg-cyan-600 text-white py-3.5 rounded-xl font-semibold transition-colors">Transferir</button>
         </form>
     </div>
 </div>
@@ -507,26 +291,15 @@
 <div id="modal-cierre" class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
     <div class="bg-fintech-card rounded-3xl shadow-2xl max-w-md w-full p-6 border border-fintech-border max-h-[90vh] overflow-y-auto">
         <div class="flex items-center gap-3 mb-6">
-            <div class="w-12 h-12 rounded-xl bg-amber-500/20 flex items-center justify-center">
-                <i class="fas fa-sync-alt text-amber-400 text-lg"></i>
-            </div>
-            <h2 class="text-xl font-bold text-white">Cierre de Ciclo</h2>
+            <div class="w-11 h-11 rounded-xl bg-amber-500/20 flex items-center justify-center"><i class="fas fa-sync-alt text-amber-400"></i></div>
+            <h2 class="text-xl font-bold text-white">Cierre de ciclo</h2>
         </div>
-        <p class="text-slate-300 text-sm mb-4">
-            Ciclo <strong class="text-white">{{ ciclo_pendiente_cierre.etiqueta }}</strong> finalizado.
-            Sobrante: <strong class="text-fintech-emeraldLight">{{ ciclo_pendiente_cierre.calcular_sobrante|cop }}</strong>
-            {% if ciclo_pendiente_cierre.calcular_sobrante > 0 %}(se transferirá a Ahorros){% endif %}
-        </p>
+        <p class="text-slate-300 text-sm mb-4">Ciclo <strong class="text-white">{{ ciclo_pendiente_cierre.etiqueta }}</strong> finalizado. Sobrante: <strong class="text-fintech-emeraldLight">{{ ciclo_pendiente_cierre.calcular_sobrante|cop }}</strong>{% if ciclo_pendiente_cierre.calcular_sobrante > 0 %} (se transferirá a Ahorros){% endif %}</p>
         <form method="post" action="{% url 'cerrar_ciclo' %}">
             {% csrf_token %}
             <input type="hidden" name="ciclo_id" value="{{ ciclo_pendiente_cierre.pk }}">
-            <div class="mb-4">
-                <label class="block text-sm font-medium text-slate-300 mb-2">Salario del nuevo ciclo</label>
-                {{ form_cierre.nuevo_salario }}
-            </div>
-            <button type="submit" class="w-full bg-gradient-to-r from-fintech-emerald to-emerald-600 text-white py-4 rounded-xl font-semibold hover:scale-105 transition-transform shadow-lg shadow-fintech-emerald/30">
-                Cerrar e Iniciar Nuevo Ciclo
-            </button>
+            <div class="mb-4"><label class="form-label">Salario del nuevo ciclo</label>{{ form_cierre.nuevo_salario }}</div>
+            <button type="submit" class="w-full bg-fintech-emerald hover:bg-emerald-600 text-white py-3.5 rounded-xl font-semibold transition-colors">Cerrar e iniciar nuevo ciclo</button>
         </form>
     </div>
 </div>
@@ -536,29 +309,17 @@
 <div class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 backdrop-blur-sm" {% if not forloop.first %}style="display:none"{% endif %}>
     <div class="bg-fintech-card rounded-3xl shadow-2xl max-w-md w-full p-6 border border-fintech-border max-h-[90vh] overflow-y-auto">
         <div class="flex items-center gap-3 mb-6">
-            <div class="w-12 h-12 rounded-xl bg-amber-500/20 flex items-center justify-center">
-                <i class="fas fa-exclamation-triangle text-amber-400 text-lg"></i>
-            </div>
-            <h2 class="text-xl font-bold text-amber-200">Inversión Vencida</h2>
+            <div class="w-11 h-11 rounded-xl bg-amber-500/20 flex items-center justify-center"><i class="fas fa-exclamation-triangle text-amber-400"></i></div>
+            <h2 class="text-xl font-bold text-amber-200">Inversión vencida</h2>
         </div>
         <p class="text-slate-300 text-sm mb-4"><strong class="text-white">{{ inv.nombre }}</strong> — {{ inv.monto_inicial|cop }}</p>
         <form method="post" action="{% url 'cerrar_inversion' inv.pk %}">
             {% csrf_token %}
             <input type="hidden" name="next" value="{% url 'dashboard' %}">
-            <div class="mb-4">
-                <label class="block text-sm font-medium text-slate-300 mb-2">Monto final recuperado</label>
-                <input type="text" name="monto_final" data-cop="true" class="form-input input-cop">
-            </div>
-            <label class="flex items-center gap-2 text-sm mb-4 text-slate-400">
-                <input type="checkbox" name="extender" class="rounded" onchange="toggleExtenderInversion()"> Sigue en curso
-            </label>
-            <div class="campo-nueva-fecha mb-4 hidden">
-                <label class="block text-sm font-medium text-slate-300 mb-2">Nueva fecha</label>
-                <input type="date" name="nueva_fecha" id="id_nueva_fecha" class="form-input">
-            </div>
-            <button type="submit" class="w-full bg-gradient-to-r from-fintech-emerald to-emerald-600 text-white py-4 rounded-xl font-semibold hover:scale-105 transition-transform shadow-lg shadow-fintech-emerald/30">
-                Confirmar
-            </button>
+            <div class="mb-4"><label class="form-label">Monto final recuperado</label><input type="text" name="monto_final" data-cop="true" class="form-input input-cop"></div>
+            <label class="flex items-center gap-2 text-sm mb-4 text-slate-400"><input type="checkbox" name="extender" class="rounded" onchange="toggleExtenderInversion()"> Sigue en curso</label>
+            <div class="campo-nueva-fecha mb-4 hidden"><label class="form-label">Nueva fecha</label><input type="date" name="nueva_fecha" id="id_nueva_fecha" class="form-input"></div>
+            <button type="submit" class="w-full bg-fintech-emerald hover:bg-emerald-600 text-white py-3.5 rounded-xl font-semibold transition-colors">Confirmar</button>
         </form>
     </div>
 </div>
@@ -572,108 +333,65 @@ function openModal(id) {
     const el = document.getElementById(id);
     el.classList.remove('hidden');
     el.classList.add('flex');
-    initCOPInputs();
+    if (typeof initCOPInputs === 'function') initCOPInputs();
 }
 function closeModal(id) {
     const el = document.getElementById(id);
     el.classList.add('hidden');
     el.classList.remove('flex');
 }
-document.addEventListener('DOMContentLoaded', function() {
-    initCOPInputs();
-    
-    // Initialize Expenses Donut Chart
+// Override the global quick-add to open the modal on the dashboard.
+window.finanzasQuickAdd = function () { openModal('modal-quick-add'); };
+
+document.addEventListener('DOMContentLoaded', function () {
+    if (typeof initCOPInputs === 'function') initCOPInputs();
     {% if chart_data != "[]" %}
-    initPieChart('chartGastos', {{ chart_labels|safe }}, {{ chart_data|safe }}, {{ chart_colors|safe }});
+    initPieChart('chartGastos', {{ chart_labels|safe }}, {{ chart_data|safe }}, {{ chart_colors|safe }}, false);
     {% endif %}
-    
-    // Initialize Balance Line Chart
     initBalanceChart();
-    
     {% if mostrar_tutorial %}initTutorial();{% endif %}
 });
 
 function initBalanceChart() {
     const ctx = document.getElementById('balanceChart');
     if (!ctx) return;
-    
-    // Sample balance data - replace with actual data from backend
-    const balanceData = {
-        labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun'],
-        datasets: [{
-            label: 'Balance',
-            data: [1200000, 1450000, 1100000, 1800000, 1650000, 2100000],
-            borderColor: '#10B981',
-            backgroundColor: 'rgba(16, 185, 129, 0.1)',
-            borderWidth: 3,
-            tension: 0.4,
-            fill: true,
-            pointBackgroundColor: '#10B981',
-            pointBorderColor: '#fff',
-            pointBorderWidth: 2,
-            pointRadius: 4,
-            pointHoverRadius: 6
-        }]
-    };
-    
+    const labels = {{ balance_labels|safe }};
+    const data = {{ balance_data|safe }};
     new Chart(ctx, {
         type: 'line',
-        data: balanceData,
+        data: {
+            labels: labels.length ? labels : ['—'],
+            datasets: [{
+                label: 'Balance',
+                data: data.length ? data : [0],
+                borderColor: '#10B981',
+                backgroundColor: 'rgba(16, 185, 129, 0.12)',
+                borderWidth: 3,
+                tension: 0.4,
+                fill: true,
+                pointBackgroundColor: '#10B981',
+                pointBorderColor: '#0F172A',
+                pointBorderWidth: 2,
+                pointRadius: 4,
+                pointHoverRadius: 6
+            }]
+        },
         options: {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
-                legend: {
-                    display: false
-                },
+                legend: { display: false },
                 tooltip: {
-                    backgroundColor: '#1E293B',
-                    titleColor: '#fff',
-                    bodyColor: '#fff',
-                    borderColor: '#334155',
-                    borderWidth: 1,
-                    padding: 12,
-                    displayColors: false,
-                    callbacks: {
-                        label: function(context) {
-                            return '$' + context.parsed.y.toLocaleString('es-CO');
-                        }
-                    }
+                    backgroundColor: '#1E293B', titleColor: '#fff', bodyColor: '#fff',
+                    borderColor: '#334155', borderWidth: 1, padding: 12, displayColors: false,
+                    callbacks: { label: (c) => '$ ' + c.parsed.y.toLocaleString('es-CO') }
                 }
             },
             scales: {
-                x: {
-                    grid: {
-                        color: 'rgba(51, 65, 85, 0.3)',
-                        drawBorder: false
-                    },
-                    ticks: {
-                        color: '#94A3B8',
-                        font: {
-                            size: 11
-                        }
-                    }
-                },
-                y: {
-                    grid: {
-                        color: 'rgba(51, 65, 85, 0.3)',
-                        drawBorder: false
-                    },
-                    ticks: {
-                        color: '#94A3B8',
-                        font: {
-                            size: 11
-                        },
-                        callback: function(value) {
-                            return '$' + (value / 1000000).toFixed(1) + 'M';
-                        }
-                    }
-                }
+                x: { grid: { color: 'rgba(51, 65, 85, 0.3)' }, ticks: { color: '#94A3B8', font: { size: 11 } } },
+                y: { grid: { color: 'rgba(51, 65, 85, 0.3)' }, ticks: { color: '#94A3B8', font: { size: 11 }, callback: (v) => '$' + (v / 1000000).toFixed(1) + 'M' } }
             },
-            interaction: {
-                intersect: false,
-                mode: 'index'
-            }
+            interaction: { intersect: false, mode: 'index' }
         }
     });
 }
