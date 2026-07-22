@@ -4,18 +4,18 @@ from decimal import Decimal, InvalidOperation
 
 def parse_cop(valor: str | int | float | Decimal | None) -> Decimal:
     """Convierte '$ 1.200.000' o '1200000' a Decimal."""
-    if valor is None or valor == '':
-        return Decimal('0')
-    if isinstance(valor, Decimal):
-        return valor.quantize(Decimal('1'))
-    if isinstance(valor, (int, float)):
-        return Decimal(str(valor)).quantize(Decimal('1'))
-    limpio = str(valor).replace('$', '').replace('.', '').replace(',', '').strip()
-    if not limpio:
-        return Decimal('0')
     try:
+        if valor is None or valor == '':
+            return Decimal('0')
+        if isinstance(valor, Decimal):
+            return valor.quantize(Decimal('1'))
+        if isinstance(valor, (int, float)):
+            return Decimal(str(valor)).quantize(Decimal('1'))
+        limpio = str(valor).replace('$', '').replace('.', '').replace(',', '').strip()
+        if not limpio:
+            return Decimal('0')
         return Decimal(limpio).quantize(Decimal('1'))
-    except InvalidOperation:
+    except (InvalidOperation, ValueError, TypeError, AttributeError):
         return Decimal('0')
 
 
@@ -28,15 +28,24 @@ def formato_cop(monto) -> str:
     """
     from core.currency import get_active_info
 
-    info = get_active_info()
-    if monto is None:
-        monto = Decimal('0')
-    if not isinstance(monto, Decimal):
-        monto = Decimal(str(monto))
-    monto = monto.quantize(Decimal('1'))
-    negativo = monto < 0
-    entero = abs(int(monto))
-    texto = f'{entero:,}'.replace(',', info['sep_miles'])
-    simbolo = info['simbolo']
-    prefijo = f'-{simbolo} ' if negativo else f'{simbolo} '
-    return f'{prefijo}{texto}'
+    try:
+        info = get_active_info()
+        simbolo = info['simbolo']
+        sep_miles = info['sep_miles']
+    except (KeyError, TypeError, AttributeError):
+        simbolo = '$'
+        sep_miles = '.'
+
+    try:
+        if monto is None or monto == '':
+            monto = Decimal('0')
+        if not isinstance(monto, Decimal):
+            monto = Decimal(str(monto))
+        monto = monto.quantize(Decimal('1'))
+        negativo = monto < 0
+        entero = abs(int(monto))
+        texto = f'{entero:,}'.replace(',', sep_miles)
+        prefijo = f'-{simbolo} ' if negativo else f'{simbolo} '
+        return f'{prefijo}{texto}'
+    except (InvalidOperation, ValueError, TypeError, AttributeError):
+        return f'{simbolo} 0'

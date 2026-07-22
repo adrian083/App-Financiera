@@ -120,9 +120,20 @@ def dashboard(request):
     from presupuesto.models import GastoFijoPlantilla, EventoCalendario
     from datetime import date, timedelta
     
-    inversiones_activas = Inversion.objects.filter(usuario=user, estado=Inversion.ACTIVA)
-    metas_ahorro = MetaAhorro.objects.filter(usuario=user)
+    inversiones_activas = list(Inversion.objects.filter(usuario=user, estado=Inversion.ACTIVA))
+    metas_ahorro = list(MetaAhorro.objects.filter(usuario=user))
     gastos_fijos = GastoFijoPlantilla.objects.filter(usuario=user, activa=True)
+
+    # Sanitizar montos None/corruptos para evitar crashes (Decimal / división) en el template
+    from decimal import Decimal as _Decimal
+    for inv in inversiones_activas:
+        if inv.monto_inicial is None:
+            inv.monto_inicial = _Decimal('0')
+    for meta in metas_ahorro:
+        if meta.saldo_actual is None:
+            meta.saldo_actual = _Decimal('0')
+        if meta.monto_objetivo is None:
+            meta.monto_objetivo = _Decimal('0')
     proximos_eventos = EventoCalendario.objects.filter(
         usuario=user,
         fecha__gte=date.today(),
@@ -572,12 +583,25 @@ def completar_tutorial(request):
 
 
 @login_required
+@transaction.atomic
 def gasto_fijo_editar(request, pk):
     plantilla = get_object_or_404(GastoFijoPlantilla, pk=pk, usuario=request.user)
     if request.method == 'POST':
         form = GastoFijoPlantillaForm(request.POST, instance=plantilla, usuario=request.user)
         if form.is_valid():
-            form.save()
+            plantilla = form.save()
+            # Sincronizar el/los Movimiento vinculado(s) en el ciclo activo
+            ciclo = CicloMensual.obtener_activo(request.user)
+            if ciclo:
+                Movimiento.objects.filter(
+                    ciclo=ciclo,
+                    plantilla_origen=plantilla,
+                    usuario=request.user,
+                ).update(
+                    monto=plantilla.monto,
+                    descripcion=plantilla.descripcion,
+                    categoria=plantilla.categoria,
+                )
             messages.success(request, 'Gasto fijo actualizado.')
             return redirect('gastos_fijos_lista')
     else:
@@ -595,8 +619,17 @@ def gasto_fijo_editar(request, pk):
 
 @login_required
 @require_POST
+@transaction.atomic
 def gasto_fijo_eliminar(request, pk):
     plantilla = get_object_or_404(GastoFijoPlantilla, pk=pk, usuario=request.user)
+    # Eliminar los Movimiento asociados a esta plantilla en el ciclo activo
+    ciclo = CicloMensual.obtener_activo(request.user)
+    if ciclo:
+        Movimiento.objects.filter(
+            ciclo=ciclo,
+            plantilla_origen=plantilla,
+            usuario=request.user,
+        ).delete()
     plantilla.delete()
     messages.success(request, 'Gasto fijo eliminado.')
     return redirect('gastos_fijos_lista')
