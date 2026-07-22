@@ -1,9 +1,13 @@
 {% comment %}
 Renderiza el avatar del usuario.
 Params: size (ej. 'w-10 h-10'), text (ej. 'text-sm').
-Usa config.avatar_info del context processor; cae al inicial si no hay config.
+Si el usuario subió una foto de perfil, se muestra recortada en círculo.
+De lo contrario usa config.avatar_info (icono/gradiente) y cae al inicial.
 {% endcomment %}
-{% if config %}{% with info=config.avatar_info %}
+{% if config and config.tiene_foto %}
+<img src="{{ config.foto_perfil.url }}" alt="Foto de perfil de {{ user.first_name|default:user.username }}"
+    class="{{ size }} object-cover rounded-full border-2 border-cyan-500/40 shadow-sm shrink-0">
+{% elif config %}{% with info=config.avatar_info %}
 <span class="{{ size }} rounded-full bg-gradient-to-br {{ info.gradient }} flex items-center justify-center text-white font-bold {{ text }} shrink-0">
     {% if info.icon %}<i class="{{ info.icon }}"></i>{% else %}{{ user.first_name|default:user.username|slice:":1"|upper }}{% endif %}
 </span>

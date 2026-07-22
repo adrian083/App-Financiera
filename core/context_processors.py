@@ -16,5 +16,14 @@ def moneda(request):
             context['config'] = ConfiguracionUsuario.obtener(request.user)
         except Exception:
             context['config'] = None
-    
+
+        # Centro de notificaciones (recordatorios, pagos, saldo, cierre de ciclo).
+        try:
+            from presupuesto.notificaciones import construir_notificaciones
+            notifs = construir_notificaciones(request.user)
+        except Exception:
+            notifs = []
+        context['notificaciones'] = notifs
+        context['notificaciones_count'] = len(notifs)
+
     return context

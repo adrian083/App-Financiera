@@ -34,14 +34,31 @@ class PerfilUsuarioForm(forms.ModelForm):
 
 
 class PerfilAvatarForm(forms.ModelForm):
-    """Seleccionar el avatar predeterminado del perfil."""
+    """Seleccionar el avatar predeterminado o subir una foto de perfil."""
+
+    eliminar_foto = forms.BooleanField(required=False, widget=forms.HiddenInput())
 
     class Meta:
         model = ConfiguracionUsuario
-        fields = ['avatar']
+        fields = ['avatar', 'foto_perfil']
         widgets = {
             'avatar': forms.HiddenInput(),
+            'foto_perfil': forms.ClearableFileInput(attrs={
+                'accept': 'image/*',
+                'class': 'hidden',
+                'id': 'id_foto_perfil',
+            }),
         }
+
+    def save(self, commit=True):
+        config = super().save(commit=False)
+        if self.cleaned_data.get('eliminar_foto'):
+            if config.foto_perfil:
+                config.foto_perfil.delete(save=False)
+            config.foto_perfil = None
+        if commit:
+            config.save()
+        return config
 
 
 class MontoCOPField(forms.CharField):

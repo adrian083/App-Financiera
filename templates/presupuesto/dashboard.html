@@ -130,10 +130,15 @@
 {% if 'gastos_categoria' in widget_config.widgets_activos or widget_config.widgets_activos|length == 0 %}
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6 mb-6 lg:mb-8">
     <div class="lg:col-span-2 bg-fintech-card rounded-2xl border border-fintech-border p-5 lg:p-6">
-        <div class="flex items-center justify-between mb-4">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
             <div>
-                <h2 class="text-white font-bold text-lg">Evolución del balance</h2>
-                <p class="text-slate-400 text-sm">Sobrante transferido por ciclo</p>
+                <h2 class="text-white font-bold text-lg">Ingresos vs. gastos</h2>
+                <p class="text-slate-400 text-sm">Evolución por período</p>
+            </div>
+            <div class="inline-flex p-1 rounded-xl bg-fintech-bg border border-fintech-border self-start sm:self-auto">
+                <button type="button" data-periodo="mes" class="periodo-btn px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 transition-colors">Mes actual</button>
+                <button type="button" data-periodo="trimestre" class="periodo-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-fintech-emerald/15 text-fintech-emeraldLight transition-colors">Últimos 3 meses</button>
+                <button type="button" data-periodo="anio" class="periodo-btn px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 transition-colors">Último año</button>
             </div>
         </div>
         <div class="h-64 max-h-[280px]">
@@ -539,39 +544,57 @@ document.addEventListener('DOMContentLoaded', function () {
     {% if mostrar_tutorial %}initTutorial();{% endif %}
 });
 
+var balanceChartInstance = null;
+var periodosChart = {{ periodos_chart|safe }};
+var periodoActual = 'trimestre';
+
+function datosPeriodo(periodo) {
+    var p = periodosChart[periodo] || { labels: [], ingresos: [], gastos: [] };
+    return {
+        labels: p.labels.length ? p.labels : ['—'],
+        ingresos: p.ingresos.length ? p.ingresos : [0],
+        gastos: p.gastos.length ? p.gastos : [0],
+    };
+}
+
 function initBalanceChart() {
     const ctx = document.getElementById('balanceChart');
     if (!ctx) return;
-    const labels = {{ balance_labels|safe }};
-    const data = {{ balance_data|safe }};
-    new Chart(ctx, {
+    const d = datosPeriodo(periodoActual);
+    balanceChartInstance = new Chart(ctx, {
         type: 'line',
         data: {
-            labels: labels.length ? labels : ['—'],
-            datasets: [{
-                label: 'Balance',
-                data: data.length ? data : [0],
-                borderColor: '#10B981',
-                backgroundColor: 'rgba(16, 185, 129, 0.12)',
-                borderWidth: 3,
-                tension: 0.4,
-                fill: true,
-                pointBackgroundColor: '#10B981',
-                pointBorderColor: '#0F172A',
-                pointBorderWidth: 2,
-                pointRadius: 4,
-                pointHoverRadius: 6
-            }]
+            labels: d.labels,
+            datasets: [
+                {
+                    label: 'Ingresos',
+                    data: d.ingresos,
+                    borderColor: '#10B981',
+                    backgroundColor: 'rgba(16, 185, 129, 0.12)',
+                    borderWidth: 3, tension: 0.4, fill: true,
+                    pointBackgroundColor: '#10B981', pointBorderColor: '#0F172A',
+                    pointBorderWidth: 2, pointRadius: 4, pointHoverRadius: 6
+                },
+                {
+                    label: 'Gastos',
+                    data: d.gastos,
+                    borderColor: '#F43F5E',
+                    backgroundColor: 'rgba(244, 63, 94, 0.10)',
+                    borderWidth: 3, tension: 0.4, fill: true,
+                    pointBackgroundColor: '#F43F5E', pointBorderColor: '#0F172A',
+                    pointBorderWidth: 2, pointRadius: 4, pointHoverRadius: 6
+                }
+            ]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
-                legend: { display: false },
+                legend: { display: true, position: 'top', labels: { color: '#94A3B8', boxWidth: 12, padding: 16, usePointStyle: true } },
                 tooltip: {
                     backgroundColor: '#1E293B', titleColor: '#fff', bodyColor: '#fff',
-                    borderColor: '#334155', borderWidth: 1, padding: 12, displayColors: false,
-                    callbacks: { label: (c) => '$ ' + c.parsed.y.toLocaleString('es-CO') }
+                    borderColor: '#334155', borderWidth: 1, padding: 12,
+                    callbacks: { label: (c) => c.dataset.label + ': $ ' + c.parsed.y.toLocaleString('es-CO') }
                 }
             },
             scales: {
@@ -582,5 +605,31 @@ function initBalanceChart() {
         }
     });
 }
+
+function actualizarPeriodo(periodo) {
+    periodoActual = periodo;
+    if (!balanceChartInstance) return;
+    const d = datosPeriodo(periodo);
+    balanceChartInstance.data.labels = d.labels;
+    balanceChartInstance.data.datasets[0].data = d.ingresos;
+    balanceChartInstance.data.datasets[1].data = d.gastos;
+    balanceChartInstance.update();
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    var botones = document.querySelectorAll('.periodo-btn');
+    var onCls = ['bg-fintech-emerald/15', 'text-fintech-emeraldLight'];
+    botones.forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            botones.forEach(function (b) {
+                onCls.forEach(function (c) { b.classList.remove(c); });
+                b.classList.add('text-slate-400');
+            });
+            btn.classList.remove('text-slate-400');
+            onCls.forEach(function (c) { btn.classList.add(c); });
+            actualizarPeriodo(btn.getAttribute('data-periodo'));
+        });
+    });
+});
 </script>
 {% endblock %}

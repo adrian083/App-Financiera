@@ -18,23 +18,63 @@
     </div>
 
     {% with info=config.avatar_info %}
-    <form method="post" class="space-y-6">
+    <form method="post" enctype="multipart/form-data" class="space-y-6">
         {% csrf_token %}
+        {{ form_avatar.foto_perfil }}
+        {{ form_avatar.eliminar_foto }}
 
         <!-- ===================== PROFILE HEADER CARD ===================== -->
         <div class="bg-fintech-card rounded-2xl border border-fintech-border p-6 lg:p-8">
             <div class="flex flex-col sm:flex-row items-center gap-5 text-center sm:text-left">
-                <div id="avatar-preview" class="w-20 h-20 rounded-full bg-gradient-to-br {{ info.gradient }} flex items-center justify-center text-white font-bold text-2xl shrink-0 shadow-lg">
+                {% if config.tiene_foto %}
+                <div id="avatar-preview" data-has-photo="1" class="w-20 h-20 rounded-full overflow-hidden border-2 border-cyan-500/40 shadow-lg shrink-0">
+                    <img id="avatar-preview-img" src="{{ config.foto_perfil.url }}" alt="Foto de perfil" class="w-full h-full object-cover">
+                </div>
+                {% else %}
+                <div id="avatar-preview" class="w-20 h-20 rounded-full bg-gradient-to-br {{ info.gradient }} flex items-center justify-center text-white font-bold text-2xl shrink-0 shadow-lg overflow-hidden">
                     {% if info.icon %}
                     <i class="{{ info.icon }}"></i>
                     {% else %}
                     <span>{{ user.first_name|default:user.username|slice:":1"|upper }}</span>
                     {% endif %}
                 </div>
+                {% endif %}
                 <div class="min-w-0">
                     <h2 class="text-white font-bold text-xl truncate">{{ user.first_name|default:user.username }}</h2>
                     <p class="text-slate-400 text-sm truncate">@{{ user.username }}</p>
                     {% if user.email %}<p class="text-slate-500 text-xs mt-1 truncate"><i class="fas fa-envelope mr-1"></i>{{ user.email }}</p>{% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- ===================== PROFILE PHOTO UPLOAD ===================== -->
+        <div class="bg-fintech-card rounded-2xl border border-fintech-border p-6 lg:p-8">
+            <div class="flex items-center gap-3 mb-5">
+                <div class="w-11 h-11 rounded-xl bg-fintech-cyan/15 flex items-center justify-center">
+                    <i class="fas fa-camera text-fintech-cyan"></i>
+                </div>
+                <div>
+                    <h3 class="text-white font-bold text-lg leading-tight">Foto de perfil</h3>
+                    <p class="text-slate-400 text-xs">Sube una imagen. Se recorta en círculo automáticamente.</p>
+                </div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row items-center gap-5">
+                <div class="w-24 h-24 rounded-full overflow-hidden border-2 border-cyan-500/40 shadow-sm shrink-0 bg-fintech-bg flex items-center justify-center">
+                    <img id="foto-preview" src="{% if config.tiene_foto %}{{ config.foto_perfil.url }}{% endif %}"
+                        alt="Vista previa de la foto" class="w-full h-full object-cover {% if not config.tiene_foto %}hidden{% endif %}">
+                    <i id="foto-placeholder" class="fas fa-user text-slate-600 text-3xl {% if config.tiene_foto %}hidden{% endif %}"></i>
+                </div>
+                <div class="flex-1 w-full space-y-3 text-center sm:text-left">
+                    <button type="button" id="btn-elegir-foto"
+                        class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-fintech-cyan/15 border border-fintech-cyan/30 text-fintech-cyan font-medium text-sm hover:bg-fintech-cyan/25 transition-colors">
+                        <i class="fas fa-upload"></i> Elegir imagen
+                    </button>
+                    <button type="button" id="btn-quitar-foto"
+                        class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-fintech-border text-slate-400 font-medium text-sm hover:text-fintech-rose hover:border-fintech-rose/40 transition-colors {% if not config.tiene_foto %}hidden{% endif %}">
+                        <i class="fas fa-trash"></i> Quitar foto
+                    </button>
+                    <p class="text-slate-500 text-xs">JPG, PNG o GIF · máx. recomendado 5 MB.</p>
                 </div>
             </div>
         </div>
@@ -110,6 +150,58 @@
         var options = document.querySelectorAll('.avatar-option');
         var userInitial = "{{ user.first_name|default:user.username|slice:':1'|upper|escapejs }}";
 
+        // ===== Subida de foto de perfil con vista previa =====
+        var fileInput = document.getElementById('id_foto_perfil');
+        var eliminarInput = document.getElementById('id_eliminar_foto');
+        var btnElegir = document.getElementById('btn-elegir-foto');
+        var btnQuitar = document.getElementById('btn-quitar-foto');
+        var fotoPreview = document.getElementById('foto-preview');
+        var fotoPlaceholder = document.getElementById('foto-placeholder');
+
+        function mostrarFoto(url) {
+            if (fotoPreview) {
+                fotoPreview.src = url;
+                fotoPreview.classList.remove('hidden');
+            }
+            if (fotoPlaceholder) fotoPlaceholder.classList.add('hidden');
+            if (btnQuitar) btnQuitar.classList.remove('hidden');
+            // Reflejar en el avatar grande de la cabecera.
+            if (preview) {
+                preview.className = 'w-20 h-20 rounded-full overflow-hidden border-2 border-cyan-500/40 shadow-lg shrink-0';
+                preview.setAttribute('data-has-photo', '1');
+                preview.innerHTML = '<img src="' + url + '" alt="Foto de perfil" class="w-full h-full object-cover">';
+            }
+        }
+
+        function ocultarFoto() {
+            if (fotoPreview) { fotoPreview.src = ''; fotoPreview.classList.add('hidden'); }
+            if (fotoPlaceholder) fotoPlaceholder.classList.remove('hidden');
+            if (btnQuitar) btnQuitar.classList.add('hidden');
+        }
+
+        if (btnElegir && fileInput) {
+            btnElegir.addEventListener('click', function () { fileInput.click(); });
+            fileInput.addEventListener('change', function () {
+                var file = fileInput.files && fileInput.files[0];
+                if (!file) return;
+                if (eliminarInput) eliminarInput.value = '';
+                var reader = new FileReader();
+                reader.onload = function (e) { mostrarFoto(e.target.result); };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        if (btnQuitar) {
+            btnQuitar.addEventListener('click', function () {
+                if (fileInput) fileInput.value = '';
+                if (eliminarInput) eliminarInput.value = '1';
+                ocultarFoto();
+                // Volver a mostrar el avatar por icono en la cabecera.
+                var activo = document.querySelector('.avatar-option.border-fintech-emerald') || options[0];
+                if (activo) activo.click();
+            });
+        }
+
         options.forEach(function (btn) {
             btn.addEventListener('click', function () {
                 var clave = btn.getAttribute('data-avatar');
@@ -122,10 +214,17 @@
                 btn.classList.remove('border-fintech-border', 'bg-fintech-bg');
                 btn.classList.add('border-fintech-emerald', 'bg-fintech-emerald/10');
 
+                // Elegir un avatar de icono descarta cualquier foto seleccionada.
+                if (fileInput) fileInput.value = '';
+                if (eliminarInput && !(preview && preview.getAttribute('data-has-photo') === '1' && fileInput && fileInput.files.length === 0)) {
+                    // Solo marcar eliminación si había foto guardada.
+                }
+
                 // Sincronizar la vista previa grande con el círculo interior del botón.
                 var inner = btn.querySelector('span');
                 if (preview && inner) {
-                    preview.className = inner.className.replace('w-12 h-12 text-lg', 'w-20 h-20 text-2xl') + ' shrink-0 shadow-lg';
+                    preview.setAttribute('data-has-photo', '0');
+                    preview.className = inner.className.replace('w-12 h-12 text-lg', 'w-20 h-20 text-2xl') + ' shrink-0 shadow-lg overflow-hidden';
                     preview.innerHTML = clave === 'inicial' ? '<span>' + userInitial + '</span>' : inner.innerHTML;
                 }
             });

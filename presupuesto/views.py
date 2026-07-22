@@ -111,6 +111,40 @@ def dashboard(request):
         balance_labels.append('Actual')
         balance_data.append(int(ciclo.saldo_disponible()))
 
+    # ---- Series por período para el gráfico interactivo (ingresos vs gastos) ----
+    # Construimos, para cada ciclo cerrado + el actual, sus ingresos y gastos.
+    serie_ciclos = []
+    for c in ciclos_cerrados:
+        serie_ciclos.append({
+            'label': c.fecha_inicio.strftime('%b %Y'),
+            'fecha': c.fecha_inicio,
+            'ingresos': int(c.total_ingresos()),
+            'gastos': int(c.total_gastos()),
+        })
+    if ciclo:
+        serie_ciclos.append({
+            'label': 'Actual',
+            'fecha': ciclo.fecha_inicio,
+            'ingresos': int(ciclo.total_ingresos()),
+            'gastos': int(ciclo.total_gastos()),
+        })
+
+    def _serie(items):
+        return {
+            'labels': [i['label'] for i in items],
+            'ingresos': [i['ingresos'] for i in items],
+            'gastos': [i['gastos'] for i in items],
+        }
+
+    periodos_chart = {
+        # Mes actual: solo el ciclo activo/último.
+        'mes': _serie(serie_ciclos[-1:] if serie_ciclos else []),
+        # Últimos 3 meses (últimos 3 ciclos).
+        'trimestre': _serie(serie_ciclos[-3:] if serie_ciclos else []),
+        # Último año (últimos 12 ciclos).
+        'anio': _serie(serie_ciclos[-12:] if serie_ciclos else []),
+    }
+
     fondo = FondoAhorro.obtener(user)
     inv_vencidas = inversiones_pendientes_cierre(user)
     inv_proximas = inversiones_proximas_vencer(user)
@@ -176,6 +210,7 @@ def dashboard(request):
         'gastos_categoria': gastos_categoria,
         'balance_labels': json.dumps(balance_labels),
         'balance_data': json.dumps(balance_data),
+        'periodos_chart': json.dumps(periodos_chart),
         'movimientos_recientes': movimientos_qs[:20],
         'widget_config': WidgetConfiguracion.obtener(user),
         'form_gasto': MovimientoForm(usuario=user),
@@ -252,7 +287,7 @@ def perfil(request):
 
     if request.method == 'POST':
         form_usuario = PerfilUsuarioForm(request.POST, instance=request.user)
-        form_avatar = PerfilAvatarForm(request.POST, instance=config)
+        form_avatar = PerfilAvatarForm(request.POST, request.FILES, instance=config)
         if form_usuario.is_valid() and form_avatar.is_valid():
             form_usuario.save()
             form_avatar.save()

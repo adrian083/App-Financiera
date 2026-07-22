@@ -147,6 +147,28 @@
         @media (prefers-reduced-motion: reduce) {
             *, ::before, ::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
         }
+
+        /* ===== Modo Privacidad: ocultar montos monetarios ===== */
+        /* Cuando <body> tiene .modo-privacidad, los montos (.monto-dinero) se
+           reemplazan visualmente por puntos sin perder el valor real del DOM. */
+        body.modo-privacidad .monto-dinero {
+            position: relative;
+            color: transparent !important;
+            -webkit-background-clip: initial !important;
+            background-clip: initial !important;
+            user-select: none;
+        }
+        body.modo-privacidad .monto-dinero::after {
+            content: '$ ••••••';
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            color: #94A3B8;
+            letter-spacing: 0.08em;
+            font-weight: 700;
+            white-space: nowrap;
+        }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <link rel="stylesheet" href="{% static 'css/forms.css' %}">
@@ -154,6 +176,16 @@
     {% block extra_head %}{% endblock %}
 </head>
 <body class="min-h-screen bg-fintech-bg text-white antialiased">
+<script>
+    // Aplicar Modo Privacidad apenas se parsea <body> para evitar parpadeo de montos.
+    (function () {
+        try {
+            if (localStorage.getItem('modoPrivacidad') === 'true') {
+                document.body.classList.add('modo-privacidad');
+            }
+        } catch (e) {}
+    })();
+</script>
 {% if user.is_authenticated %}
     {% with url_name=request.resolver_match.url_name %}
     <!-- ===================== DESKTOP SIDEBAR ===================== -->
@@ -205,6 +237,9 @@
                 <span class="text-white font-bold text-base tracking-tight">FinanzasApp</span>
             </a>
             <div class="flex items-center gap-2">
+                <button type="button" data-privacy-toggle title="Ocultar/mostrar saldos" aria-label="Alternar modo privacidad" class="w-10 h-10 rounded-full glass border border-fintech-border flex items-center justify-center text-slate-200 active:scale-95">
+                    <i class="fas fa-eye text-sm" data-privacy-icon></i>
+                </button>
                 <a href="{% url 'configuracion_editar' %}" title="Cambiar moneda" class="flex items-center gap-1.5 h-10 px-3 rounded-full glass border border-fintech-border text-slate-200 active:scale-95">
                     <i class="fas fa-coins text-fintech-cyan text-xs"></i>
                     <span class="font-semibold text-xs">{{ moneda_activa.codigo }}</span>
@@ -232,8 +267,8 @@
                     <span class="font-semibold text-sm">{{ moneda_activa.codigo }}</span>
                     <span class="text-slate-400 text-xs">{{ moneda_activa.simbolo }}</span>
                 </a>
-                <button type="button" class="w-11 h-11 rounded-xl bg-fintech-card border border-fintech-border flex items-center justify-center text-slate-300 hover:text-white hover:border-slate-500 transition-colors" title="Notificaciones">
-                    <i class="far fa-bell text-lg"></i>
+                <button type="button" data-privacy-toggle class="w-11 h-11 rounded-xl bg-fintech-card border border-fintech-border flex items-center justify-center text-slate-300 hover:text-white hover:border-slate-500 transition-colors" title="Ocultar/mostrar saldos" aria-label="Alternar modo privacidad">
+                    <i class="fas fa-eye text-lg" data-privacy-icon></i>
                 </button>
                 <a href="{% url 'perfil' %}" title="Mi perfil">
                     {% include 'partials/avatar.html' with size='w-11 h-11' text='text-lg' %}
@@ -324,6 +359,33 @@
         document.addEventListener('DOMContentLoaded', function () {
             if (typeof initCOPInputs === 'function') initCOPInputs();
         });
+
+        // ===== Modo Privacidad: alternar visibilidad de montos =====
+        (function () {
+            function estaActivo() {
+                return document.body.classList.contains('modo-privacidad');
+            }
+            function sincronizarIconos() {
+                var activo = estaActivo();
+                document.querySelectorAll('[data-privacy-icon]').forEach(function (icon) {
+                    icon.classList.toggle('fa-eye', !activo);
+                    icon.classList.toggle('fa-eye-slash', activo);
+                });
+                document.querySelectorAll('[data-privacy-toggle]').forEach(function (btn) {
+                    btn.classList.toggle('text-fintech-cyan', activo);
+                });
+            }
+            function alternar() {
+                var activo = !estaActivo();
+                document.body.classList.toggle('modo-privacidad', activo);
+                try { localStorage.setItem('modoPrivacidad', activo ? 'true' : 'false'); } catch (e) {}
+                sincronizarIconos();
+            }
+            document.querySelectorAll('[data-privacy-toggle]').forEach(function (btn) {
+                btn.addEventListener('click', alternar);
+            });
+            sincronizarIconos();
+        })();
 
         // ===== Prevención global de doble clic / envíos duplicados =====
         // Al enviar cualquier <form>, deshabilita su botón de submit y muestra

@@ -38,6 +38,12 @@ class ConfiguracionUsuario(models.Model):
         default='inicial',
         verbose_name='Avatar de perfil',
     )
+    foto_perfil = models.ImageField(
+        upload_to='perfiles/',
+        null=True,
+        blank=True,
+        verbose_name='Foto de perfil',
+    )
 
     # Avatares predeterminados basados en iconos SVG (Font Awesome) + gradientes.
     # Evita el manejo de archivos MEDIA / Pillow.
@@ -69,6 +75,11 @@ class ConfiguracionUsuario(models.Model):
     def avatar_info(self):
         """Devuelve la configuración visual del avatar seleccionado."""
         return self.AVATARES.get(self.avatar, self.AVATARES['inicial'])
+
+    @property
+    def tiene_foto(self):
+        """True si el usuario subió una foto de perfil válida."""
+        return bool(self.foto_perfil and getattr(self.foto_perfil, 'name', ''))
 
     @classmethod
     def avatares_disponibles(cls):
