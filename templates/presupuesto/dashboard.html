@@ -73,15 +73,17 @@
 {% if 'saldo_disponible' in widget_config.widgets_activos or widget_config.widgets_activos|length == 0 %}
 <div class="fin-card glow-emerald p-5 lg:p-6 overflow-hidden">
     <div class="flex items-center justify-between mb-3">
-        <span class="text-slate-300 text-sm font-medium">Saldo disponible</span>
+        <span class="text-slate-300 text-sm font-medium privacy-hide">Saldo disponible</span>
         <div class="w-10 h-10 rounded-xl bg-fintech-emerald/20 flex items-center justify-center shadow-inner shadow-fintech-emerald/20">
             <i class="fas fa-wallet text-fintech-emeraldLight"></i>
         </div>
     </div>
-    <p class="text-3xl lg:text-4xl font-black font-mono text-gradient tracking-tight">{{ ciclo.saldo_disponible|cop }}</p>
-    <div class="flex items-center gap-2 mt-2">
-        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-fintech-emerald/15 border border-fintech-emerald/30 text-fintech-emeraldLight text-[11px] font-semibold">{{ moneda_activa.etiqueta }}</span>
-        <p class="text-xs text-slate-400">Ciclo {{ ciclo.etiqueta }}</p>
+    <div class="privacy-hide">
+        <p class="text-3xl lg:text-4xl font-black font-mono text-gradient tracking-tight">{{ ciclo.saldo_disponible|cop }}</p>
+        <div class="flex items-center gap-2 mt-2">
+            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-fintech-emerald/15 border border-fintech-emerald/30 text-fintech-emeraldLight text-[11px] font-semibold">{{ moneda_activa.etiqueta }}</span>
+            <p class="text-xs text-slate-400">Ciclo {{ ciclo.etiqueta }}</p>
+        </div>
     </div>
 </div>
 {% endif %}
@@ -89,39 +91,45 @@
 {% if 'gastos_categoria' in widget_config.widgets_activos or widget_config.widgets_activos|length == 0 %}
 <div class="fin-card p-5 lg:p-6">
     <div class="flex items-center justify-between mb-3">
-        <span class="text-slate-300 text-sm font-medium">Ingresos del mes</span>
+        <span class="text-slate-300 text-sm font-medium privacy-hide">Ingresos del mes</span>
         <div class="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center shadow-inner shadow-blue-500/20">
             <i class="fas fa-arrow-up text-blue-400"></i>
         </div>
     </div>
-    <p class="text-2xl lg:text-3xl font-bold font-mono text-white tracking-tight">{{ ciclo.total_ingresos|cop }}</p>
-    <p class="text-xs text-slate-400 mt-2">Salario {{ ciclo.salario_ciclo|cop }}</p>
+    <div class="privacy-hide">
+        <p class="text-2xl lg:text-3xl font-bold font-mono text-white tracking-tight">{{ ciclo.total_ingresos|cop }}</p>
+        <p class="text-xs text-slate-400 mt-2">Salario {{ ciclo.salario_ciclo|cop }}</p>
+    </div>
 </div>
 {% endif %}
 
 {% if 'presupuesto_gastado' in widget_config.widgets_activos or widget_config.widgets_activos|length == 0 %}
 <div class="fin-card p-5 lg:p-6">
     <div class="flex items-center justify-between mb-3">
-        <span class="text-slate-300 text-sm font-medium">Gastos del mes</span>
+        <span class="text-slate-300 text-sm font-medium privacy-hide">Gastos del mes</span>
         <div class="w-10 h-10 rounded-xl bg-fintech-rose/20 flex items-center justify-center shadow-inner shadow-fintech-rose/20">
             <i class="fas fa-arrow-down text-fintech-rose"></i>
         </div>
     </div>
-    <p class="text-2xl lg:text-3xl font-bold font-mono text-gradient-rose tracking-tight">{{ ciclo.total_gastos|cop }}</p>
-    <p class="text-xs text-slate-400 mt-2">Enviado a ahorro {{ ciclo.total_enviado_ahorro|cop }}</p>
+    <div class="privacy-hide">
+        <p class="text-2xl lg:text-3xl font-bold font-mono text-gradient-rose tracking-tight">{{ ciclo.total_gastos|cop }}</p>
+        <p class="text-xs text-slate-400 mt-2">Enviado a ahorro {{ ciclo.total_enviado_ahorro|cop }}</p>
+    </div>
 </div>
 {% endif %}
 
 {% if 'ahorros_resumen' in widget_config.widgets_activos or widget_config.widgets_activos|length == 0 %}
 <div class="fin-card p-5 lg:p-6">
     <div class="flex items-center justify-between mb-3">
-        <span class="text-slate-300 text-sm font-medium">Fondo de ahorro</span>
+        <span class="text-slate-300 text-sm font-medium privacy-hide">Fondo de ahorro</span>
         <div class="w-10 h-10 rounded-xl bg-fintech-cyan/20 flex items-center justify-center shadow-inner shadow-fintech-cyan/20">
             <i class="fas fa-piggy-bank text-fintech-cyan"></i>
         </div>
     </div>
-    <p class="text-2xl lg:text-3xl font-bold font-mono text-fintech-cyan tracking-tight">{{ fondo.saldo_disponible|cop }}</p>
-    <a href="{% url 'dashboard_ahorros' %}" class="text-xs text-fintech-cyan hover:underline mt-2 inline-block">Ver ahorros e inversiones</a>
+    <div class="privacy-hide">
+        <p class="text-2xl lg:text-3xl font-bold font-mono text-fintech-cyan tracking-tight">{{ fondo.saldo_disponible|cop }}</p>
+        <a href="{% url 'dashboard_ahorros' %}" class="text-xs text-fintech-cyan hover:underline mt-2 inline-block">Ver ahorros e inversiones</a>
+    </div>
 </div>
 {% endif %}
 </div>

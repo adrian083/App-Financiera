@@ -159,16 +159,36 @@
             user-select: none;
         }
         body.modo-privacidad .monto-dinero::after {
-            content: '$ ••••••';
+            content: '••••••';
             position: absolute;
             inset: 0;
             display: flex;
             align-items: center;
+            justify-content: center;
             color: #94A3B8;
-            letter-spacing: 0.08em;
+            letter-spacing: 0.16em;
             font-weight: 700;
             white-space: nowrap;
-            color: transparent;
+        }
+
+        body.modo-privacidad .privacy-hide {
+            position: relative;
+            overflow: hidden;
+        }
+        body.modo-privacidad .privacy-hide * {
+            visibility: hidden !important;
+        }
+        body.modo-privacidad .privacy-hide::after {
+            content: '••••••';
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #94A3B8;
+            letter-spacing: 0.16em;
+            font-weight: 700;
+            padding: 0.5rem;
         }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
